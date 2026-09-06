@@ -1,0 +1,10 @@
+{
+  "name": "youtube-ios-license-server",
+  "version": "1.0.0",
+  "description": "Subscription & License Management Server for iOS YouTube Plus",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

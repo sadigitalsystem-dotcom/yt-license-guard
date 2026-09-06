@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة تحكم اشتراكات YouTube Plus - iOS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Cairo', sans-serif; }
+    .glass-card {
+      background: rgba(24, 24, 27, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+  </style>
+</head>
+<body class="bg-zinc-950 text-zinc-100 min-h-screen">
+
+  <!-- شريط التنقل العلوي -->
+  <header class="border-b border-zinc-800 bg-zinc-900/60 sticky top-0 z-40 backdrop-blur">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-red-600 flex items-center justify-center text-white shadow-lg shadow-red-600/30">
+          <i class="fa-brands fa-youtube text-xl"></i>
+        </div>
+        <div>
+          <h1 class="font-extrabold text-lg tracking-tight">YouTube Plus <span class="text-red-500 text-xs px-2 py-0.5 bg-red-500/10 rounded-full border border-red-500/20">iOS Guard</span></h1>
+          <p class="text-xs text-zinc-400">نظام إدارة التراخيص والاشتراكات للأجهزة</p>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-3">
+        <button onclick="openGenerateModal()" class="bg-red-600 hover:bg-red-700 text-white text-sm font-bold px-4 py-2 rounded-xl transition flex items-center gap-2 shadow-lg shadow-red-600/20">
+          <i class="fa-solid fa-plus"></i>
+          <span>توليد كود جديد</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- المحتوى الرئيسي -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <!-- بطاقات الإحصائيات -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div class="glass-card rounded-2xl p-5">
+        <div class="flex items-center justify-between">
+          <span class="text-zinc-400 text-sm">إجمالي الأكواد</span>
+          <span class="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-400"><i class="fa-solid fa-key text-xs"></i></span>
+        </div>
+        <div id="statTotal" class="text-3xl font-extrabold mt-2 text-white">0</div>
+        <div class="text-xs text-zinc-500 mt-1">كافة السيريالات الصادرة</div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-5">
+        <div class="flex items-center justify-between">
+          <span class="text-emerald-400 text-sm">الاشتراكات النشطة</span>
+          <span class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400"><i class="fa-solid fa-circle-check text-xs"></i></span>
+        </div>
+        <div id="statActive" class="text-3xl font-extrabold mt-2 text-emerald-400">0</div>
+        <div class="text-xs text-zinc-500 mt-1">تعمل حالياً على الآيفون</div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-5">
+        <div class="flex items-center justify-between">
+          <span class="text-amber-400 text-sm">أكواد جاهزة للتسليم</span>
+          <span class="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400"><i class="fa-solid fa-clock text-xs"></i></span>
+        </div>
+        <div id="statPending" class="text-3xl font-extrabold mt-2 text-amber-400">0</div>
+        <div class="text-xs text-zinc-500 mt-1">لم تُربط بجهاز بعد</div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-5">
+        <div class="flex items-center justify-between">
+          <span class="text-red-400 text-sm">منتهية / محظورة</span>
+          <span class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-400"><i class="fa-solid fa-ban text-xs"></i></span>
+        </div>
+        <div id="statExpired" class="text-3xl font-extrabold mt-2 text-red-400">0</div>
+        <div class="text-xs text-zinc-500 mt-1">انتهت مدتها أو تم إيقافها</div>
+      </div>
+    </div>
+
+    <!-- جدول إدارة التراخيص -->
+    <div class="glass-card rounded-2xl overflow-hidden shadow-2xl">
+      <!-- شريط البحث والتصفية -->
+      <div class="p-4 sm:p-6 border-b border-zinc-800 flex flex-col sm:flex-row gap-4 items-center justify-between">
+        <div class="relative w-full sm:w-80">
+          <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-3.5 text-zinc-500 text-sm"></i>
+          <input type="text" id="searchInput" oninput="filterLicenses()" placeholder="بحث برقم السيريال أو الملاحظة أو الجهاز..." class="w-full bg-zinc-900 border border-zinc-700/60 rounded-xl pr-10 pl-4 py-2 text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-red-500 transition">
+        </div>
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <button onclick="loadLicenses()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2">
+            <i class="fa-solid fa-rotate text-xs"></i>
+            <span>تحديث</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- الجدول -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-right text-sm">
+          <thead class="bg-zinc-900/80 text-zinc-400 text-xs border-b border-zinc-800 uppercase">
+            <tr>
+              <th class="px-6 py-4">كود التفعيل (Serial)</th>
+              <th class="px-6 py-4">المدة</th>
+              <th class="px-6 py-4">معرّف الجهاز (UUID/IDFV)</th>
+              <th class="px-6 py-4">تاريخ الانتهاء</th>
+              <th class="px-6 py-4">الحالة</th>
+              <th class="px-6 py-4 text-center">الإجراءات</th>
+            </tr>
+          </thead>
+          <tbody id="licensesTableBody" class="divide-y divide-zinc-800/60">
+            <tr>
+              <td colspan="6" class="px-6 py-12 text-center text-zinc-500">جاري تحميل البيانات...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- نافذة توليد كود جديد (Modal) -->
+  <div id="generateModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="glass-card bg-zinc-900 rounded-2xl w-full max-w-md p-6 border border-zinc-700 shadow-2xl relative">
+      <h3 class="text-lg font-bold text-white mb-1 flex items-center gap-2">
+        <i class="fa-solid fa-key text-red-500"></i>
+        <span>توليد أكواد اشتراك جديدة</span>
+      </h3>
+      <p class="text-xs text-zinc-400 mb-6">حدد مدة الصلاحية والملاحظات لإصدار السيريالات للعميل</p>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-zinc-300 mb-1.5">مدة الاشتراك</label>
+          <select id="genDays" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-red-500">
+            <option value="7">تجربة - 7 أيام</option>
+            <option value="30" selected>شهر كامل - 30 يوماً</option>
+            <option value="90">3 أشهر - 90 يوماً</option>
+            <option value="180">6 أشهر - 180 يوماً</option>
+            <option value="365">سنة كاملة - 365 يوماً</option>
+            <option value="9999">مدى الحياة (دائم)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-zinc-300 mb-1.5">عدد الأكواد المطلوبة</label>
+          <input type="number" id="genCount" value="1" min="1" max="50" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-red-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-zinc-300 mb-1.5">ملاحظة / اسم العميل (اختياري)</label>
+          <input type="text" id="genNote" placeholder="مثال: اشتراك فهد - تم الدفع" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-red-500">
+        </div>
+      </div>
+
+      <div class="mt-6 flex items-center justify-end gap-3">
+        <button onclick="closeGenerateModal()" class="px-4 py-2 text-sm font-semibold text-zinc-400 hover:text-white transition">إلغاء</button>
+        <button onclick="submitGenerate()" class="bg-red-600 hover:bg-red-700 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition flex items-center gap-2">
+          <span>إنشاء وتوليد</span>
+          <i class="fa-solid fa-arrow-left"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- إشعار نسخ الكود (Toast) -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-emerald-500 text-zinc-950 font-bold px-5 py-2.5 rounded-xl shadow-xl flex items-center gap-2 transition-all opacity-0 pointer-events-none z-50">
+    <i class="fa-solid fa-check-circle"></i>
+    <span id="toastMsg">تم النسخ إلى الحافظة!</span>
+  </div>
+
+  <script>
+    let allLicenses = [];
+
+    async function loadLicenses() {
+      try {
+        const res = await fetch('/api/admin/licenses');
+        const data = await res.json();
+        allLicenses = data.licenses || [];
+        renderLicenses(allLicenses);
+        updateStats(allLicenses);
+      } catch (err) {
+        console.error('Error loading:', err);
+      }
+    }
+
+    function updateStats(licenses) {
+      const now = new Date();
+      let active = 0, pending = 0, expired = 0;
+      
+      licenses.forEach(l => {
+        if (!l.is_active) {
+          expired++;
+        } else if (!l.device_id) {
+          pending++;
+        } else if (l.expiry_date && new Date(l.expiry_date) < now) {
+          expired++;
+        } else {
+          active++;
+        }
+      });
+
+      document.getElementById('statTotal').innerText = licenses.length;
+      document.getElementById('statActive').innerText = active;
+      document.getElementById('statPending').innerText = pending;
+      document.getElementById('statExpired').innerText = expired;
+    }
+
+    function renderLicenses(licenses) {
+      const tbody = document.getElementById('licensesTableBody');
+      if (licenses.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-12 text-center text-zinc-500">لا توجد أكواد مسجلة بعد. اضغط "توليد كود جديد" للبدء.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = licenses.map(l => {
+        const now = new Date();
+        let badge = '<span class="px-2.5 py-1 text-xs rounded-full bg-zinc-800 text-zinc-400 font-semibold">جاهز للتسليم</span>';
+        if (!l.is_active) {
+          badge = '<span class="px-2.5 py-1 text-xs rounded-full bg-red-500/10 text-red-400 font-bold border border-red-500/20">محظور</span>';
+        } else if (l.expiry_date) {
+          if (new Date(l.expiry_date) < now) {
+            badge = '<span class="px-2.5 py-1 text-xs rounded-full bg-red-500/10 text-red-400 font-bold border border-red-500/20">منتهي</span>';
+          } else {
+            badge = '<span class="px-2.5 py-1 text-xs rounded-full bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/20">نشط ✓</span>';
+          }
+        }
+
+        const deviceDisplay = l.device_id 
+          ? `<span class="font-mono text-xs text-zinc-300" title="${l.device_id}">${l.device_id.substring(0, 16)}...</span>`
+          : `<span class="text-xs text-zinc-500 italic">غير مقيد بجهاز بعد</span>`;
+
+        const expiryDisplay = l.expiry_date 
+          ? new Date(l.expiry_date).toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric' })
+          : `<span class="text-zinc-500">يبدأ عند أول تفعيل</span>`;
+
+        return `
+          <tr class="hover:bg-zinc-900/50 transition">
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-2">
+                <span class="font-mono font-bold text-white">${l.serial_key}</span>
+                <button onclick="copyToClipboard('${l.serial_key}')" class="text-zinc-500 hover:text-red-400 transition" title="نسخ الكود">
+                  <i class="fa-regular fa-copy text-xs"></i>
+                </button>
+              </div>
+              ${l.note ? `<div class="text-xs text-zinc-400 mt-0.5">${l.note}</div>` : ''}
+            </td>
+            <td class="px-6 py-4 text-zinc-300 font-semibold">${l.duration_days} يوم</td>
+            <td class="px-6 py-4">${deviceDisplay}</td>
+            <td class="px-6 py-4 text-zinc-300">${expiryDisplay}</td>
+            <td class="px-6 py-4">${badge}</td>
+            <td class="px-6 py-4 text-center">
+              <div class="flex items-center justify-center gap-2">
+                <button onclick="toggleActive('${l.id}')" class="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition" title="${l.is_active ? 'إيقاف / حظر' : 'تفعيل'}">
+                  <i class="fa-solid ${l.is_active ? 'fa-pause' : 'fa-play'} text-xs"></i>
+                </button>
+                ${l.device_id ? `
+                  <button onclick="resetDevice('${l.id}')" class="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-amber-400 transition" title="فك ربط الجهاز (إذا غيّر العميل هاتفه)">
+                    <i class="fa-solid fa-mobile-screen-button text-xs"></i>
+                  </button>
+                ` : ''}
+                <button onclick="deleteLicense('${l.id}')" class="p-2 rounded-lg bg-zinc-800 hover:bg-red-500/20 text-zinc-400 hover:text-red-400 transition" title="حذف نهائي">
+                  <i class="fa-solid fa-trash text-xs"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function filterLicenses() {
+      const q = document.getElementById('searchInput').value.toLowerCase();
+      const filtered = allLicenses.filter(l => 
+        l.serial_key.toLowerCase().includes(q) ||
+        (l.note && l.note.toLowerCase().includes(q)) ||
+        (l.device_id && l.device_id.toLowerCase().includes(q))
+      );
+      renderLicenses(filtered);
+    }
+
+    function openGenerateModal() {
+      document.getElementById('generateModal').classList.remove('hidden');
+    }
+
+    function closeGenerateModal() {
+      document.getElementById('generateModal').classList.add('hidden');
+    }
+
+    async function submitGenerate() {
+      const days = document.getElementById('genDays').value;
+      const count = document.getElementById('genCount').value;
+      const note = document.getElementById('genNote').value;
+
+      try {
+        const res = await fetch('/api/admin/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ days, count, note })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          closeGenerateModal();
+          showToast(`تم إنشاء ${data.count} كود بنجاح!`);
+          document.getElementById('genNote').value = '';
+          loadLicenses();
+        }
+      } catch (err) {
+        alert('حدث خطأ أثناء الإنشاء');
+      }
+    }
+
+    async function toggleActive(id) {
+      await fetch('/api/admin/toggle-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      loadLicenses();
+    }
+
+    async function resetDevice(id) {
+      if (confirm('هل تريد فك ربط هذا الجهاز؟ سيتمكن العميل من تفعيل الكود على جهاز جديد.')) {
+        await fetch('/api/admin/reset-device', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        });
+        showToast('تم فك ربط الجهاز بنجاح');
+        loadLicenses();
+      }
+    }
+
+    async function deleteLicense(id) {
+      if (confirm('هل أنت متأكد من حذف هذا السيريال نهائياً؟')) {
+        await fetch('/api/admin/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        });
+        showToast('تم حذف الكود');
+        loadLicenses();
+      }
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text);
+      showToast('تم نسخ الكود: ' + text);
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').innerText = msg;
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'pointer-events-none');
+      }, 2500);
+    }
+
+    // التحميل المبدئي
+    loadLicenses();
+  </script>
+</body>
+</html>
