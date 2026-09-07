@@ -10,6 +10,7 @@ const __dirname = path.dirname(__filename);
 const PORT = process.env.PORT || 3000;
 const DB_PATH = path.join(__dirname, 'licenses.json');
 const DASHBOARD_PATH = path.join(__dirname, 'dashboard.html');
+const APP_PATH = path.join(__dirname, 'app.html');
 
 // إدارة قاعدة البيانات كملف JSON لضمان التوافقية بنسبة 100% دون أي متطلبات تثبيت
 class LicenseDB {
@@ -134,6 +135,33 @@ const server = http.createServer(async (req, res) => {
       } else {
         res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
         res.end('ملف لوحة التحكم غير موجود');
+      }
+      return;
+    }
+
+    // 1.5 صفحة محاكاة تطبيق الهاتف (شاشة التفعيل والقفل للأندرويد والآيفون)
+    if (req.method === 'GET' && pathname === '/app') {
+      if (fs.existsSync(APP_PATH)) {
+        const html = fs.readFileSync(APP_PATH, 'utf8');
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+        res.end(html);
+      } else {
+        res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+        res.end('ملف التطبيق غير موجود');
+      }
+      return;
+    }
+
+    // 1.6 مسار PWA Manifest للتثبيت على الهواتف والشاشات
+    if (req.method === 'GET' && pathname === '/manifest.json') {
+      const manifestPath = path.join(__dirname, 'manifest.json');
+      if (fs.existsSync(manifestPath)) {
+        const content = fs.readFileSync(manifestPath, 'utf8');
+        res.writeHead(200, { 'Content-Type': 'application/manifest+json; charset=utf-8' });
+        res.end(content);
+      } else {
+        res.writeHead(404);
+        res.end();
       }
       return;
     }

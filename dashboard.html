@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>لوحة تحكم اشتراكات YouTube Plus - iOS</title>
+  <title>لوحة تحكم اشتراكات YouTube Plus - لكافة الأجهزة</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Cairo', sans-serif; }
     .glass-card {
@@ -26,15 +27,23 @@
           <i class="fa-brands fa-youtube text-xl"></i>
         </div>
         <div>
-          <h1 class="font-extrabold text-lg tracking-tight">YouTube Plus <span class="text-red-500 text-xs px-2 py-0.5 bg-red-500/10 rounded-full border border-red-500/20">iOS Guard</span></h1>
-          <p class="text-xs text-zinc-400">نظام إدارة التراخيص والاشتراكات للأجهزة</p>
+          <h1 class="font-extrabold text-lg tracking-tight">YouTube Plus <span class="text-red-500 text-xs px-2 py-0.5 bg-red-500/10 rounded-full border border-red-500/20">Universal Guard</span></h1>
+          <p class="text-xs text-zinc-400">إدارة التراخيص: هواتف • أجهزة لوحية • شاشات تلفزيون ذكية</p>
         </div>
       </div>
       
-      <div class="flex items-center gap-3">
-        <button onclick="openGenerateModal()" class="bg-red-600 hover:bg-red-700 text-white text-sm font-bold px-4 py-2 rounded-xl transition flex items-center gap-2 shadow-lg shadow-red-600/20">
+      <div class="flex items-center gap-2 sm:gap-3">
+        <button onclick="openQrModal()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-2 border border-zinc-700 shadow-sm" title="فتح التطبيق عبر الهاتف أو التلفزيون">
+          <i class="fa-solid fa-qrcode text-red-500"></i>
+          <span class="hidden sm:inline">مسح QR للأجهزة</span>
+        </button>
+        <a href="/app" target="_blank" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-2 border border-zinc-700">
+          <i class="fa-solid fa-mobile-screen text-red-500"></i>
+          <span>فتح المشغل</span>
+        </a>
+        <button onclick="openGenerateModal()" class="bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-bold px-4 py-2 rounded-xl transition flex items-center gap-2 shadow-lg shadow-red-600/20">
           <i class="fa-solid fa-plus"></i>
-          <span>توليد كود جديد</span>
+          <span>توليد كود</span>
         </button>
       </div>
     </div>
@@ -60,7 +69,7 @@
           <span class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400"><i class="fa-solid fa-circle-check text-xs"></i></span>
         </div>
         <div id="statActive" class="text-3xl font-extrabold mt-2 text-emerald-400">0</div>
-        <div class="text-xs text-zinc-500 mt-1">تعمل حالياً على الآيفون</div>
+        <div class="text-xs text-zinc-500 mt-1">تعمل حالياً على الأجهزة</div>
       </div>
 
       <div class="glass-card rounded-2xl p-5">
@@ -86,14 +95,14 @@
     <div class="glass-card rounded-2xl overflow-hidden shadow-2xl">
       <!-- شريط البحث والتصفية -->
       <div class="p-4 sm:p-6 border-b border-zinc-800 flex flex-col sm:flex-row gap-4 items-center justify-between">
-        <div class="relative w-full sm:w-80">
+        <div class="relative w-full sm:w-96">
           <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-3.5 text-zinc-500 text-sm"></i>
-          <input type="text" id="searchInput" oninput="filterLicenses()" placeholder="بحث برقم السيريال أو الملاحظة أو الجهاز..." class="w-full bg-zinc-900 border border-zinc-700/60 rounded-xl pr-10 pl-4 py-2 text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-red-500 transition">
+          <input type="text" id="searchInput" oninput="filterLicenses()" placeholder="بحث برقم السيريال أو نوع الجهاز أو الملاحظة..." class="w-full bg-zinc-900 border border-zinc-700/60 rounded-xl pr-10 pl-4 py-2 text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-red-500 transition">
         </div>
         <div class="flex items-center gap-2 w-full sm:w-auto">
-          <button onclick="loadLicenses()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2">
+          <button onclick="loadLicenses()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3.5 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2">
             <i class="fa-solid fa-rotate text-xs"></i>
-            <span>تحديث</span>
+            <span>تحديث السجلات</span>
           </button>
         </div>
       </div>
@@ -105,7 +114,7 @@
             <tr>
               <th class="px-6 py-4">كود التفعيل (Serial)</th>
               <th class="px-6 py-4">المدة</th>
-              <th class="px-6 py-4">معرّف الجهاز (UUID/IDFV)</th>
+              <th class="px-6 py-4">نوع ومعرّف الجهاز</th>
               <th class="px-6 py-4">تاريخ الانتهاء</th>
               <th class="px-6 py-4">الحالة</th>
               <th class="px-6 py-4 text-center">الإجراءات</th>
@@ -128,7 +137,7 @@
         <i class="fa-solid fa-key text-red-500"></i>
         <span>توليد أكواد اشتراك جديدة</span>
       </h3>
-      <p class="text-xs text-zinc-400 mb-6">حدد مدة الصلاحية والملاحظات لإصدار السيريالات للعميل</p>
+      <p class="text-xs text-zinc-400 mb-6">حدد مدة الصلاحية لإصدار السيريالات للمشتركين</p>
 
       <div class="space-y-4">
         <div>
@@ -144,13 +153,13 @@
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-zinc-300 mb-1.5">عدد الأكواد المطلوبة</label>
+          <label class="block text-xs font-semibold text-zinc-300 mb-1.5">عدد الأكواد</label>
           <input type="number" id="genCount" value="1" min="1" max="50" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-red-500">
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-zinc-300 mb-1.5">ملاحظة / اسم العميل (اختياري)</label>
-          <input type="text" id="genNote" placeholder="مثال: اشتراك فهد - تم الدفع" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-red-500">
+          <label class="block text-xs font-semibold text-zinc-300 mb-1.5">ملاحظة / اسم المشترك أو الجهاز</label>
+          <input type="text" id="genNote" placeholder="مثال: شاشة غرفة المعيشة / هاتف محمد" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-red-500">
         </div>
       </div>
 
@@ -164,6 +173,32 @@
     </div>
   </div>
 
+  <!-- نافذة مسح رمز الـ QR للهاتف والتلفزيون (Modal) -->
+  <div id="qrModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="glass-card bg-zinc-900 rounded-3xl w-full max-w-sm p-6 sm:p-7 border border-zinc-700 shadow-2xl text-center relative">
+      <h3 class="text-lg font-bold text-white mb-1 flex items-center justify-center gap-2">
+        <i class="fa-solid fa-qrcode text-red-500"></i>
+        <span>مسح الرابط بالهاتف أو الشاشة</span>
+      </h3>
+      <p class="text-xs text-zinc-400 mb-5">وجّه كاميرا الهاتف أو متصفح التلفزيون لمسح الرمز وفتح التطبيق فوراً</p>
+
+      <div class="bg-white p-4 rounded-2xl w-48 h-48 mx-auto flex items-center justify-center shadow-inner">
+        <div id="qrcodeCanvas"></div>
+      </div>
+
+      <div class="mt-4 bg-zinc-800/80 rounded-xl p-2.5 text-[11px] text-zinc-300 font-mono break-all flex items-center justify-between gap-2 border border-zinc-700">
+        <span id="qrUrlText" class="truncate">https://yt-license-guard.onrender.com/app</span>
+        <button onclick="copyAppUrl()" class="text-red-400 hover:text-red-300 transition text-xs font-bold shrink-0">
+          <i class="fa-regular fa-copy"></i>
+        </button>
+      </div>
+
+      <button onclick="closeQrModal()" class="mt-5 w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-2.5 rounded-xl text-sm transition">
+        إغلاق
+      </button>
+    </div>
+  </div>
+
   <!-- إشعار نسخ الكود (Toast) -->
   <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-emerald-500 text-zinc-950 font-bold px-5 py-2.5 rounded-xl shadow-xl flex items-center gap-2 transition-all opacity-0 pointer-events-none z-50">
     <i class="fa-solid fa-check-circle"></i>
@@ -171,11 +206,12 @@
   </div>
 
   <script>
+    const API_BASE = 'https://yt-license-guard.onrender.com';
     let allLicenses = [];
 
     async function loadLicenses() {
       try {
-        const res = await fetch('/api/admin/licenses');
+        const res = await fetch(`${API_BASE}/api/admin/licenses`);
         const data = await res.json();
         allLicenses = data.licenses || [];
         renderLicenses(allLicenses);
@@ -227,9 +263,19 @@
           }
         }
 
+        // تحديد أيقونة الجهاز
+        let deviceIcon = 'fa-mobile-screen';
+        let devStr = l.device_id || '';
+        if (devStr.includes('TV')) deviceIcon = 'fa-tv';
+        else if (devStr.includes('TABLET') || devStr.includes('IPAD')) deviceIcon = 'fa-tablet-screen-button';
+        else if (devStr.includes('DESKTOP') || devStr.includes('PC')) deviceIcon = 'fa-laptop';
+
         const deviceDisplay = l.device_id 
-          ? `<span class="font-mono text-xs text-zinc-300" title="${l.device_id}">${l.device_id.substring(0, 16)}...</span>`
-          : `<span class="text-xs text-zinc-500 italic">غير مقيد بجهاز بعد</span>`;
+          ? `<div class="flex items-center gap-1.5 font-mono text-xs text-zinc-200">
+               <i class="fa-solid ${deviceIcon} text-red-400 text-xs"></i>
+               <span title="${l.device_id}">${l.device_id.substring(0, 18)}</span>
+             </div>`
+          : `<span class="text-xs text-zinc-500 italic">بانتظار أول تفعيل</span>`;
 
         const expiryDisplay = l.expiry_date 
           ? new Date(l.expiry_date).toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric' })
@@ -256,8 +302,8 @@
                   <i class="fa-solid ${l.is_active ? 'fa-pause' : 'fa-play'} text-xs"></i>
                 </button>
                 ${l.device_id ? `
-                  <button onclick="resetDevice('${l.id}')" class="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-amber-400 transition" title="فك ربط الجهاز (إذا غيّر العميل هاتفه)">
-                    <i class="fa-solid fa-mobile-screen-button text-xs"></i>
+                  <button onclick="resetDevice('${l.id}')" class="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-amber-400 transition" title="فك ربط الجهاز (إذا غيّر العميل هاتفه أو شاشته)">
+                    <i class="fa-solid fa-arrows-rotate text-xs"></i>
                   </button>
                 ` : ''}
                 <button onclick="deleteLicense('${l.id}')" class="p-2 rounded-lg bg-zinc-800 hover:bg-red-500/20 text-zinc-400 hover:text-red-400 transition" title="حذف نهائي">
@@ -294,7 +340,7 @@
       const note = document.getElementById('genNote').value;
 
       try {
-        const res = await fetch('/api/admin/generate', {
+        const res = await fetch(`${API_BASE}/api/admin/generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ days, count, note })
@@ -312,7 +358,7 @@
     }
 
     async function toggleActive(id) {
-      await fetch('/api/admin/toggle-status', {
+      await fetch(`${API_BASE}/api/admin/toggle-status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id })
@@ -321,8 +367,8 @@
     }
 
     async function resetDevice(id) {
-      if (confirm('هل تريد فك ربط هذا الجهاز؟ سيتمكن العميل من تفعيل الكود على جهاز جديد.')) {
-        await fetch('/api/admin/reset-device', {
+      if (confirm('هل تريد فك ربط هذا الجهاز؟ سيتمكن المشترك من تفعيل الكود على جهاز جديد (هاتف، تابلت، أو تلفزيون).')) {
+        await fetch(`${API_BASE}/api/admin/reset-device`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id })
@@ -334,7 +380,7 @@
 
     async function deleteLicense(id) {
       if (confirm('هل أنت متأكد من حذف هذا السيريال نهائياً؟')) {
-        await fetch('/api/admin/delete', {
+        await fetch(`${API_BASE}/api/admin/delete`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id })
@@ -349,6 +395,31 @@
       showToast('تم نسخ الكود: ' + text);
     }
 
+    function copyAppUrl() {
+      const url = 'https://yt-license-guard.onrender.com/app';
+      navigator.clipboard.writeText(url);
+      showToast('تم نسخ رابط المشغل: ' + url);
+    }
+
+    function openQrModal() {
+      const modal = document.getElementById('qrModal');
+      const canvas = document.getElementById('qrcodeCanvas');
+      canvas.innerHTML = '';
+      new QRCode(canvas, {
+        text: 'https://yt-license-guard.onrender.com/app',
+        width: 160,
+        height: 160,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+      });
+      modal.classList.remove('hidden');
+    }
+
+    function closeQrModal() {
+      document.getElementById('qrModal').classList.add('hidden');
+    }
+
     function showToast(msg) {
       const toast = document.getElementById('toast');
       document.getElementById('toastMsg').innerText = msg;
@@ -358,7 +429,6 @@
       }, 2500);
     }
 
-    // التحميل المبدئي
     loadLicenses();
   </script>
 </body>

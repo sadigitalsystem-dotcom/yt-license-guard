@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>YouTube Plus PRO - المشغل الشامل</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#dc2626">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      background-color: #09090b;
+      color: #f4f4f5;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tv-focusable:focus, .tv-focusable.tv-active {
+      outline: 3px solid #ef4444 !important;
+      transform: scale(1.03);
+      transition: all 0.2s ease;
+    }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="min-h-screen bg-zinc-950 flex flex-col text-zinc-100 overflow-x-hidden">
+
+  <!-- شريط العنوان العلوي -->
+  <header id="mainHeader" class="bg-zinc-900/80 border-b border-zinc-800/80 backdrop-blur sticky top-0 z-40 px-4 py-3 sm:px-6 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-red-600 flex items-center justify-center text-white shadow-lg shadow-red-600/30">
+        <i class="fa-brands fa-youtube text-lg sm:text-xl"></i>
+      </div>
+      <div>
+        <h1 class="font-extrabold text-sm sm:text-base flex items-center gap-1.5">
+          YouTube Plus <span class="text-[10px] bg-red-500/10 text-red-400 border border-red-500/20 px-1.5 py-0.5 rounded-full font-bold">PRO</span>
+        </h1>
+        <p class="text-[10px] sm:text-xs text-zinc-400" id="deviceSubtitle">كافة الأجهزة • هاتف / تابلت / شاشة</p>
+      </div>
+    </div>
+
+    <!-- مؤشرات الجهاز والاشتراك -->
+    <div class="flex items-center gap-2 sm:gap-3">
+      <div id="deviceBadge" class="text-[11px] px-2.5 py-1 rounded-full bg-zinc-800 border border-zinc-700/60 text-zinc-300 font-mono flex items-center gap-1.5">
+        <i id="deviceIcon" class="fa-solid fa-mobile-screen text-[11px] text-red-500"></i>
+        <span id="deviceLabel">جاري الفحص...</span>
+      </div>
+      <div id="subStatusBadge" class="hidden text-[11px] px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold flex items-center gap-1">
+        <i class="fa-solid fa-circle-check text-[10px]"></i>
+        <span id="subDaysLeft">نشط</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================== -->
+  <!-- 1. شاشة القفل والترخيص (تظهر قبل التفعيل) -->
+  <!-- ========================================== -->
+  <div id="lockSection" class="flex-1 flex items-center justify-center p-4 my-auto">
+    <div class="w-full max-w-md bg-zinc-900/95 border border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur relative overflow-hidden">
+      <div class="absolute -top-12 -right-12 w-32 h-32 bg-red-600/10 rounded-full blur-2xl pointer-events-none"></div>
+
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 rounded-2xl bg-red-600/10 border border-red-500/20 flex items-center justify-center text-red-500 shadow-inner">
+          <i class="fa-solid fa-lock text-2xl sm:text-3xl"></i>
+        </div>
+        <h2 class="text-xl sm:text-2xl font-black text-white">تفعيل باقة المشترك</h2>
+        <p class="text-xs sm:text-sm text-zinc-400 mt-2 leading-relaxed">
+          هذا التطبيق مقيد بنظام الاشتراكات. يرجى إدخال كود التفعيل الممنوح لك من الإدارة لتشغيل المشغل.
+        </p>
+      </div>
+
+      <!-- نموذج إدخال الكود -->
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-zinc-400 mb-1.5">كود التفعيل (Serial Key)</label>
+          <input 
+            type="text" 
+            id="keyInput" 
+            placeholder="PLUS-XXXX-XXXX-XXXX" 
+            class="tv-focusable w-full bg-zinc-800/90 border border-zinc-700 rounded-2xl px-4 py-3.5 sm:py-4 text-center font-mono font-black text-white placeholder-zinc-500 text-sm sm:text-base tracking-widest focus:outline-none focus:border-red-500 transition uppercase"
+            autocomplete="off"
+            autocorrect="off"
+          >
+        </div>
+
+        <button 
+          id="activateBtn" 
+          onclick="submitActivation()" 
+          class="tv-focusable w-full bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-bold py-3.5 sm:py-4 rounded-2xl transition shadow-lg shadow-red-600/25 flex items-center justify-center gap-2 text-sm sm:text-base"
+        >
+          <span>تفعيل الاشتراك الآن</span>
+          <i class="fa-solid fa-bolt text-xs"></i>
+        </button>
+
+        <div id="errorAlert" class="hidden p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs text-center leading-relaxed"></div>
+      </div>
+
+      <div class="mt-6 pt-5 border-t border-zinc-800/80 text-center">
+        <div class="text-[11px] text-zinc-500 flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-shield-halved text-zinc-600"></i>
+          <span>حماية مشفرة وربط عتادي بمعرف الجهاز</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 2. المشغل الحقيقي بعد التفعيل (YouTube App) -->
+  <!-- ========================================== -->
+  <main id="playerSection" class="hidden flex-1 max-w-7xl w-full mx-auto px-4 py-4 sm:py-6 flex flex-col gap-6">
+
+    <!-- شريط تنبيه الاشتراك والأيام المتبقية -->
+    <div class="bg-gradient-to-l from-red-600/20 via-zinc-900 to-zinc-900 border border-red-500/20 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-lg">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            تم تفعيل باقة YouTube Plus بنجاح!
+            <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full">سارية</span>
+          </h3>
+          <p class="text-xs text-zinc-400">
+            الكود المفعل: <span id="dispKey" class="font-mono text-zinc-300 font-bold"></span> • ينتهي في: <span id="dispExpiry" class="text-zinc-300"></span>
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+        <button onclick="disconnectDevice()" class="tv-focusable text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white px-3 py-2 rounded-xl transition">
+          <i class="fa-solid fa-power-off text-red-400 ml-1"></i> تسجيل الخروج
+        </button>
+      </div>
+    </div>
+
+    <!-- شريط البحث السريع في يوتيوب -->
+    <div class="flex gap-2">
+      <div class="relative flex-1">
+        <i class="fa-solid fa-magnifying-glass absolute right-4 top-3.5 text-zinc-500 text-sm"></i>
+        <input 
+          type="text" 
+          id="searchInput" 
+          onkeydown="if(event.key==='Enter') searchYouTube()" 
+          placeholder="ابحث عن أي فيديو، قناة، أو بودكاست على YouTube..." 
+          class="tv-focusable w-full bg-zinc-900 border border-zinc-800 rounded-2xl pr-11 pl-4 py-3 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-red-500 transition"
+        >
+      </div>
+      <button onclick="searchYouTube()" class="tv-focusable bg-red-600 hover:bg-red-700 text-white font-bold px-5 py-3 rounded-2xl text-sm transition flex items-center gap-2">
+        <i class="fa-solid fa-search text-xs"></i>
+        <span class="hidden sm:inline">بحث</span>
+      </button>
+    </div>
+
+    <!-- مشغل الفيديو الرئيسي (Embedded Real Ad-Free Player) -->
+    <div class="bg-black border border-zinc-800 rounded-3xl overflow-hidden shadow-2xl">
+      <div class="relative w-full aspect-video">
+        <iframe 
+          id="videoIframe" 
+          class="w-full h-full" 
+          src="https://www.youtube-nocookie.com/embed/jfKfPfyJRdk?autoplay=1&rel=0&modestbranding=1" 
+          title="YouTube video player" 
+          frameborder="0" 
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+          allowfullscreen
+        ></iframe>
+      </div>
+      
+      <!-- شريط معلومات المشغل -->
+      <div class="p-4 bg-zinc-900/90 flex flex-wrap items-center justify-between gap-3 border-t border-zinc-800/80">
+        <div>
+          <h2 id="videoTitle" class="font-bold text-sm sm:text-base text-white">Lofi Hip Hop Radio - تشغيل مباشر بدون إعلانات</h2>
+          <p class="text-xs text-zinc-400 mt-0.5">مشغل YouTube Plus المباشر • يدعم الجودة العالية والشاشة الكاملة</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="toggleFullscreen()" class="tv-focusable bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold px-3 py-2 rounded-xl transition flex items-center gap-1.5">
+            <i class="fa-solid fa-expand"></i>
+            <span>شاشة كاملة</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- قسم المقترحات والفيديوهات الموصى بها -->
+    <div>
+      <h3 class="text-base font-bold text-white mb-3 flex items-center gap-2">
+        <i class="fa-solid fa-fire text-red-500"></i>
+        <span>فيديوهات مقترحة سريعة</span>
+      </h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="videoCardsGrid">
+        <!-- يتم ملء الكروت تلقائياً عبر JS -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- تنبيه القفل اللحظي (عند قيام المشرف بحظر الكود من لوحة التحكم) -->
+  <div id="revokeModal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-zinc-900 border border-red-500/40 rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl">
+      <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-red-600/20 text-red-500 flex items-center justify-center text-3xl">
+        <i class="fa-solid fa-ban"></i>
+      </div>
+      <h3 class="text-xl font-bold text-white mb-2">تم إيقاف الاشتراك!</h3>
+      <p class="text-xs text-zinc-400 leading-relaxed mb-6">
+        تم إلغاء تفعيل هذا الكود أو حظره من قبل إدارة المنصة. يرجى التواصل مع الإدارة للتجديد.
+      </p>
+      <button onclick="location.reload()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 rounded-xl text-sm transition">
+        إعادة المحاولة
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // الرابط السحابي الموحد (Render)
+    const API_BASE = 'https://yt-license-guard.onrender.com';
+
+    // فحص وتحديد نوع الجهاز (هاتف، تابلت، شاشة تلفزيون، كمبيوتر)
+    function detectDeviceCategory() {
+      const ua = navigator.userAgent.toLowerCase();
+      let type = 'phone';
+      let label = 'هاتف ذكي';
+      let icon = 'fa-mobile-screen';
+
+      if (ua.includes('tv') || ua.includes('smart-tv') || ua.includes('googletv') || ua.includes('tizen') || ua.includes('webos')) {
+        type = 'tv';
+        label = 'شاشة تلفزيون ذكية';
+        icon = 'fa-tv';
+      } else if (ua.includes('ipad') || (ua.includes('android') && !ua.includes('mobile')) || screen.width >= 768 && screen.width <= 1024) {
+        type = 'tablet';
+        label = 'جهاز لوحي (تابلت)';
+        icon = 'fa-tablet-screen-button';
+      } else if (!ua.includes('mobile') && screen.width > 1024) {
+        type = 'desktop';
+        label = 'حاسوب';
+        icon = 'fa-laptop';
+      } else {
+        if (ua.includes('android')) label = 'هاتف Android';
+        else if (ua.includes('iphone')) label = 'هاتف iPhone';
+      }
+
+      return { type, label, icon };
+    }
+
+    const devInfo = detectDeviceCategory();
+    document.getElementById('deviceIcon').className = `fa-solid ${devInfo.icon} text-[11px] text-red-500`;
+    document.getElementById('deviceLabel').innerText = devInfo.label;
+
+    // الحصول على المعرّف الفريد للجهاز وحفظه
+    function getHardwareUUID() {
+      let id = localStorage.getItem('yt_hardware_uuid');
+      if (!id) {
+        const rand = Math.random().toString(36).substring(2, 9).toUpperCase();
+        id = `${devInfo.type.toUpperCase()}-${rand}`;
+        localStorage.setItem('yt_hardware_uuid', id);
+      }
+      return id;
+    }
+
+    const deviceId = getHardwareUUID();
+
+    // قائمة فيديوهات مقترحة أولية
+    const PRESET_VIDEOS = [
+      { id: 'jfKfPfyJRdk', title: 'Lofi Hip Hop Radio 24/7 - موسيقى استرخاء ودراسة', thumb: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400&q=80' },
+      { id: 'kJQP7kiw5Fk', title: 'Luis Fonsi - Despacito ft. Daddy Yankee', thumb: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&q=80' },
+      { id: 'fJ9rUzIMcZQ', title: 'Bohemian Rhapsody - Queen (Official Video)', thumb: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=80' },
+      { id: '9bZkp7q19f0', title: 'PSY - GANGNAM STYLE (Official Music Video)', thumb: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400&q=80' }
+    ];
+
+    function renderPresetCards() {
+      const container = document.getElementById('videoCardsGrid');
+      container.innerHTML = PRESET_VIDEOS.map(v => `
+        <div onclick="playVideo('${v.id}', '${v.title.replace(/'/g, "\\'")}')" class="tv-focusable bg-zinc-900 border border-zinc-800/80 rounded-2xl overflow-hidden hover:border-red-500/50 transition cursor-pointer group">
+          <div class="relative aspect-video overflow-hidden">
+            <img src="${v.thumb}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+            <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+              <div class="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center text-white">
+                <i class="fa-solid fa-play translate-x-0.5"></i>
+              </div>
+            </div>
+          </div>
+          <div class="p-3">
+            <h4 class="text-xs font-bold text-zinc-200 line-clamp-2">${v.title}</h4>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function playVideo(videoId, title) {
+      document.getElementById('videoIframe').src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`;
+      document.getElementById('videoTitle').innerText = title;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function searchYouTube() {
+      const q = document.getElementById('searchInput').value.trim();
+      if (!q) return;
+      // تشغيل البحث المباشر في المشغل
+      document.getElementById('videoIframe').src = `https://www.youtube-nocookie.com/embed?listType=search&list=${encodeURIComponent(q)}&autoplay=1`;
+      document.getElementById('videoTitle').innerText = `نتائج البحث عن: ${q}`;
+    }
+
+    function toggleFullscreen() {
+      const iframe = document.getElementById('videoIframe');
+      if (iframe.requestFullscreen) iframe.requestFullscreen();
+      else if (iframe.webkitRequestFullscreen) iframe.webkitRequestFullscreen();
+    }
+
+    // فحص الصلاحية التلقائي عند فتح التطبيق
+    async function initCheck() {
+      renderPresetCards();
+      const savedKey = localStorage.getItem('yt_active_key');
+      if (!savedKey) {
+        showLockScreen();
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ serial_key: savedKey, device_id: deviceId })
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'valid') {
+          unlockApp(savedKey, data.expires_at, data.days_left);
+          startHeartbeat(savedKey);
+        } else {
+          localStorage.removeItem('yt_active_key');
+          showLockScreen(data.message || 'انتهت صلاحية الاشتراك أو تم تغييره');
+        }
+      } catch (e) {
+        // في حال عدم توفر اتصال مؤقت، نسمح بالدخول إذا كان الكود محفوظاً
+        unlockApp(savedKey, null, 'سارٍ (أوفلاين)');
+      }
+    }
+
+    // إرسال كود التفعيل
+    async function submitActivation() {
+      const key = document.getElementById('keyInput').value.trim().toUpperCase();
+      const btn = document.getElementById('activateBtn');
+      const errBox = document.getElementById('errorAlert');
+
+      errBox.classList.add('hidden');
+      if (!key || key.length < 8) {
+        errBox.innerText = 'يرجى إدخال كود تفعيل صحيح';
+        errBox.classList.remove('hidden');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>جاري التحقق من السيرفر...</span>';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/activate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ serial_key: key, device_id: deviceId })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.status === 'success') {
+          localStorage.setItem('yt_active_key', key);
+          unlockApp(key, data.expires_at, data.days_left);
+          startHeartbeat(key);
+        } else {
+          errBox.innerText = data.message || 'الكود غير صالح أو مستخدم على جهاز آخر';
+          errBox.classList.remove('hidden');
+        }
+      } catch (err) {
+        errBox.innerText = 'تعذر الاتصال بالسيرفر، تأكد من اتصال الإنترنت';
+        errBox.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>تفعيل الاشتراك الآن</span> <i class="fa-solid fa-bolt text-xs"></i>';
+      }
+    }
+
+    function unlockApp(key, expiry, daysLeft) {
+      document.getElementById('lockSection').classList.add('hidden');
+      document.getElementById('playerSection').classList.remove('hidden');
+
+      document.getElementById('subStatusBadge').classList.remove('hidden');
+      document.getElementById('subDaysLeft').innerText = `${daysLeft} يوم متبقي`;
+
+      document.getElementById('dispKey').innerText = key;
+      if (expiry) {
+        document.getElementById('dispExpiry').innerText = new Date(expiry).toLocaleDateString('ar-EG', {
+          year: 'numeric', month: 'short', day: 'numeric'
+        });
+      } else {
+        document.getElementById('dispExpiry').innerText = 'دائم';
+      }
+    }
+
+    function showLockScreen(msg) {
+      document.getElementById('playerSection').classList.add('hidden');
+      document.getElementById('lockSection').classList.remove('hidden');
+      if (msg) {
+        const errBox = document.getElementById('errorAlert');
+        errBox.innerText = msg;
+        errBox.classList.remove('hidden');
+      }
+    }
+
+    // نبض التحقق الدوري (Heartbeat): كل 30 ثانية للتأكد من أن المشرف لم يقم بحظر الكود
+    function startHeartbeat(key) {
+      setInterval(async () => {
+        try {
+          const res = await fetch(`${API_BASE}/api/verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ serial_key: key, device_id: deviceId })
+          });
+          const data = await res.json();
+          if (!res.ok || data.status !== 'valid') {
+            document.getElementById('revokeModal').classList.remove('hidden');
+            localStorage.removeItem('yt_active_key');
+            document.getElementById('videoIframe').src = '';
+          }
+        } catch (e) {}
+      }, 30000);
+    }
+
+    function disconnectDevice() {
+      if (confirm('هل تريد تسجيل الخروج؟ سيتوقف المشغل حتى تدخل الكود مرة أخرى.')) {
+        localStorage.removeItem('yt_active_key');
+        location.reload();
+      }
+    }
+
+    // دعم أزرار ريموت التلفزيون والأسهم (D-Pad Keyboard Navigation)
+    document.addEventListener('keydown', (e) => {
+      const focusables = Array.from(document.querySelectorAll('.tv-focusable:not([disabled])'));
+      const activeIdx = focusables.indexOf(document.activeElement);
+
+      if (e.key === 'ArrowDown') {
+        const next = focusables[activeIdx + 1] || focusables[0];
+        if (next) next.focus();
+        e.preventDefault();
+      } else if (e.key === 'ArrowUp') {
+        const prev = focusables[activeIdx - 1] || focusables[focusables.length - 1];
+        if (prev) prev.focus();
+        e.preventDefault();
+      }
+    });
+
+    // بدء التشغيل
+    initCheck();
+  </script>
+</body>
+</html>
