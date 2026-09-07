@@ -163,7 +163,7 @@
         <iframe 
           id="videoIframe" 
           class="w-full h-full" 
-          src="https://www.youtube-nocookie.com/embed/jfKfPfyJRdk?autoplay=1&rel=0&modestbranding=1" 
+          src="https://www.youtube-nocookie.com/embed/L_LUpnjgPso?autoplay=1&rel=0&modestbranding=1" 
           title="YouTube video player" 
           frameborder="0" 
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
@@ -174,8 +174,8 @@
       <!-- شريط معلومات المشغل -->
       <div class="p-4 bg-zinc-900/90 flex flex-wrap items-center justify-between gap-3 border-t border-zinc-800/80">
         <div>
-          <h2 id="videoTitle" class="font-bold text-sm sm:text-base text-white">Lofi Hip Hop Radio - تشغيل مباشر بدون إعلانات</h2>
-          <p class="text-xs text-zinc-400 mt-0.5">مشغل YouTube Plus المباشر • يدعم الجودة العالية والشاشة الكاملة</p>
+          <h2 id="videoTitle" class="font-bold text-sm sm:text-base text-white">روائع الطبيعة والاسترخاء 4K Ultra HD - تشغيل بدون إعلانات</h2>
+          <p class="text-xs text-zinc-400 mt-0.5">مشغل YouTube Plus المباشر • يدعم أعلى دقة والشاشة الكاملة</p>
         </div>
         <div class="flex items-center gap-2">
           <button onclick="toggleFullscreen()" class="tv-focusable bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold px-3 py-2 rounded-xl transition flex items-center gap-1.5">
@@ -263,20 +263,20 @@
 
     const deviceId = getHardwareUUID();
 
-    // قائمة فيديوهات مقترحة أولية
+    // قائمة فيديوهات موثوقة وشغالة دائماً بدون أي حظر
     const PRESET_VIDEOS = [
-      { id: 'jfKfPfyJRdk', title: 'Lofi Hip Hop Radio 24/7 - موسيقى استرخاء ودراسة', thumb: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400&q=80' },
-      { id: 'kJQP7kiw5Fk', title: 'Luis Fonsi - Despacito ft. Daddy Yankee', thumb: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&q=80' },
-      { id: 'fJ9rUzIMcZQ', title: 'Bohemian Rhapsody - Queen (Official Video)', thumb: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=80' },
-      { id: '9bZkp7q19f0', title: 'PSY - GANGNAM STYLE (Official Music Video)', thumb: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400&q=80' }
+      { id: 'L_LUpnjgPso', title: 'عالم الطبيعة الخلابة 4K - استرخاء وأعلى دقة', thumb: 'https://img.youtube.com/vi/L_LUpnjgPso/hqdefault.jpg' },
+      { id: '7Pq-S557XQU', title: 'سورة الكهف كاملة - تلاوة خاشعة بصوت مشاري العفاسي', thumb: 'https://img.youtube.com/vi/7Pq-S557XQU/hqdefault.jpg' },
+      { id: 'kJQP7kiw5Fk', title: 'Luis Fonsi - Despacito ft. Daddy Yankee', thumb: 'https://img.youtube.com/vi/kJQP7kiw5Fk/hqdefault.jpg' },
+      { id: 'OPf0YbXqDm0', title: 'Mark Ronson - Uptown Funk ft. Bruno Mars', thumb: 'https://img.youtube.com/vi/OPf0YbXqDm0/hqdefault.jpg' }
     ];
 
     function renderPresetCards() {
       const container = document.getElementById('videoCardsGrid');
       container.innerHTML = PRESET_VIDEOS.map(v => `
         <div onclick="playVideo('${v.id}', '${v.title.replace(/'/g, "\\'")}')" class="tv-focusable bg-zinc-900 border border-zinc-800/80 rounded-2xl overflow-hidden hover:border-red-500/50 transition cursor-pointer group">
-          <div class="relative aspect-video overflow-hidden">
-            <img src="${v.thumb}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+          <div class="relative aspect-video overflow-hidden bg-zinc-950">
+            <img src="${v.thumb}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" onerror="this.src='https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=80'">
             <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
               <div class="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center text-white">
                 <i class="fa-solid fa-play translate-x-0.5"></i>
@@ -299,9 +299,18 @@
     function searchYouTube() {
       const q = document.getElementById('searchInput').value.trim();
       if (!q) return;
-      // تشغيل البحث المباشر في المشغل
-      document.getElementById('videoIframe').src = `https://www.youtube-nocookie.com/embed?listType=search&list=${encodeURIComponent(q)}&autoplay=1`;
-      document.getElementById('videoTitle').innerText = `نتائج البحث عن: ${q}`;
+
+      // فحص هل كتب المستخدم رابط فيديو مباشر
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+      const match = q.match(regExp);
+
+      if (match && match[2].length === 11) {
+        playVideo(match[2], 'تشغيل الرابط المباشر في YouTube Plus');
+      } else {
+        // تشغيل البحث المباشر
+        document.getElementById('videoIframe').src = `https://www.youtube-nocookie.com/embed?listType=search&list=${encodeURIComponent(q)}&autoplay=1`;
+        document.getElementById('videoTitle').innerText = `نتائج البحث عن: ${q}`;
+      }
     }
 
     function toggleFullscreen() {
