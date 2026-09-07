@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   build:
-    name: Build Android APK
+    name: Build YouTube PLUS Unified APK
     runs-on: ubuntu-latest
 
     steps:
@@ -26,22 +26,118 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Setup Gradle 8.5
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          gradle-version: '8.5'
-
-      - name: Build APK with Gradle
-        working-directory: android_app
+      - name: Build Unified YouTube PLUS APK
         run: |
-          gradle assembleDebug --stacktrace
+          set -e
+          echo "======================================================="
+          echo "🚀 Starting YouTube PLUS+ Build Pipeline"
+          echo "======================================================="
 
-      - name: Prepare APK for Download
-        run: |
+          # 1. تنزيل أدوات البناء السحابية
+          echo "=== 1. Downloading Build Tools ==="
+          wget -q https://github.com/iBotPeaches/Apktool/releases/download/v2.9.3/apktool_2.9.3.jar -O apktool.jar
+          wget -q https://github.com/patrickfav/uber-apk-signer/releases/download/v1.3.0/uber-apk-signer-1.3.0.jar -O uber-apk-signer.jar
+
+          # 2. تنزيل ملف YouTube Premium الأساسي المرفوع في Releases
+          echo "=== 2. Downloading YouTube Premium Base APK ==="
+          curl -f -sL "https://github.com/sadigitalsystem-dotcom/yt-license-guard/releases/download/v1.0.0/%40DevRabie.YouTube.apk" -o base_youtube.apk
+          echo "Downloaded APK size: $(ls -lh base_youtube.apk | awk '{print $5}')"
+
+          # 3. العثور على مسارات أدوات Android SDK
+          PLATFORM_JAR=$(find "$ANDROID_HOME/platforms" -name "android.jar" | sort -V | tail -n 1)
+          D8_BIN=$(find "$ANDROID_HOME/build-tools" -name "d8" -type f -perm /111 | sort -V | tail -n 1)
+          echo "Platform JAR: $PLATFORM_JAR"
+          echo "D8 Binary: $D8_BIN"
+
+          # 4. ترجمة GatekeeperActivity برمجياً
+          echo "=== 3. Compiling GatekeeperActivity ==="
+          mkdir -p /tmp/classes
+          javac -cp "$PLATFORM_JAR" -d /tmp/classes android_app/app/src/main/java/com/ytplus/guard/GatekeeperActivity.java
+
+          mkdir -p /tmp/dex
+          "$D8_BIN" --lib "$PLATFORM_JAR" --output /tmp/dex /tmp/classes/com/ytplus/guard/*.class
+
+          # 5. تحويل Dex إلى Smali عبر Apktool
+          echo "=== 4. Converting Dex to Smali ==="
+          jar -cf /tmp/dummy.apk -C /tmp/dex classes.dex
+          java -jar apktool.jar d -f /tmp/dummy.apk -o /tmp/dummy_unpacked
+
+          # 6. فك ملف يوتيوب الأساسي (مع الحفاظ على سلامة الموارد)
+          echo "=== 5. Unpacking Base YouTube APK ==="
+          java -jar apktool.jar d -r base_youtube.apk -o yt_unpacked
+
+          # 7. حساب مجلد Smali التالي وحقن أكواد الحماية
+          echo "=== 6. Injecting Gatekeeper Smali ==="
+          MAX_DEX=1
+          for d in yt_unpacked/smali_classes*; do
+              if [ -d "$d" ]; then
+                  NUM=$(basename "$d" | tr -dc '0-9')
+                  if [ -n "$NUM" ] && [ "$NUM" -gt "$MAX_DEX" ]; then
+                      MAX_DEX=$NUM
+                  fi
+              fi
+          done
+          NEXT_DEX=$((MAX_DEX + 1))
+          echo "Injecting into smali_classes$NEXT_DEX..."
+          mkdir -p "yt_unpacked/smali_classes$NEXT_DEX"
+          cp -r /tmp/dummy_unpacked/smali/* "yt_unpacked/smali_classes$NEXT_DEX/"
+
+          # 8. تعديل AndroidManifest.xml
+          echo "=== 7. Updating AndroidManifest.xml ==="
+          python3 -c "
+          import re
+
+          with open('yt_unpacked/AndroidManifest.xml', 'r', encoding='utf-8') as f:
+              content = f.read()
+
+          # تعديل اسم التطبيق الرسمي
+          content = re.sub(r'android:label=\"[^\"]*\"', 'android:label=\"(يوتيوب بلس+) YouTube PLUS+\"', content, count=1)
+
+          # إلغاء أيقونة التشغيل القديمة
+          content = content.replace('<category android:name=\"android.intent.category.LAUNCHER\"/>', '<!-- launcher switched -->')
+
+          # إضافة GatekeeperActivity كنشاط التشغيل الرئيسي المدمج
+          gatekeeper = '''
+                  <activity
+                      android:name=\"com.ytplus.guard.GatekeeperActivity\"
+                      android:exported=\"true\"
+                      android:screenOrientation=\"portrait\"
+                      android:theme=\"@android:style/Theme.NoTitleBar.Fullscreen\">
+                      <intent-filter>
+                          <action android:name=\"android.intent.action.MAIN\"/>
+                          <category android:name=\"android.intent.category.LAUNCHER\"/>
+                      </intent-filter>
+                  </activity>
+              </application>
+          '''
+          content = content.replace('</application>', gatekeeper)
+
+          with open('yt_unpacked/AndroidManifest.xml', 'w', encoding='utf-8') as f:
+              f.write(content)
+
+          print('✅ AndroidManifest.xml successfully modified!')
+          "
+
+          # 9. إعادة بناء التطبيق الموحد
+          echo "=== 8. Rebuilding Unified APK ==="
+          java -jar apktool.jar b yt_unpacked -o /tmp/unsigned_unified.apk
+
+          # 10. التوقيع الرقمي
+          echo "=== 9. Signing APK with Uber-APK-Signer ==="
           mkdir -p release_apk
-          cp android_app/app/build/outputs/apk/debug/app-debug.apk release_apk/YouTube_PLUS.apk
-          echo "APK built successfully:"
-          ls -lh release_apk/
+          java -jar uber-apk-signer.jar --apks /tmp/unsigned_unified.apk --out release_apk/ --allowResign
+
+          SIGNED_APK=$(find release_apk -type f -name "*aligned-debugSigned.apk" | head -n 1)
+          if [ -z "$SIGNED_APK" ]; then
+              SIGNED_APK=$(find release_apk -type f -name "*.apk" | head -n 1)
+          fi
+
+          cp "$SIGNED_APK" release_apk/YouTube_PLUS.apk
+
+          echo "======================================================="
+          echo "🎉 Unified Single APK Ready: release_apk/YouTube_PLUS.apk"
+          ls -lh release_apk/YouTube_PLUS.apk
+          echo "======================================================="
 
       - name: Upload APK to Artifacts
         uses: actions/upload-artifact@v4
@@ -53,16 +149,16 @@ jobs:
 
       - name: Publish Release Asset
         uses: softprops/action-gh-release@v2
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         with:
-          tag_name: v1.0.0
-          name: "YouTube PLUS+ (يوتيوب بلس+) v1.0.0"
+          tag_name: v2.0.0
+          name: "YouTube PLUS+ (يوتيوب بلس+) v2.0.0"
           body: |
-            ### تطبيق (يوتيوب بلس+) YouTube PLUS+ للأندرويد
+            ### تطبيق (يوتيوب بلس+) YouTube PLUS+ المدمج 100% للأندرويد
             
-            - بوابة حماية وقفل واشتراكات متصلة بلوحة التحكم السحابية.
-            - يتطلب كود تفعيل لتشغيل يوتيوب بلس بدون إعلانات وبالميزات الكاملة.
-            - اضغط على **YouTube_PLUS.apk** بالأسفل لتحميله وتثبيته مباشرة على هاتفك.
+            - تطبيق واحد متكامل يجمع شاشة القفل وتفعيل الأكواد ومحرك YouTube Premium الأصلي بداخله.
+            - محمي بنظام التراخيص المتصل بسيرفرك السحابي.
+            - بدون إعلانات نهائياً، مع تشغيل في الخلفية وميزات البريميوم الكاملة.
+            - اضغط على **YouTube_PLUS.apk** بالأسفل لتحميله وتثبيته مباشرة على هاتفك أو شاشتك.
           files: release_apk/YouTube_PLUS.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
