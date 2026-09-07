@@ -166,6 +166,20 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    // 1.7 مسار Service Worker لتمكين تثبيت PWA على الأندرويد
+    if (req.method === 'GET' && pathname === '/sw.js') {
+      const swPath = path.join(__dirname, 'sw.js');
+      if (fs.existsSync(swPath)) {
+        const content = fs.readFileSync(swPath, 'utf8');
+        res.writeHead(200, { 'Content-Type': 'application/javascript; charset=utf-8' });
+        res.end(content);
+      } else {
+        res.writeHead(404);
+        res.end();
+      }
+      return;
+    }
+
     // 2. API تفعيل الكود وربطه بالجهاز لأول مرة (من تطبيق الآيفون)
     if (req.method === 'POST' && pathname === '/api/activate') {
       const body = await parseJsonBody(req);

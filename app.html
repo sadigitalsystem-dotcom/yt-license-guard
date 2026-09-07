@@ -47,6 +47,10 @@
 
     <!-- مؤشرات الجهاز والاشتراك -->
     <div class="flex items-center gap-2 sm:gap-3">
+      <button id="installAppBtn" onclick="installPWA()" class="hidden bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white text-[11px] font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 transition active:scale-95 border border-red-400/30 animate-pulse">
+        <i class="fa-solid fa-download text-[10px]"></i>
+        <span>تثبيت التطبيق 📲</span>
+      </button>
       <div id="deviceBadge" class="text-[11px] px-2.5 py-1 rounded-full bg-zinc-800 border border-zinc-700/60 text-zinc-300 font-mono flex items-center gap-1.5">
         <i id="deviceIcon" class="fa-solid fa-mobile-screen text-[11px] text-red-500"></i>
         <span id="deviceLabel">جاري الفحص...</span>
@@ -457,6 +461,31 @@
         e.preventDefault();
       }
     });
+
+    // تسجيل Service Worker لتمكين ظهور خيار تثبيت التطبيق في متصفح أندرويد
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW registration:', err));
+    }
+
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const btn = document.getElementById('installAppBtn');
+      if (btn) btn.classList.remove('hidden');
+    });
+
+    async function installPWA() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          const btn = document.getElementById('installAppBtn');
+          if (btn) btn.classList.add('hidden');
+        }
+        deferredPrompt = null;
+      }
+    }
 
     // بدء التشغيل
     initCheck();
