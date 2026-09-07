@@ -27,19 +27,23 @@
           <i class="fa-brands fa-youtube text-xl"></i>
         </div>
         <div>
-          <h1 class="font-extrabold text-lg tracking-tight">YouTube Plus <span class="text-red-500 text-xs px-2 py-0.5 bg-red-500/10 rounded-full border border-red-500/20">Universal Guard</span></h1>
+          <h1 class="font-extrabold text-lg tracking-tight">(يوتيوب بلس+) YouTube PLUS+ <span class="text-red-500 text-xs px-2 py-0.5 bg-red-500/10 rounded-full border border-red-500/20">Guard</span></h1>
           <p class="text-xs text-zinc-400">إدارة التراخيص: هواتف • أجهزة لوحية • شاشات تلفزيون ذكية</p>
         </div>
       </div>
       
       <div class="flex items-center gap-2 sm:gap-3">
+        <button onclick="openGuideModal()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-2 border border-zinc-700 shadow-sm" title="دليل تشغيل كافة الأجهزة">
+          <i class="fa-solid fa-book-open text-amber-400"></i>
+          <span class="hidden sm:inline">دليل الأجهزة</span>
+        </button>
         <button onclick="openQrModal()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-2 border border-zinc-700 shadow-sm" title="فتح التطبيق عبر الهاتف أو التلفزيون">
           <i class="fa-solid fa-qrcode text-red-500"></i>
-          <span class="hidden sm:inline">مسح QR للأجهزة</span>
+          <span class="hidden sm:inline">مسح QR</span>
         </button>
         <a href="/app" target="_blank" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-2 border border-zinc-700">
           <i class="fa-solid fa-mobile-screen text-red-500"></i>
-          <span>فتح المشغل</span>
+          <span>المشغل</span>
         </a>
         <button onclick="openGenerateModal()" class="bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-bold px-4 py-2 rounded-xl transition flex items-center gap-2 shadow-lg shadow-red-600/20">
           <i class="fa-solid fa-plus"></i>
@@ -199,6 +203,97 @@
     </div>
   </div>
 
+  <!-- نافذة دليل تشغيل كافة الأجهزة (Guide Modal) -->
+  <div id="guideModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="glass-card bg-zinc-900 rounded-3xl w-full max-w-2xl p-6 sm:p-8 border border-zinc-700 shadow-2xl text-right relative max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-zinc-800 pb-4 mb-5">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg">
+            <i class="fa-solid fa-book-open"></i>
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-bold text-white">دليل تشغيل (YouTube PLUS+) لكافة الأجهزة</h3>
+            <p class="text-xs text-zinc-400">طريقة تسليم وتفعيل الخدمة للعملاء على مختلف الأنظمة</p>
+          </div>
+        </div>
+        <button onclick="closeGuideModal()" class="text-zinc-500 hover:text-white p-2 text-base">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <!-- 1. أندرويد -->
+        <div class="bg-zinc-800/70 border border-zinc-700/80 rounded-2xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-bold text-sm text-emerald-400 flex items-center gap-2">
+              <i class="fa-brands fa-android text-base"></i> أجهزة أندرويد (الهواتف والشاشات)
+            </span>
+            <span class="bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full text-[10px] font-bold">تطبيق APK</span>
+          </div>
+          <p class="text-zinc-300 leading-relaxed mb-3">
+            يقوم العميل بتثبيت ملف التطبيق الجديد <strong>YouTube_PLUS.apk</strong>، مع وجود تطبيق يوتيوب بريميوم الأساسي على جهازه. عند الفتح يُطلب كود التفعيل ويتم تحويله فوراً لليوتيوب بدون إعلانات.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <a href="https://github.com/sadigitalsystem-dotcom/yt-license-guard/releases/download/v1.1.0/YouTube_PLUS.apk" target="_blank" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 shadow">
+              <i class="fa-solid fa-download"></i> رابط تحميل APK المباشر
+            </a>
+            <button onclick="copyToClipboard('https://github.com/sadigitalsystem-dotcom/yt-license-guard/releases/download/v1.1.0/YouTube_PLUS.apk')" class="bg-zinc-700 hover:bg-zinc-600 text-zinc-200 px-3 py-1.5 rounded-xl transition">
+              نسخ الرابط لإرساله للعميل
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. آيفون وآيباد -->
+        <div class="bg-zinc-800/70 border border-zinc-700/80 rounded-2xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-bold text-sm text-zinc-100 flex items-center gap-2">
+              <i class="fa-brands fa-apple text-base"></i> أجهزة آبل (آيفون وآيباد iOS)
+            </span>
+            <span class="bg-red-500/10 text-red-400 px-2 py-0.5 rounded-full text-[10px] font-bold">تطبيق فوري PWA</span>
+          </div>
+          <p class="text-zinc-300 leading-relaxed mb-3">
+            لا يحتاج جلبريك ولا كمبيوتر! أرسل للعميل رابط المشغل المباشر، ويقوم بفتحه في <strong>Safari</strong> ثم الضغط على زر المشاركة <strong>(Share ⬆️)</strong> واختيار <strong>"إضافة إلى الشاشة الرئيسية" (Add to Home Screen)</strong>. يفتح كتطبيق مستقل بهوية يوتيوب بلس بدون إعلانات وبالميزات الكاملة.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="copyToClipboard('https://yt-license-guard.onrender.com/app')" class="bg-zinc-700 hover:bg-zinc-600 text-zinc-200 px-3 py-1.5 rounded-xl transition flex items-center gap-1.5">
+              <i class="fa-regular fa-copy"></i> نسخ رابط الآيفون: https://yt-license-guard.onrender.com/app
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. شاشات التلفزيون الذكية -->
+        <div class="bg-zinc-800/70 border border-zinc-700/80 rounded-2xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-bold text-sm text-amber-400 flex items-center gap-2">
+              <i class="fa-solid fa-tv text-base"></i> الشاشات الذكية (سامسونج Tizen، LG webOS، وأندرويد TV)
+            </span>
+            <span class="bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-full text-[10px] font-bold">متصفح الشاشة 4K</span>
+          </div>
+          <p class="text-zinc-300 leading-relaxed">
+            يفتح العميل متصفح الشاشة ويكتب رابط المشغل، أو يمسح كود الـ QR من شاشة لوحة تحكمك بواسطة هاتفه. ثم يُدخل كود التفعيل بالريموت لمرة واحدة ويحفظ الصفحة في المفضلة للتشغيل السريع بجودة 4K وبدون إعلانات.
+          </p>
+        </div>
+
+        <!-- 4. الكمبيوتر والماك -->
+        <div class="bg-zinc-800/70 border border-zinc-700/80 rounded-2xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-bold text-sm text-blue-400 flex items-center gap-2">
+              <i class="fa-solid fa-laptop text-base"></i> الكمبيوتر والماك (Windows & Mac)
+            </span>
+            <span class="bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full text-[10px] font-bold">تطبيق سطح المكتب</span>
+          </div>
+          <p class="text-zinc-300 leading-relaxed">
+            يعمل عبر المتصفح مباشرة أو يمكن تثبيته كتطبيق مستقل على سطح المكتب بنقرة واحدة من شريط العنوان في متصفح Chrome أو Edge.
+          </p>
+        </div>
+      </div>
+
+      <button onclick="closeGuideModal()" class="mt-5 w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-2.5 rounded-xl text-sm transition">
+        إغلاق
+      </button>
+    </div>
+  </div>
+
   <!-- إشعار نسخ الكود (Toast) -->
   <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-emerald-500 text-zinc-950 font-bold px-5 py-2.5 rounded-xl shadow-xl flex items-center gap-2 transition-all opacity-0 pointer-events-none z-50">
     <i class="fa-solid fa-check-circle"></i>
@@ -263,17 +358,29 @@
           }
         }
 
-        // تحديد أيقونة الجهاز
-        let deviceIcon = 'fa-mobile-screen';
-        let devStr = l.device_id || '';
-        if (devStr.includes('TV')) deviceIcon = 'fa-tv';
-        else if (devStr.includes('TABLET') || devStr.includes('IPAD')) deviceIcon = 'fa-tablet-screen-button';
-        else if (devStr.includes('DESKTOP') || devStr.includes('PC')) deviceIcon = 'fa-laptop';
+        // تحديد أيقونة ونوع الجهاز
+        let deviceIcon = 'fa-solid fa-mobile-screen text-zinc-400';
+        let deviceName = 'هاتف';
+        let devStr = (l.device_id || '').toUpperCase();
+        if (devStr.includes('TV') || devStr.includes('TIZEN') || devStr.includes('WEBOS')) {
+          deviceIcon = 'fa-solid fa-tv text-amber-400';
+          deviceName = 'شاشة ذكية';
+        } else if (devStr.includes('IOS') || devStr.includes('IPHONE') || devStr.includes('IPAD')) {
+          deviceIcon = 'fa-brands fa-apple text-zinc-200';
+          deviceName = 'آيفون / آيباد';
+        } else if (devStr.includes('AND') || devStr.includes('ANDROID')) {
+          deviceIcon = 'fa-brands fa-android text-emerald-400';
+          deviceName = 'أندرويد';
+        } else if (devStr.includes('PC') || devStr.includes('DESKTOP') || devStr.includes('MAC')) {
+          deviceIcon = 'fa-solid fa-laptop text-blue-400';
+          deviceName = 'كمبيوتر';
+        }
 
         const deviceDisplay = l.device_id 
           ? `<div class="flex items-center gap-1.5 font-mono text-xs text-zinc-200">
-               <i class="fa-solid ${deviceIcon} text-red-400 text-xs"></i>
-               <span title="${l.device_id}">${l.device_id.substring(0, 18)}</span>
+               <i class="${deviceIcon} text-sm"></i>
+               <span class="text-[11px] text-zinc-400">(${deviceName})</span>
+               <span title="${l.device_id}" class="text-[10px] text-zinc-500 truncate max-w-[90px]">${l.device_id}</span>
              </div>`
           : `<span class="text-xs text-zinc-500 italic">بانتظار أول تفعيل</span>`;
 
@@ -418,6 +525,14 @@
 
     function closeQrModal() {
       document.getElementById('qrModal').classList.add('hidden');
+    }
+
+    function openGuideModal() {
+      document.getElementById('guideModal').classList.remove('hidden');
+    }
+
+    function closeGuideModal() {
+      document.getElementById('guideModal').classList.add('hidden');
     }
 
     function showToast(msg) {

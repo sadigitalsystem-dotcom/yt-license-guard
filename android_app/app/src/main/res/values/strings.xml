@@ -11,7 +11,7 @@
     <string name="status_activating">جاري تفعيل الكود وربط هذا الجهاز...</string>
     <string name="error_empty_key">يرجى إدخال كود التفعيل</string>
     <string name="error_connection">تعذر الاتصال بالسيرفر. تأكد من اتصال الإنترنت وحاول مجدداً.</string>
-    <string name="error_not_installed">تطبيق يوتيوب الأساسي غير مثبت!\nيرجى تثبيت ملف يوتيوب المرفق (@DevRabie YouTube.apk) لتتمكن من تشغيله.</string>
+    <string name="error_not_installed">تطبيق يوتيوب بريميوم غير مثبت على هاتفك!\nيرجى تثبيت تطبيق يوتيوب بريميوم الأساسي (@DevRabie YouTube.apk) أولاً لتفعيل ميزات البريميوم بدون إعلانات.</string>
     <string name="success_activated">تم التحقق من الاشتراك بنجاح! جاري تشغيل يوتيوب...</string>
     <string name="support_note">للحصول على كود التفعيل أو تجديد اشتراكك تواصل مع مسؤول الخدمة</string>
 </resources>

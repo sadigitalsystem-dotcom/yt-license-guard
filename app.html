@@ -284,27 +284,97 @@
     </button>
   </nav>
 
-  <!-- نافذة إرشادات التثبيت عند الضغط على زر التثبيت -->
+  <!-- نافذة إرشادات التثبيت لكافة الأجهزة (آيفون، أندرويد، شاشات ذكية، كمبيوتر) -->
   <div id="installModal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
-    <div class="bg-zinc-900 border border-zinc-700 rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center">
-      <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-red-600/20 text-red-500 flex items-center justify-center text-2xl">
-        <i class="fa-solid fa-mobile-screen-button"></i>
+    <div class="bg-zinc-900 border border-zinc-700 rounded-3xl p-5 sm:p-6 max-w-md w-full shadow-2xl text-center">
+      <div class="w-12 h-12 mx-auto mb-2.5 rounded-2xl bg-red-600/20 text-red-500 flex items-center justify-center text-xl">
+        <i class="fa-solid fa-layer-group"></i>
       </div>
-      <h3 class="text-base font-bold text-white mb-1">تثبيت تطبيق (يوتيوب بلس+)</h3>
-      <p class="text-xs text-zinc-400 mb-4">خطوتان فقط لتثبيت أيقونة التطبيق على شاشة هاتفك:</p>
+      <h3 class="text-base font-bold text-white mb-1">تشغيل (يوتيوب بلس+) على كافة الأجهزة</h3>
+      <p class="text-xs text-zinc-400 mb-3">اختر نوع جهازك لتثبيت وتشغيل التطبيق فوراً:</p>
 
-      <div class="bg-zinc-800/80 rounded-2xl p-4 text-xs text-right space-y-3 mb-5 border border-zinc-700/60">
-        <div class="flex items-start gap-2.5">
-          <span class="w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">1</span>
-          <span class="text-zinc-300">اضغط على النقاط الثلاث <strong>(⋮)</strong> في أعلى شاشة المتصفح.</span>
+      <!-- تبويبات الأجهزة -->
+      <div class="grid grid-cols-4 gap-1 p-1 bg-zinc-800/80 rounded-xl mb-3 text-xs">
+        <button id="tabBtnIos" onclick="switchDeviceTab('ios')" class="dev-tab py-1.5 rounded-lg font-bold transition text-zinc-300">
+          <i class="fa-brands fa-apple"></i> آيفون
+        </button>
+        <button id="tabBtnAndroid" onclick="switchDeviceTab('android')" class="dev-tab py-1.5 rounded-lg font-bold transition text-zinc-300">
+          <i class="fa-brands fa-android"></i> أندرويد
+        </button>
+        <button id="tabBtnTv" onclick="switchDeviceTab('tv')" class="dev-tab py-1.5 rounded-lg font-bold transition text-zinc-300">
+          <i class="fa-solid fa-tv"></i> شاشة
+        </button>
+        <button id="tabBtnPc" onclick="switchDeviceTab('pc')" class="dev-tab py-1.5 rounded-lg font-bold transition text-zinc-300">
+          <i class="fa-solid fa-laptop"></i> كمبيوتر
+        </button>
+      </div>
+
+      <!-- 1. محتوى الآيفون والآيباد iOS -->
+      <div id="tabContentIos" class="dev-content bg-zinc-800/80 rounded-2xl p-4 text-xs text-right space-y-2.5 mb-4 border border-zinc-700/60">
+        <div class="font-bold text-white text-xs mb-1 flex items-center gap-1.5">
+          <i class="fa-brands fa-apple text-sm text-zinc-200"></i>
+          <span>طريقة التثبيت على الآيفون والآيباد (iOS):</span>
         </div>
-        <div class="flex items-start gap-2.5">
+        <div class="flex items-start gap-2">
+          <span class="w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">1</span>
+          <span class="text-zinc-300">في متصفح سفاري (Safari)، اضغط على زر المشاركة بالأسفل <strong>Share (المربع مع سهم ⬆️)</strong>.</span>
+        </div>
+        <div class="flex items-start gap-2">
           <span class="w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">2</span>
-          <span class="text-zinc-300">اسحب القائمة لأسفل واختر <strong>"إضافة إلى الشاشة الرئيسية" (Add to Home screen)</strong> أو <strong>"Install app"</strong>.</span>
+          <span class="text-zinc-300">اسحب القائمة لأسفل واختر <strong>"إضافة إلى الصفحة الرئيسية" (Add to Home Screen)</strong> ثم اضغط إضافة.</span>
+        </div>
+        <div class="text-[11px] text-emerald-400 pt-1 border-t border-zinc-700/50">
+          ✓ سيفتح التطبيق على كامل شاشة الآيفون بهوية رسمية خالية من الإعلانات!
         </div>
       </div>
-      <button onclick="document.getElementById('installModal').classList.add('hidden')" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl text-xs transition">
-        فهمت ذلك ✓
+
+      <!-- 2. محتوى الأندرويد -->
+      <div id="tabContentAndroid" class="dev-content hidden bg-zinc-800/80 rounded-2xl p-4 text-xs text-right space-y-3 mb-4 border border-zinc-700/60">
+        <div class="font-bold text-white text-xs mb-1 flex items-center gap-1.5">
+          <i class="fa-brands fa-android text-sm text-emerald-400"></i>
+          <span>تطبيق الأندرويد التنفيذي (APK):</span>
+        </div>
+        <p class="text-zinc-300 text-xs leading-relaxed">
+          يمكنك تنزيل تطبيق أندرويد الأصلي بصيغة APK مباشرة على هاتفك:
+        </p>
+        <a href="https://github.com/sadigitalsystem-dotcom/yt-license-guard/releases/download/v1.1.0/YouTube_PLUS.apk" target="_blank" class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 text-white font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 shadow transition">
+          <i class="fa-solid fa-download"></i>
+          <span>تحميل ملف YouTube_PLUS.apk</span>
+        </a>
+      </div>
+
+      <!-- 3. محتوى الشاشات الذكية (Smart TV) -->
+      <div id="tabContentTv" class="dev-content hidden bg-zinc-800/80 rounded-2xl p-4 text-xs text-right space-y-2.5 mb-4 border border-zinc-700/60">
+        <div class="font-bold text-white text-xs mb-1 flex items-center gap-1.5">
+          <i class="fa-solid fa-tv text-sm text-red-400"></i>
+          <span>شاشات سامسونج، LG، والشاشات الذكية:</span>
+        </div>
+        <div class="flex items-start gap-2">
+          <span class="w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">1</span>
+          <span class="text-zinc-300">افتح متصفح الويب (Web Browser) في شاشتك واكتب رابط هذا الموقع.</span>
+        </div>
+        <div class="flex items-start gap-2">
+          <span class="w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">2</span>
+          <span class="text-zinc-300">أدخل كود التفعيل بالريموت لمرة واحدة، ثم احفظ الصفحة في (المفضلة Bookmarks).</span>
+        </div>
+        <div class="text-[11px] text-emerald-400 pt-1 border-t border-zinc-700/50">
+          ✓ يدعم التحكم بأسهم الريموت وعرض الفيديوهات بدقة 4K بدون إعلانات.
+        </div>
+      </div>
+
+      <!-- 4. محتوى الكمبيوتر والماك -->
+      <div id="tabContentPc" class="dev-content hidden bg-zinc-800/80 rounded-2xl p-4 text-xs text-right space-y-2.5 mb-4 border border-zinc-700/60">
+        <div class="font-bold text-white text-xs mb-1 flex items-center gap-1.5">
+          <i class="fa-solid fa-laptop text-sm text-blue-400"></i>
+          <span>أجهزة Windows و Mac:</span>
+        </div>
+        <p class="text-zinc-300">
+          في متصفح Chrome أو Edge، اضغط على أيقونة التثبيت <strong>(🖥️ Install)</strong> في أقصى يمين شريط العنوان ليصبح برنامجاً مستقلاً على سطح المكتب.
+        </p>
+      </div>
+
+      <button onclick="document.getElementById('installModal').classList.add('hidden')" class="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-2.5 rounded-xl text-xs transition">
+        إغلاق
       </button>
     </div>
   </div>
@@ -444,12 +514,19 @@
       }
     }
 
-    // الحصول على المعرف الفريد للجهاز
+    // الحصول على المعرف الفريد للجهاز بحسب نوعه
     function getHardwareUUID() {
       let id = localStorage.getItem('yt_hardware_uuid');
       if (!id) {
-        const rand = Math.random().toString(36).substring(2, 9).toUpperCase();
-        id = `PHONE-${rand}`;
+        const ua = navigator.userAgent || '';
+        let prefix = 'WEB';
+        if (/iPad|iPhone|iPod/.test(ua)) prefix = 'IOS';
+        else if (/android/i.test(ua)) prefix = 'AND';
+        else if (/SmartTV|Tizen|Web0S|NetCast|HbbTV|AppleTV|BOX/i.test(ua)) prefix = 'TV';
+        else if (/Macintosh|Windows|Linux/i.test(ua)) prefix = 'PC';
+
+        const rand = Math.random().toString(36).substring(2, 8).toUpperCase();
+        id = `${prefix}-${rand}`;
         localStorage.setItem('yt_hardware_uuid', id);
       }
       return id;
@@ -552,6 +629,36 @@
       }
     }
 
+    function switchDeviceTab(tab) {
+      document.querySelectorAll('.dev-tab').forEach(b => {
+        b.classList.remove('bg-red-600', 'text-white');
+        b.classList.add('text-zinc-300');
+      });
+      document.querySelectorAll('.dev-content').forEach(c => c.classList.add('hidden'));
+
+      if (tab === 'ios') {
+        document.getElementById('tabBtnIos').classList.add('bg-red-600', 'text-white');
+        document.getElementById('tabContentIos').classList.remove('hidden');
+      } else if (tab === 'android') {
+        document.getElementById('tabBtnAndroid').classList.add('bg-red-600', 'text-white');
+        document.getElementById('tabContentAndroid').classList.remove('hidden');
+      } else if (tab === 'tv') {
+        document.getElementById('tabBtnTv').classList.add('bg-red-600', 'text-white');
+        document.getElementById('tabContentTv').classList.remove('hidden');
+      } else if (tab === 'pc') {
+        document.getElementById('tabBtnPc').classList.add('bg-red-600', 'text-white');
+        document.getElementById('tabContentPc').classList.remove('hidden');
+      }
+    }
+
+    function autoDetectDeviceTab() {
+      const ua = navigator.userAgent || '';
+      if (/iPad|iPhone|iPod/.test(ua)) switchDeviceTab('ios');
+      else if (/android/i.test(ua)) switchDeviceTab('android');
+      else if (/SmartTV|Tizen|Web0S|NetCast|HbbTV|AppleTV|BOX/i.test(ua)) switchDeviceTab('tv');
+      else switchDeviceTab('pc');
+    }
+
     // إدارة تثبيت التطبيق PWA
     let deferredPrompt = null;
     window.addEventListener('beforeinstallprompt', (e) => {
@@ -560,6 +667,7 @@
     });
 
     async function installPWA() {
+      autoDetectDeviceTab();
       if (deferredPrompt) {
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
@@ -572,6 +680,8 @@
     if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
       document.getElementById('installAppBtn').classList.add('hidden');
     }
+
+    autoDetectDeviceTab();
 
     initCheck();
   </script>

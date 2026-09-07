@@ -2,6 +2,7 @@ package com.ytplus.guard;
 
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -40,9 +41,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String PREF_KEY_LICENSE = "license_key";
     private static final String PREF_KEY_DEVICE_ID = "fallback_device_id";
 
-    // حزمة تطبيق يوتيوب بلس الأساسي المستخرج من DevRabie YouTube.apk
+    // حزمة تطبيق يوتيوب بريميوم الأساسي (@DevRabie YouTube.apk)
     private static final String TARGET_PACKAGE_MOD = "com.android.youtube.premium";
-    private static final String TARGET_PACKAGE_STOCK = "com.google.android.youtube";
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -251,26 +251,57 @@ public class MainActivity extends AppCompatActivity {
     private void launchTargetYouTubeApp() {
         PackageManager pm = getPackageManager();
 
-        // 1. فحص تطبيق يوتيوب بلس الأساسي (النسخة المعدلة الخالية من الإعلانات)
-        Intent launchIntent = pm.getLaunchIntentForPackage(TARGET_PACKAGE_MOD);
-
-        if (launchIntent != null) {
-            launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(launchIntent);
-            finish(); // إغلاق شاشة القفل ليصبح يوتيوب هو النشط
-            return;
-        }
-
-        // 2. إذا لم يكن مثبتاً، فحص تطبيق يوتيوب الرسمي كبديل
-        launchIntent = pm.getLaunchIntentForPackage(TARGET_PACKAGE_STOCK);
-        if (launchIntent != null) {
-            launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(launchIntent);
+        // 1. المحاولة الأولى: تشغيل ComponentName المباشر لنشاط البداية في يوتيوب بريميوم
+        try {
+            Intent intent = new Intent(Intent.ACTION_MAIN);
+            intent.addCategory(Intent.CATEGORY_LAUNCHER);
+            intent.setComponent(new ComponentName(TARGET_PACKAGE_MOD, "com.google.android.youtube.app.honeycomb.Shell$HomeActivity"));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
             finish();
             return;
+        } catch (Exception ignored) {}
+
+        // 2. المحاولة الثانية: تشغيل البديل الداخلي InternalShell_HomeActivity
+        try {
+            Intent intent = new Intent(Intent.ACTION_MAIN);
+            intent.addCategory(Intent.CATEGORY_LAUNCHER);
+            intent.setComponent(new ComponentName(TARGET_PACKAGE_MOD, "com.google.android.apps.youtube.app.application.InternalShell_HomeActivity"));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            finish();
+            return;
+        } catch (Exception ignored) {}
+
+        // 3. المحاولة الثالثة: عبر getLaunchIntentForPackage للحزمة المعدلة
+        try {
+            Intent launchIntent = pm.getLaunchIntentForPackage(TARGET_PACKAGE_MOD);
+            if (launchIntent != null) {
+                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(launchIntent);
+                finish();
+                return;
+            }
+        } catch (Exception ignored) {}
+
+        // 4. المحاولة الرابعة: فحص حزم المود الأخرى المعروفة (مثل ReVanced)
+        String[] otherModPackages = {
+            "app.revanced.android.youtube",
+            "com.vanced.android.youtube"
+        };
+        for (String pkg : otherModPackages) {
+            try {
+                Intent launchIntent = pm.getLaunchIntentForPackage(pkg);
+                if (launchIntent != null) {
+                    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(launchIntent);
+                    finish();
+                    return;
+                }
+            } catch (Exception ignored) {}
         }
 
-        // 3. في حال عدم وجود أي منهما، إظهار رسالة إرشادية لتثبيت التطبيق المرفق
+        // في حال عدم وجود تطبيق البريميوم المعدل، لا نفتح يوتيوب العادي أبداً، بل نطلب من المستخدم تثبيت ملف البريميوم المرفق
         showActivationForm();
         layoutMissingCompanion.setVisibility(View.VISIBLE);
         showError(getString(R.string.error_not_installed));
