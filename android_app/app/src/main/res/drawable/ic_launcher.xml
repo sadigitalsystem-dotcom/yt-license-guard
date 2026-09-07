@@ -1,0 +1,18 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Red rounded background -->
+    <path
+        android:fillColor="#FF0000"
+        android:pathData="M24,10 L84,10 A14,14 0 0 1 98,24 L98,84 A14,14 0 0 1 84,98 L24,98 A14,14 0 0 1 10,84 L10,24 A14,14 0 0 1 24,10 Z" />
+    <!-- White Play Icon -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M42,34 L42,74 L74,54 Z" />
+    <!-- White Plus Icon badge in top right -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M80,18 L86,18 L86,24 L80,24 L80,30 L74,30 L74,24 L68,24 L68,18 L74,18 L74,12 L80,12 Z" />
+</vector>

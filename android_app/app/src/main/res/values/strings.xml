@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">(يوتيوب بلس+) YouTube PLUS+</string>
+    <string name="app_title">YouTube PLUS+</string>
+    <string name="activation_title">تفعيل الاشتراك</string>
+    <string name="activation_subtitle">أدخل كود الاشتراك الخاص بك لفتح وتفعيل ميزات يوتيوب بلس</string>
+    <string name="license_hint">PLUS-XXXX-XXXX-XXXX</string>
+    <string name="btn_activate">تفعيل وتشغيل الآن</string>
+    <string name="btn_recheck">إعادة التحقق</string>
+    <string name="device_id_prefix">معرف جهازك: </string>
+    <string name="status_checking">جاري التحقق من حالة الاشتراك...</string>
+    <string name="status_activating">جاري تفعيل الكود وربط هذا الجهاز...</string>
+    <string name="error_empty_key">يرجى إدخال كود التفعيل</string>
+    <string name="error_connection">تعذر الاتصال بالسيرفر. تأكد من اتصال الإنترنت وحاول مجدداً.</string>
+    <string name="error_not_installed">تطبيق يوتيوب الأساسي غير مثبت!\nيرجى تثبيت ملف يوتيوب المرفق (@DevRabie YouTube.apk) لتتمكن من تشغيله.</string>
+    <string name="success_activated">تم التحقق من الاشتراك بنجاح! جاري تشغيل يوتيوب...</string>
+    <string name="support_note">للحصول على كود التفعيل أو تجديد اشتراكك تواصل مع مسؤول الخدمة</string>
+</resources>
