@@ -23,9 +23,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Build Unified YouTube PLUS APK
         run: |
           set -e
@@ -33,12 +30,12 @@ jobs:
           echo "🚀 Starting YouTube PLUS+ Build Pipeline"
           echo "======================================================="
 
-          # 1. تنزيل الأدوات (Apktool & Uber-APK-Signer)
+          # 1. تنزيل أدوات البناء
           echo "=== 1. Downloading Build Tools ==="
           wget -q https://github.com/iBotPeaches/Apktool/releases/download/v2.9.3/apktool_2.9.3.jar -O apktool.jar
           wget -q https://github.com/patrickfav/uber-apk-signer/releases/download/v1.3.0/uber-apk-signer-1.3.0.jar -O uber-apk-signer.jar
 
-          # 2. تنزيل ملف YouTube Premium الأساسي
+          # 2. تنزيل ملف YouTube Premium الأساسي المرفوع في Releases
           echo "=== 2. Downloading YouTube Premium Base APK ==="
           curl -f -sL "https://github.com/sadigitalsystem-dotcom/yt-license-guard/releases/download/v1.0.0/%40DevRabie.YouTube.apk" -o base_youtube.apk
           echo "Downloaded APK size: $(ls -lh base_youtube.apk | awk '{print $5}')"
@@ -49,10 +46,8 @@ jobs:
 
           # 4. تجميع كود شاشة الحماية GatekeeperActivity مباشرة إلى Dex
           echo "=== 4. Compiling GatekeeperActivity ==="
-          BUILD_TOOLS_DIR=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -n 1)
-          PLATFORMS_DIR=$(ls -d $ANDROID_HOME/platforms/android-* | sort -V | tail -n 1)
-          PLATFORM_JAR="$PLATFORMS_DIR/android.jar"
-          D8_BIN="$BUILD_TOOLS_DIR/d8"
+          PLATFORM_JAR=$(find "$ANDROID_HOME" -name "android.jar" | sort -V | tail -n 1)
+          D8_BIN=$(find "$ANDROID_HOME" -name "d8" -type f | grep -v "lib/" | sort -V | tail -n 1)
           chmod +x "$D8_BIN" || true
 
           echo "Using Platform JAR: $PLATFORM_JAR"
@@ -64,7 +59,7 @@ jobs:
           mkdir -p /tmp/dex
           "$D8_BIN" --lib "$PLATFORM_JAR" --output /tmp/dex /tmp/classes/com/ytplus/guard/*.class
 
-          # 5. حقن classes9.dex مباشرة في الحزمة
+          # 5. حقن classes9.dex مباشرة في حزمة يوتيوب
           echo "=== 5. Injecting Gatekeeper Dex ==="
           cp /tmp/dex/classes.dex yt_unpacked/classes9.dex
           echo "Injected classes9.dex: $(ls -lh yt_unpacked/classes9.dex | awk '{print $5}')"
