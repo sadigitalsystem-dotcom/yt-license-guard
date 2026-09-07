@@ -30,24 +30,30 @@ jobs:
           echo "🚀 Starting YouTube PLUS+ Build Pipeline"
           echo "======================================================="
 
-          # 1. تنزيل أدوات البناء
+          # 1. تنزيل الأدوات (Apktool & Uber-APK-Signer)
           echo "=== 1. Downloading Build Tools ==="
           wget -q https://github.com/iBotPeaches/Apktool/releases/download/v2.9.3/apktool_2.9.3.jar -O apktool.jar
           wget -q https://github.com/patrickfav/uber-apk-signer/releases/download/v1.3.0/uber-apk-signer-1.3.0.jar -O uber-apk-signer.jar
 
-          # 2. تنزيل ملف YouTube Premium الأساسي المرفوع في Releases
+          # 2. تنزيل ملف YouTube Premium الأساسي
           echo "=== 2. Downloading YouTube Premium Base APK ==="
           curl -f -sL "https://github.com/sadigitalsystem-dotcom/yt-license-guard/releases/download/v1.0.0/%40DevRabie.YouTube.apk" -o base_youtube.apk
           echo "Downloaded APK size: $(ls -lh base_youtube.apk | awk '{print $5}')"
 
-          # 3. فك ملف يوتيوب بدون فك المصادر البرمجية (-s) للحفاظ على كود يوتيوب الأصلي
+          # 3. فك ملف يوتيوب بدون فك المصادر البرمجية (-s)
           echo "=== 3. Unpacking Base APK (preserving raw dex) ==="
           java -jar apktool.jar d -s base_youtube.apk -o yt_unpacked
 
           # 4. تجميع كود شاشة الحماية GatekeeperActivity مباشرة إلى Dex
           echo "=== 4. Compiling GatekeeperActivity ==="
-          PLATFORM_JAR=$(find "$ANDROID_HOME" -name "android.jar" | sort -V | tail -n 1)
-          D8_BIN=$(find "$ANDROID_HOME" -name "d8" -type f | grep -v "lib/" | sort -V | tail -n 1)
+
+          # إزالة أي سطر قديم يحتوي على maxWidth تلقائياً لضمان التوافق التام 100%
+          sed -i '/maxWidth/d' android_app/app/src/main/java/com/ytplus/guard/GatekeeperActivity.java || true
+
+          # تحديد مسارات Platform JAR و D8 من نظام أندرويد
+          PLATFORM_JAR=$(find "$ANDROID_HOME/platforms" -name "android.jar" 2>/dev/null | sort -V | tail -n 1)
+          BUILD_TOOLS_DIR=$(ls -d "$ANDROID_HOME/build-tools/"* 2>/dev/null | sort -V | tail -n 1)
+          D8_BIN="$BUILD_TOOLS_DIR/d8"
           chmod +x "$D8_BIN" || true
 
           echo "Using Platform JAR: $PLATFORM_JAR"
@@ -59,7 +65,7 @@ jobs:
           mkdir -p /tmp/dex
           "$D8_BIN" --lib "$PLATFORM_JAR" --output /tmp/dex /tmp/classes/com/ytplus/guard/*.class
 
-          # 5. حقن classes9.dex مباشرة في حزمة يوتيوب
+          # 5. حقن classes9.dex مباشرة في الحزمة
           echo "=== 5. Injecting Gatekeeper Dex ==="
           cp /tmp/dex/classes.dex yt_unpacked/classes9.dex
           echo "Injected classes9.dex: $(ls -lh yt_unpacked/classes9.dex | awk '{print $5}')"
