@@ -47,8 +47,43 @@ jobs:
           # 4. تجميع كود شاشة الحماية GatekeeperActivity مباشرة إلى Dex
           echo "=== 4. Compiling GatekeeperActivity ==="
 
-          # إزالة أي سطر قديم يحتوي على maxWidth تلقائياً لضمان التوافق التام 100%
+          # إزالة أي سطر قديم يحتوي على maxWidth تلقائياً
           sed -i '/maxWidth/d' android_app/app/src/main/java/com/ytplus/guard/GatekeeperActivity.java || true
+
+          # تصحيح دالة الانتقال لفتح نشاط يوتيوب الرئيسي MainActivity مباشرة دون حلقة تكرار
+          python3 - << 'EOF'
+          with open('android_app/app/src/main/java/com/ytplus/guard/GatekeeperActivity.java', 'r', encoding='utf-8') as f:
+              code = f.read()
+
+          fixed_launcher = '''
+              private void launchYouTubePremiumUI() {
+                  String[] targets = {
+                      "com.google.android.apps.youtube.app.watchwhile.MainActivity",
+                      "com.google.android.youtube.app.honeycomb.Shell$HomeActivity",
+                      "com.google.android.youtube.HomeActivity",
+                      "com.google.android.apps.youtube.app.application.Shell_HomeActivity"
+                  };
+                  for (String target : targets) {
+                      try {
+                          android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_MAIN);
+                          intent.setClassName(this, target);
+                          intent.addCategory(android.content.Intent.CATEGORY_DEFAULT);
+                          intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                          startActivity(intent);
+                          finish();
+                          return;
+                      } catch (Exception ignored) {}
+                  }
+                  showFormView();
+                  showError("تم التفعيل بنجاح، يرجى إعادة فتح التطبيق لتطبيق التغييرات");
+              }
+          '''
+          import re
+          code = re.sub(r'private void launchYouTubePremiumUI\(\)\s*\{[\s\S]*?\n    \}', fixed_launcher, code)
+          with open('android_app/app/src/main/java/com/ytplus/guard/GatekeeperActivity.java', 'w', encoding='utf-8') as f:
+              f.write(code)
+          print('✅ GatekeeperActivity launch function patched successfully!')
+          EOF
 
           # تحديد مسارات Platform JAR و D8 من نظام أندرويد
           PLATFORM_JAR=$(find "$ANDROID_HOME/platforms" -name "android.jar" 2>/dev/null | sort -V | tail -n 1)
@@ -136,11 +171,12 @@ jobs:
       - name: Publish Release Asset
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v2.0.0
-          name: "YouTube PLUS+ (يوتيوب بلس+) v2.0.0"
+          tag_name: v2.0.1
+          name: "YouTube PLUS+ (يوتيوب بلس+) v2.0.1"
           body: |
-            ### تطبيق (يوتيوب بلس+) YouTube PLUS+ المدمج 100% للأندرويد
+            ### تطبيق (يوتيوب بلس+) YouTube PLUS+ المدمج 100% للأندرويد - التحديث النهائي
             
+            - تم حل مشكلة الانتقال المباشر لواجهة يوتيوب الأصلية بعد التفعيل.
             - تطبيق واحد متكامل يجمع شاشة القفل وتفعيل الأكواد ومحرك YouTube Premium الأصلي بداخله.
             - محمي بنظام التراخيص المتصل بسيرفرك السحابي.
             - بدون إعلانات نهائياً، مع تشغيل في الخلفية وميزات البريميوم الكاملة.
