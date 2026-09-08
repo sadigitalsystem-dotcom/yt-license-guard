@@ -37,8 +37,8 @@ class LicenseDB {
     // تهيئة حساب المسؤول الافتراضي إذا لم يكن موجوداً
     if (!this.data.admin) {
       this.data.admin = {
-        email: 'admin@ytplus.com',
-        password: 'Admin@YT2026!'
+        email: process.env.ADMIN_EMAIL || 'sa.digitalsystem@gmail.com',
+        password: process.env.ADMIN_PASSWORD || 'Admin@YT2026!'
       };
       this.save();
     }
@@ -65,7 +65,10 @@ class LicenseDB {
 
   getAdmin() {
     if (!this.data.admin) {
-      this.data.admin = { email: 'admin@ytplus.com', password: 'Admin@YT2026!' };
+      this.data.admin = { 
+        email: process.env.ADMIN_EMAIL || 'sa.digitalsystem@gmail.com', 
+        password: process.env.ADMIN_PASSWORD || 'Admin@YT2026!' 
+      };
       this.save();
     }
     return this.data.admin;
@@ -234,7 +237,26 @@ const server = http.createServer(async (req, res) => {
       const { email, password } = body;
       const admin = db.getAdmin();
 
-      if (email && password && email.trim().toLowerCase() === admin.email.toLowerCase() && password === admin.password) {
+      const inputEmail = (email || '').trim().toLowerCase();
+      const currentEmail = (admin.email || '').trim().toLowerCase();
+
+      // نقبل البريد المسجل حالياً، أو إيميل المشرف sa.digitalsystem@gmail.com، أو البريد الافتراضي admin@ytplus.com
+      const isEmailMatch = inputEmail === currentEmail || 
+                           inputEmail === 'sa.digitalsystem@gmail.com' || 
+                           inputEmail === 'admin@ytplus.com';
+
+      // نقبل كلمة المرور المسجلة، أو كلمة المرور الرئيسية Admin@YT2026! أو متغير البيئة
+      const isPasswordMatch = password === admin.password || 
+                              password === 'Admin@YT2026!' ||
+                              (process.env.ADMIN_PASSWORD && password === process.env.ADMIN_PASSWORD);
+
+      if (email && password && isEmailMatch && isPasswordMatch) {
+        // تحديث البريد المسجل إذا كان مختلفاً
+        if (inputEmail !== currentEmail && inputEmail.includes('@')) {
+          admin.email = inputEmail;
+          db.updateAdmin(admin.email, admin.password);
+        }
+
         const sessionToken = crypto.randomBytes(32).toString('hex');
         activeAdminSessions.add(sessionToken);
 
