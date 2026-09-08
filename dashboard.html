@@ -43,8 +43,16 @@
         </button>
         <a href="/app" target="_blank" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-2 border border-zinc-700">
           <i class="fa-solid fa-mobile-screen text-red-500"></i>
-          <span>المشغل</span>
+          <span class="hidden sm:inline">فتح التطبيق</span>
         </a>
+        <button onclick="openSecurityModal()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-2 border border-zinc-700 shadow-sm" title="إعدادات أمان لوحة التحكم">
+          <i class="fa-solid fa-lock text-emerald-400"></i>
+          <span class="hidden sm:inline">الأمان</span>
+        </button>
+        <button onclick="handleLogout()" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-2 border border-red-500/20 shadow-sm" title="تسجيل الخروج">
+          <i class="fa-solid fa-right-from-bracket text-red-500"></i>
+          <span class="hidden sm:inline">خروج</span>
+        </button>
         <button onclick="openGenerateModal()" class="bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-bold px-4 py-2 rounded-xl transition flex items-center gap-2 shadow-lg shadow-red-600/20">
           <i class="fa-solid fa-plus"></i>
           <span>توليد كود</span>
@@ -300,13 +308,53 @@
     <span id="toastMsg">تم النسخ إلى الحافظة!</span>
   </div>
 
+  <!-- نافذة إعدادات الأمان وحساب المسؤول -->
+  <div id="securityModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="glass-card w-full max-w-md rounded-3xl p-6 border border-zinc-700 shadow-2xl">
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+          <span>إعدادات أمان لوحة التحكم</span>
+        </h3>
+        <button onclick="closeSecurityModal()" class="text-zinc-400 hover:text-white transition">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <div>
+          <label class="block text-zinc-400 font-bold mb-1">كلمة المرور الحالية</label>
+          <input type="password" id="secCurrentPass" placeholder="أدخل كلمة المرور الحالية للتأكيد" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-emerald-500 transition">
+        </div>
+        <div>
+          <label class="block text-zinc-400 font-bold mb-1">البريد الإلكتروني الجديد (اختياري)</label>
+          <input type="email" id="secNewEmail" placeholder="admin@ytplus.com" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-emerald-500 transition">
+        </div>
+        <div>
+          <label class="block text-zinc-400 font-bold mb-1">كلمة المرور الجديدة (اختياري)</label>
+          <input type="password" id="secNewPass" placeholder="اتركها فارغة إذا كنت لا ترغب بتغييرها" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-emerald-500 transition">
+        </div>
+
+        <div id="secAlert" class="hidden p-2.5 rounded-xl text-center font-bold"></div>
+
+        <button onclick="submitSecurityUpdate()" id="secSaveBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-emerald-600/20 text-sm mt-2">
+          حفظ التغييرات
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    const API_BASE = 'https://yt-license-guard.onrender.com';
+    const API_BASE = '';
     let allLicenses = [];
 
     async function loadLicenses() {
       try {
-        const res = await fetch(`${API_BASE}/api/admin/licenses`);
+        const res = await fetch(`/api/admin/licenses`);
+        if (res.status === 401) {
+          window.location.href = '/login';
+          return;
+        }
         const data = await res.json();
         allLicenses = data.licenses || [];
         renderLicenses(allLicenses);
@@ -542,6 +590,71 @@
       setTimeout(() => {
         toast.classList.add('opacity-0', 'pointer-events-none');
       }, 2500);
+    }
+
+    function openSecurityModal() {
+      document.getElementById('secCurrentPass').value = '';
+      document.getElementById('secNewEmail').value = '';
+      document.getElementById('secNewPass').value = '';
+      document.getElementById('secAlert').classList.add('hidden');
+      document.getElementById('securityModal').classList.remove('hidden');
+    }
+
+    function closeSecurityModal() {
+      document.getElementById('securityModal').classList.add('hidden');
+    }
+
+    async function handleLogout() {
+      if (confirm('هل أنت متأكد من تسجيل الخروج من لوحة التحكم؟')) {
+        try {
+          await fetch('/api/admin/logout', { method: 'POST' });
+        } catch(e) {}
+        window.location.href = '/login';
+      }
+    }
+
+    async function submitSecurityUpdate() {
+      const current_password = document.getElementById('secCurrentPass').value;
+      const new_email = document.getElementById('secNewEmail').value.trim();
+      const new_password = document.getElementById('secNewPass').value;
+      const alertBox = document.getElementById('secAlert');
+      const btn = document.getElementById('secSaveBtn');
+
+      alertBox.classList.add('hidden');
+      if (!current_password) {
+        alertBox.innerText = 'يرجى إدخال كلمة المرور الحالية للتأكيد';
+        alertBox.className = 'p-2.5 rounded-xl text-center font-bold bg-red-500/10 text-red-400 text-xs block';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>جاري الحفظ...</span>';
+
+      try {
+        const res = await fetch('/api/admin/change-credentials', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ current_password, new_email, new_password })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.status === 'success') {
+          alertBox.innerText = 'تم تحديث بيانات الدخول بنجاح!';
+          alertBox.className = 'p-2.5 rounded-xl text-center font-bold bg-emerald-500/10 text-emerald-400 text-xs block';
+          setTimeout(() => {
+            closeSecurityModal();
+          }, 1500);
+        } else {
+          alertBox.innerText = data.message || 'حدث خطأ أثناء التحديث';
+          alertBox.className = 'p-2.5 rounded-xl text-center font-bold bg-red-500/10 text-red-400 text-xs block';
+        }
+      } catch (err) {
+        alertBox.innerText = 'تعذر الاتصال بالخادم';
+        alertBox.className = 'p-2.5 rounded-xl text-center font-bold bg-red-500/10 text-red-400 text-xs block';
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'حفظ التغييرات';
+      }
     }
 
     loadLicenses();

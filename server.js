@@ -10,13 +10,14 @@ const __dirname = path.dirname(__filename);
 const PORT = process.env.PORT || 3000;
 const DB_PATH = path.join(__dirname, 'licenses.json');
 const DASHBOARD_PATH = path.join(__dirname, 'dashboard.html');
+const LOGIN_PATH = path.join(__dirname, 'login.html');
 const APP_PATH = path.join(__dirname, 'app.html');
 
-// إدارة قاعدة البيانات كملف JSON لضمان التوافقية بنسبة 100% دون أي متطلبات تثبيت
+// إدارة قاعدة البيانات كملف JSON لضمان التوافقية بنسبة 100%
 class LicenseDB {
   constructor(filepath) {
     this.filepath = filepath;
-    this.data = { licenses: [] };
+    this.data = { licenses: [], admin: null };
     this.load();
   }
 
@@ -30,13 +31,38 @@ class LicenseDB {
       }
     } catch (e) {
       console.error('Error loading DB, creating fresh state:', e);
-      this.data = { licenses: [] };
+      this.data = { licenses: [], admin: null };
+      this.save();
+    }
+    // تهيئة حساب المسؤول الافتراضي إذا لم يكن موجوداً
+    if (!this.data.admin) {
+      this.data.admin = {
+        email: 'admin@ytplus.com',
+        password: 'Admin@YT2026!'
+      };
       this.save();
     }
   }
 
   save() {
     fs.writeFileSync(this.filepath, JSON.stringify(this.data, null, 2), 'utf8');
+  }
+
+  getAdmin() {
+    if (!this.data.admin) {
+      this.data.admin = { email: 'admin@ytplus.com', password: 'Admin@YT2026!' };
+      this.save();
+    }
+    return this.data.admin;
+  }
+
+  updateAdmin(email, password) {
+    this.data.admin = {
+      email: (email || '').trim().toLowerCase(),
+      password: password
+    };
+    this.save();
+    return this.data.admin;
   }
 
   getAll() {
@@ -86,6 +112,27 @@ class LicenseDB {
 
 const db = new LicenseDB(DB_PATH);
 
+// إدارة الجلسات الآمنة في الذاكرة
+const activeAdminSessions = new Set();
+
+function parseCookies(req) {
+  const list = {};
+  const rc = req.headers.cookie;
+  if (!rc) return list;
+  rc.split(';').forEach(cookie => {
+    const parts = cookie.split('=');
+    const key = parts.shift().trim();
+    if (key) list[key] = decodeURIComponent(parts.join('='));
+  });
+  return list;
+}
+
+function isAuthenticated(req) {
+  const cookies = parseCookies(req);
+  const token = cookies['yt_admin_session'] || (req.headers.authorization ? req.headers.authorization.replace('Bearer ', '').trim() : null);
+  return token && activeAdminSessions.has(token);
+}
+
 function parseJsonBody(req) {
   return new Promise((resolve, reject) => {
     let body = '';
@@ -126,8 +173,31 @@ const server = http.createServer(async (req, res) => {
   }
 
   try {
-    // 1. الصفحة الرئيسية: لوحة التحكم (Dashboard)
+    // 1. صفحة تسجيل دخول المسؤول
+    if (req.method === 'GET' && pathname === '/login') {
+      if (isAuthenticated(req)) {
+        res.writeHead(302, { 'Location': '/dashboard' });
+        res.end();
+        return;
+      }
+      if (fs.existsSync(LOGIN_PATH)) {
+        const html = fs.readFileSync(LOGIN_PATH, 'utf8');
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+        res.end(html);
+      } else {
+        res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+        res.end('ملف تسجيل الدخول غير موجود');
+      }
+      return;
+    }
+
+    // 2. الصفحة الرئيسية / لوحة التحكم (Dashboard) - محمية بتسجيل الدخول
     if (req.method === 'GET' && (pathname === '/' || pathname === '/dashboard')) {
+      if (!isAuthenticated(req)) {
+        res.writeHead(302, { 'Location': '/login' });
+        res.end();
+        return;
+      }
       if (fs.existsSync(DASHBOARD_PATH)) {
         const html = fs.readFileSync(DASHBOARD_PATH, 'utf8');
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
@@ -139,7 +209,61 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    // 1.5 صفحة محاكاة تطبيق الهاتف (شاشة التفعيل والقفل للأندرويد والآيفون)
+    // 3. API تسجيل دخول المسؤول
+    if (req.method === 'POST' && pathname === '/api/admin/login') {
+      const body = await parseJsonBody(req);
+      const { email, password } = body;
+      const admin = db.getAdmin();
+
+      if (email && password && email.trim().toLowerCase() === admin.email.toLowerCase() && password === admin.password) {
+        const sessionToken = crypto.randomBytes(32).toString('hex');
+        activeAdminSessions.add(sessionToken);
+
+        res.writeHead(200, {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Set-Cookie': `yt_admin_session=${sessionToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000`,
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(JSON.stringify({ status: 'success', message: 'تم تسجيل الدخول بنجاح', token: sessionToken }));
+      } else {
+        sendJson(res, 401, { status: 'error', message: 'البريد الإلكتروني أو كلمة المرور غير صحيحة' });
+      }
+      return;
+    }
+
+    // 4. API تسجيل خروج المسؤول
+    if (req.method === 'POST' && pathname === '/api/admin/logout') {
+      const cookies = parseCookies(req);
+      const token = cookies['yt_admin_session'];
+      if (token) activeAdminSessions.delete(token);
+
+      res.writeHead(200, {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Set-Cookie': 'yt_admin_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly',
+        'Access-Control-Allow-Origin': '*'
+      });
+      res.end(JSON.stringify({ status: 'success', message: 'تم تسجيل الخروج بنجاح' }));
+      return;
+    }
+
+    // 5. API تعديل بيانات الدخول للمسؤول (تغيير البريد أو كلمة المرور)
+    if (req.method === 'POST' && pathname === '/api/admin/change-credentials') {
+      if (!isAuthenticated(req)) {
+        return sendJson(res, 401, { status: 'error', message: 'يرجى تسجيل الدخول كمسؤول أولاً' });
+      }
+      const body = await parseJsonBody(req);
+      const { current_password, new_email, new_password } = body;
+      const admin = db.getAdmin();
+
+      if (!current_password || current_password !== admin.password) {
+        return sendJson(res, 400, { status: 'error', message: 'كلمة المرور الحالية غير صحيحة' });
+      }
+
+      db.updateAdmin(new_email || admin.email, new_password || admin.password);
+      return sendJson(res, 200, { status: 'success', message: 'تم تحديث بيانات الدخول بنجاح' });
+    }
+
+    // 6. صفحة محاكاة تطبيق الهاتف (شاشة التفعيل والمشغل)
     if (req.method === 'GET' && pathname === '/app') {
       if (fs.existsSync(APP_PATH)) {
         const html = fs.readFileSync(APP_PATH, 'utf8');
@@ -152,7 +276,7 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    // 1.6 مسار PWA Manifest للتثبيت على الهواتف والشاشات
+    // 7. مسار PWA Manifest
     if (req.method === 'GET' && pathname === '/manifest.json') {
       const manifestPath = path.join(__dirname, 'manifest.json');
       if (fs.existsSync(manifestPath)) {
@@ -166,7 +290,7 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    // 1.7 مسار Service Worker لتمكين تثبيت PWA على الأندرويد
+    // 8. مسار Service Worker
     if (req.method === 'GET' && pathname === '/sw.js') {
       const swPath = path.join(__dirname, 'sw.js');
       if (fs.existsSync(swPath)) {
@@ -180,7 +304,7 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    // 2. API تفعيل الكود وربطه بالجهاز لأول مرة (من تطبيق الآيفون)
+    // 9. API تفعيل الكود وربطه بالجهاز لأول مرة
     if (req.method === 'POST' && pathname === '/api/activate') {
       const body = await parseJsonBody(req);
       const { serial_key, device_id } = body;
@@ -200,7 +324,6 @@ const server = http.createServer(async (req, res) => {
 
       const now = new Date();
 
-      // ربط الجهاز لأول مرة وتحديد تاريخ الانتهاء
       if (!license.device_id) {
         license.device_id = device_id.trim();
         license.activated_at = now.toISOString();
@@ -221,15 +344,13 @@ const server = http.createServer(async (req, res) => {
         });
       }
 
-      // إذا كان الكود مفعل مسبقاً، نتحقق هل الجهاز هو نفسه
       if (license.device_id !== device_id.trim()) {
         return sendJson(res, 403, {
           status: 'error',
-          message: 'هذا الكود مفعل بالفعل على جهاز آيفون آخر! لا يمكن استخدامه على أكثر من جهاز.'
+          message: 'هذا الكود مفعل بالفعل على جهاز آخر! لا يمكن استخدامه على أكثر من جهاز.'
         });
       }
 
-      // التحقق من تاريخ الانتهاء
       if (new Date(license.expiry_date) < now) {
         return sendJson(res, 403, {
           status: 'error',
@@ -250,7 +371,7 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
-    // 3. API فحص الصلاحية السريع (Heartbeat Verification من الآيفون)
+    // 10. API فحص الصلاحية السريع (Heartbeat Verification الفوري)
     if (req.method === 'POST' && pathname === '/api/verify') {
       const body = await parseJsonBody(req);
       const { serial_key, device_id } = body;
@@ -275,8 +396,11 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
-    // 4. لوحة الإدارة: جلب كافة السجلات
+    // 11. لوحة الإدارة: جلب كافة السجلات (محمي)
     if (req.method === 'GET' && pathname === '/api/admin/licenses') {
+      if (!isAuthenticated(req)) {
+        return sendJson(res, 401, { status: 'error', message: 'غير مصرح، يرجى تسجيل الدخول' });
+      }
       const all = db.getAll();
       const now = new Date();
       const processed = all.map(l => {
@@ -291,8 +415,11 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, { licenses: processed });
     }
 
-    // 5. لوحة الإدارة: توليد أكواد جديدة
+    // 12. لوحة الإدارة: توليد أكواد جديدة (محمي)
     if (req.method === 'POST' && pathname === '/api/admin/generate') {
+      if (!isAuthenticated(req)) {
+        return sendJson(res, 401, { status: 'error', message: 'غير مصرح، يرجى تسجيل الدخول' });
+      }
       const body = await parseJsonBody(req);
       const days = parseInt(body.days, 10) || 30;
       const count = Math.min(parseInt(body.count, 10) || 1, 50);
@@ -306,8 +433,11 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, { status: 'success', count: generated.length, licenses: generated });
     }
 
-    // 6. لوحة الإدارة: تبديل حالة التفعيل (حظر/إلغاء حظر)
+    // 13. لوحة الإدارة: تبديل حالة التفعيل (حظر/إلغاء حظر) (محمي)
     if (req.method === 'POST' && pathname === '/api/admin/toggle-status') {
+      if (!isAuthenticated(req)) {
+        return sendJson(res, 401, { status: 'error', message: 'غير مصرح، يرجى تسجيل الدخول' });
+      }
       const body = await parseJsonBody(req);
       const license = db.getAll().find(l => l.id === body.id);
       if (!license) return sendJson(res, 404, { status: 'error', message: 'غير موجود' });
@@ -317,8 +447,11 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, { status: 'success', is_active: license.is_active });
     }
 
-    // 7. لوحة الإدارة: فك ربط الجهاز (Reset Device)
+    // 14. لوحة الإدارة: فك ربط الجهاز (محمي)
     if (req.method === 'POST' && pathname === '/api/admin/reset-device') {
+      if (!isAuthenticated(req)) {
+        return sendJson(res, 401, { status: 'error', message: 'غير مصرح، يرجى تسجيل الدخول' });
+      }
       const body = await parseJsonBody(req);
       const license = db.getAll().find(l => l.id === body.id);
       if (!license) return sendJson(res, 404, { status: 'error', message: 'غير موجود' });
@@ -328,8 +461,11 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, { status: 'success', message: 'تم فك ربط الجهاز بنجاح' });
     }
 
-    // 8. لوحة الإدارة: حذف السيريال
+    // 15. لوحة الإدارة: حذف السيريال (محمي)
     if (req.method === 'POST' && pathname === '/api/admin/delete') {
+      if (!isAuthenticated(req)) {
+        return sendJson(res, 401, { status: 'error', message: 'غير مصرح، يرجى تسجيل الدخول' });
+      }
       const body = await parseJsonBody(req);
       const ok = db.delete(body.id);
       return sendJson(res, 200, { status: ok ? 'success' : 'error' });
@@ -345,8 +481,9 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log(`=======================================================`);
-  console.log(`🚀 سيرفر إدارة تراخيص YouTube Plus يعمل الآن بنجاح!`);
+  console.log(`🚀 سيرفر إدارة تراخيص YouTube Plus محمي بنجاح!`);
   console.log(`🌐 لوحة التحكم: http://localhost:${PORT}`);
+  console.log(`🔐 تسجيل الدخول: http://localhost:${PORT}/login`);
   console.log(`📡 نقطة التفعيل: http://localhost:${PORT}/api/activate`);
   console.log(`=======================================================`);
 });
