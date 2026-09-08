@@ -42,6 +42,21 @@ class LicenseDB {
       };
       this.save();
     }
+
+    // ترقية السجلات القديمة تلقائياً لدعم المجموعات وتعدد الأجهزة وواتساب
+    if (Array.isArray(this.data.licenses)) {
+      let needsSave = false;
+      this.data.licenses.forEach(l => {
+        if (!l.max_devices) { l.max_devices = 1; needsSave = true; }
+        if (!Array.isArray(l.device_ids)) {
+          l.device_ids = l.device_id ? [l.device_id] : [];
+          needsSave = true;
+        }
+        if (!l.group) { l.group = 'عام'; needsSave = true; }
+        if (l.whatsapp === undefined) { l.whatsapp = ''; needsSave = true; }
+      });
+      if (needsSave) this.save();
+    }
   }
 
   save() {
@@ -73,14 +88,18 @@ class LicenseDB {
     return this.data.licenses.find(l => l.serial_key.toUpperCase() === serialKey.trim().toUpperCase());
   }
 
-  create(durationDays, note = '') {
+  create(durationDays, note = '', maxDevices = 1, group = 'عام', whatsapp = '') {
     const randomHex = () => crypto.randomBytes(3).toString('hex').toUpperCase();
     const key = `PLUS-${randomHex()}-${randomHex()}-${randomHex()}`;
     const newEntry = {
       id: crypto.randomUUID(),
       serial_key: key,
       duration_days: parseInt(durationDays, 10),
-      note: note.trim(),
+      note: (note || '').trim(),
+      group: (group || 'عام').trim(),
+      whatsapp: (whatsapp || '').trim(),
+      max_devices: Math.max(1, parseInt(maxDevices, 10) || 1),
+      device_ids: [],
       device_id: null,
       created_at: new Date().toISOString(),
       activated_at: null,
@@ -304,7 +323,7 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    // 9. API تفعيل الكود وربطه بالجهاز لأول مرة
+    // 9. API تفعيل الكود وربطه بالجهاز (يدعم تعدد الأجهزة حسب الباقة)
     if (req.method === 'POST' && pathname === '/api/activate') {
       const body = await parseJsonBody(req);
       const { serial_key, device_id } = body;
@@ -323,35 +342,34 @@ const server = http.createServer(async (req, res) => {
       }
 
       const now = new Date();
+      if (!Array.isArray(license.device_ids)) {
+        license.device_ids = license.device_id ? [license.device_id] : [];
+      }
+      const maxDev = license.max_devices || 1;
+      const targetDev = device_id.trim();
 
-      if (!license.device_id) {
-        license.device_id = device_id.trim();
-        license.activated_at = now.toISOString();
+      const isRegistered = license.device_ids.includes(targetDev);
 
-        const expiry = new Date();
-        expiry.setDate(expiry.getDate() + license.duration_days);
-        license.expiry_date = expiry.toISOString();
+      if (!isRegistered) {
+        if (license.device_ids.length >= maxDev) {
+          return sendJson(res, 403, {
+            status: 'error',
+            message: `تم الوصول للحد الأقصى من الأجهزة المصرح بها لهذا الكود (${maxDev} أجهزة). يرجى فك ارتباط جهاز سابق أو ترقية الباقة.`
+          });
+        }
+        license.device_ids.push(targetDev);
+        license.device_id = license.device_ids[0];
 
+        if (!license.activated_at) {
+          license.activated_at = now.toISOString();
+          const expiry = new Date();
+          expiry.setDate(expiry.getDate() + license.duration_days);
+          license.expiry_date = expiry.toISOString();
+        }
         db.update(license);
-
-        return sendJson(res, 200, {
-          status: 'success',
-          message: 'تم تفعيل الاشتراك وربط الجهاز بنجاح!',
-          serial_key: license.serial_key,
-          device_id: license.device_id,
-          expires_at: license.expiry_date,
-          days_left: license.duration_days
-        });
       }
 
-      if (license.device_id !== device_id.trim()) {
-        return sendJson(res, 403, {
-          status: 'error',
-          message: 'هذا الكود مفعل بالفعل على جهاز آخر! لا يمكن استخدامه على أكثر من جهاز.'
-        });
-      }
-
-      if (new Date(license.expiry_date) < now) {
+      if (license.expiry_date && new Date(license.expiry_date) < now) {
         return sendJson(res, 403, {
           status: 'error',
           message: 'عذراً، لقد انتهت صلاحية اشتراك هذا الكود. يرجى التجديد.'
@@ -365,20 +383,33 @@ const server = http.createServer(async (req, res) => {
         status: 'success',
         message: 'الاشتراك سارٍ ونشط',
         serial_key: license.serial_key,
-        device_id: license.device_id,
+        device_id: targetDev,
+        devices_count: license.device_ids.length,
+        max_devices: maxDev,
+        activated_at: license.activated_at,
         expires_at: license.expiry_date,
         days_left: daysLeft
       });
     }
 
-    // 10. API فحص الصلاحية السريع (Heartbeat Verification الفوري)
+    // 10. API فحص الصلاحية السريع (Heartbeat Verification اللحظي)
     if (req.method === 'POST' && pathname === '/api/verify') {
       const body = await parseJsonBody(req);
       const { serial_key, device_id } = body;
 
       const license = db.find(serial_key || '');
-      if (!license || !license.is_active || license.device_id !== (device_id || '').trim()) {
+      if (!license || !license.is_active) {
         return sendJson(res, 403, { status: 'invalid', message: 'الاشتراك غير مفعّل أو تم حظره' });
+      }
+
+      if (!Array.isArray(license.device_ids)) {
+        license.device_ids = license.device_id ? [license.device_id] : [];
+      }
+      const targetDev = (device_id || '').trim();
+      const isDeviceMatched = license.device_ids.includes(targetDev) || license.device_id === targetDev;
+
+      if (!isDeviceMatched) {
+        return sendJson(res, 403, { status: 'invalid', message: 'الجهاز غير مصرح به على هذا الكود' });
       }
 
       const now = new Date();
@@ -391,6 +422,7 @@ const server = http.createServer(async (req, res) => {
 
       return sendJson(res, 200, {
         status: 'valid',
+        activated_at: license.activated_at,
         expires_at: license.expiry_date,
         days_left: daysLeft
       });
@@ -410,12 +442,19 @@ const server = http.createServer(async (req, res) => {
         } else if (l.expiry_date) {
           statusText = new Date(l.expiry_date) < now ? 'منتهي الصلاحية' : 'نشط';
         }
-        return { ...l, status_text: statusText };
+        return {
+          ...l,
+          device_ids: Array.isArray(l.device_ids) ? l.device_ids : (l.device_id ? [l.device_id] : []),
+          max_devices: l.max_devices || 1,
+          group: l.group || 'عام',
+          whatsapp: l.whatsapp || '',
+          status_text: statusText
+        };
       });
       return sendJson(res, 200, { licenses: processed });
     }
 
-    // 12. لوحة الإدارة: توليد أكواد جديدة (محمي)
+    // 12. لوحة الإدارة: توليد أكواد جديدة (محمي - يدعم المجموعات، الأجهزة، والواتساب)
     if (req.method === 'POST' && pathname === '/api/admin/generate') {
       if (!isAuthenticated(req)) {
         return sendJson(res, 401, { status: 'error', message: 'غير مصرح، يرجى تسجيل الدخول' });
@@ -424,16 +463,39 @@ const server = http.createServer(async (req, res) => {
       const days = parseInt(body.days, 10) || 30;
       const count = Math.min(parseInt(body.count, 10) || 1, 50);
       const note = body.note || '';
+      const maxDevices = Math.max(1, parseInt(body.max_devices, 10) || 1);
+      const group = body.group || 'عام';
+      const whatsapp = body.whatsapp || '';
 
       const generated = [];
       for (let i = 0; i < count; i++) {
-        generated.push(db.create(days, note));
+        generated.push(db.create(days, note, maxDevices, group, whatsapp));
       }
 
       return sendJson(res, 200, { status: 'success', count: generated.length, licenses: generated });
     }
 
-    // 13. لوحة الإدارة: تبديل حالة التفعيل (حظر/إلغاء حظر) (محمي)
+    // 13. لوحة الإدارة: تحديث بيانات المفتاح (ملاحظة، واتساب، مجموعة، أجهزة) (محمي)
+    if (req.method === 'POST' && pathname === '/api/admin/update-license') {
+      if (!isAuthenticated(req)) {
+        return sendJson(res, 401, { status: 'error', message: 'غير مصرح، يرجى تسجيل الدخول' });
+      }
+      const body = await parseJsonBody(req);
+      const license = db.getAll().find(l => l.id === body.id);
+      if (!license) return sendJson(res, 404, { status: 'error', message: 'غير موجود' });
+
+      if (body.note !== undefined) license.note = (body.note || '').trim();
+      if (body.whatsapp !== undefined) license.whatsapp = (body.whatsapp || '').trim();
+      if (body.group !== undefined) license.group = (body.group || 'عام').trim();
+      if (body.max_devices !== undefined) {
+        license.max_devices = Math.max(1, parseInt(body.max_devices, 10) || 1);
+      }
+
+      db.update(license);
+      return sendJson(res, 200, { status: 'success', message: 'تم تحديث بيانات المفتاح بنجاح', license });
+    }
+
+    // 14. لوحة الإدارة: تبديل حالة التفعيل (حظر/إلغاء حظر) (محمي)
     if (req.method === 'POST' && pathname === '/api/admin/toggle-status') {
       if (!isAuthenticated(req)) {
         return sendJson(res, 401, { status: 'error', message: 'غير مصرح، يرجى تسجيل الدخول' });
@@ -447,7 +509,7 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, { status: 'success', is_active: license.is_active });
     }
 
-    // 14. لوحة الإدارة: فك ربط الجهاز (محمي)
+    // 15. لوحة الإدارة: فك ربط الجهاز أو كافة الأجهزة (محمي)
     if (req.method === 'POST' && pathname === '/api/admin/reset-device') {
       if (!isAuthenticated(req)) {
         return sendJson(res, 401, { status: 'error', message: 'غير مصرح، يرجى تسجيل الدخول' });
@@ -456,12 +518,18 @@ const server = http.createServer(async (req, res) => {
       const license = db.getAll().find(l => l.id === body.id);
       if (!license) return sendJson(res, 404, { status: 'error', message: 'غير موجود' });
 
-      license.device_id = null;
+      if (body.device_id) {
+        license.device_ids = (license.device_ids || []).filter(d => d !== body.device_id);
+        license.device_id = license.device_ids[0] || null;
+      } else {
+        license.device_ids = [];
+        license.device_id = null;
+      }
       db.update(license);
-      return sendJson(res, 200, { status: 'success', message: 'تم فك ربط الجهاز بنجاح' });
+      return sendJson(res, 200, { status: 'success', message: 'تم فك ربط الجهاز بنجاح', device_ids: license.device_ids });
     }
 
-    // 15. لوحة الإدارة: حذف السيريال (محمي)
+    // 16. لوحة الإدارة: حذف السيريال (محمي)
     if (req.method === 'POST' && pathname === '/api/admin/delete') {
       if (!isAuthenticated(req)) {
         return sendJson(res, 401, { status: 'error', message: 'غير مصرح، يرجى تسجيل الدخول' });
