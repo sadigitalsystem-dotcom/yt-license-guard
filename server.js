@@ -518,7 +518,7 @@ const server = http.createServer(async (req, res) => {
 
   try {
     // 1. مسار تسجيل الدخول المباشر
-    if (req.method === 'GET' && pathname === '/login') {
+    if (req.method === 'GET' && (pathname === '/login' || pathname === '/login/')) {
       if (fs.existsSync(LOGIN_PATH)) {
         const html = fs.readFileSync(LOGIN_PATH, 'utf8');
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
@@ -531,7 +531,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     // 2. الصفحة الرئيسية للوحة التحكم
-    if (req.method === 'GET' && pathname === '/') {
+    if (req.method === 'GET' && (pathname === '/' || pathname === '/dashboard' || pathname === '/dashboard/')) {
       if (!isAuthenticated(req)) {
         res.writeHead(302, { 'Location': '/login' });
         res.end();
@@ -688,7 +688,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     // 7. صفحة تشغيل التطبيق للويب والآيفون والكمبيوتر
-    if (req.method === 'GET' && pathname === '/app') {
+    if (req.method === 'GET' && (pathname === '/app' || pathname === '/app/')) {
       if (fs.existsSync(APP_PATH)) {
         const html = fs.readFileSync(APP_PATH, 'utf8');
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
