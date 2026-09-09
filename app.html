@@ -521,7 +521,7 @@
           <input 
             type="email" 
             id="clientEmailInput" 
-            placeholder="example@gmail.com (اختياري لربط حسابك)" 
+            placeholder="أدخل بريدك الإلكتروني (Gmail) الخاص بك" 
             class="w-full bg-[#121212] border border-[#303030] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-center text-white focus:outline-none focus:border-[#3ea6ff] transition font-sans"
             autocomplete="email"
           >
@@ -860,7 +860,8 @@
         if (res.ok && data.status === 'valid') {
           isActivated = true;
           currentLicenseKey = data.serial_key;
-          currentClientEmail = data.client_email || '';
+          // نعتمد الإيميل المحفوظ محلياً لهذا الجهاز ولا نأخذ إيميل شخص آخر
+          currentClientEmail = localStorage.getItem('yt_client_email') || data.client_email || '';
           currentExpiryDate = data.expires_at;
 
           if (data.user_data) {
@@ -938,11 +939,16 @@
         if (res.ok && data.status === 'success') {
           isActivated = true;
           currentLicenseKey = data.serial_key || key;
-          currentClientEmail = data.client_email || email;
+          // إعطاء الأولوية القصوى للإيميل الذي أدخله المستخدم في هذا الجهاز بالذات
+          currentClientEmail = email || data.client_email || '';
           currentExpiryDate = data.expires_at;
 
           localStorage.setItem('yt_license_key', currentLicenseKey);
-          if (currentClientEmail) localStorage.setItem('yt_client_email', currentClientEmail);
+          if (currentClientEmail) {
+            localStorage.setItem('yt_client_email', currentClientEmail);
+          } else {
+            localStorage.removeItem('yt_client_email');
+          }
 
           if (data.user_data) {
             UserDB.restoreFromCloud(data.user_data);
@@ -992,14 +998,18 @@
         signInBtn.classList.add('hidden');
         profileBtn.classList.remove('hidden');
 
-        const email = currentClientEmail || data.client_email || 'VIP User';
-        document.getElementById('dropEmailText').innerText = email;
+        // نعتمد فقط إيميل هذا الجهاز المسجل محلياً، ولا نعرض إيميل مشتري الكود على باقي الأجهزة
+        const deviceEmail = currentClientEmail || localStorage.getItem('yt_client_email') || '';
+        const displayTitle = deviceEmail || 'عضوية YouTube Premium';
+
+        document.getElementById('dropEmailText').innerText = displayTitle;
         document.getElementById('dropKeyText').innerText = currentLicenseKey;
         document.getElementById('dropExpiryText').innerText = data.days_left ? `متبقي ${data.days_left} يوم` : 'اشتراك سارٍ';
         
-        const firstChar = email.charAt(0).toUpperCase() || 'P';
+        const firstChar = deviceEmail ? deviceEmail.charAt(0).toUpperCase() : 'P';
         avatarChar.innerText = firstChar;
-        navUserText.innerText = email.split('@')[0] || 'أنت';
+        // إذا لم يكن هناك إيميل خاص بهذا الجهاز يظهر 'أنت'، وإذا وجد يظهر اسم صاحب الحساب
+        navUserText.innerText = deviceEmail ? deviceEmail.split('@')[0] : 'أنت';
       } else {
         premBadge.classList.add('hidden');
         signInBtn.classList.remove('hidden');
@@ -2230,7 +2240,8 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             serial_key: currentLicenseKey,
-            new_email: newEmail
+            new_email: newEmail,
+            device_id: DEVICE_ID
           })
         });
         const data = await res.json();

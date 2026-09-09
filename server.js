@@ -860,12 +860,17 @@ const server = http.createServer(async (req, res) => {
         license.audit_log = [];
       }
 
-      // ربط إيميل العميل الشخصي إذا تم إدخاله
+      // معالجة إيميل الجهاز الحالي وعزله لخصوصية تامة
+      let cleanClientEmail = '';
       if (client_email && typeof client_email === 'string') {
-        const cleanClientEmail = client_email.trim().toLowerCase();
-        if (cleanClientEmail.includes('@')) {
-          license.client_email = cleanClientEmail;
+        const trimmed = client_email.trim().toLowerCase();
+        if (trimmed.includes('@')) {
+          cleanClientEmail = trimmed;
         }
+      }
+      // تعيين الإيميل الأساسي للمفتاح فقط إذا لم يكن مسجلاً من قبل
+      if (!license.client_email && cleanClientEmail) {
+        license.client_email = cleanClientEmail;
       }
 
       const maxDev = license.max_devices || 1;
@@ -889,6 +894,7 @@ const server = http.createServer(async (req, res) => {
         license.devices_info.push({
           id: targetDev,
           type: detectedType,
+          client_email: cleanClientEmail || '',
           activated_at: now.toISOString(),
           last_seen: now.toISOString()
         });
@@ -912,11 +918,12 @@ const server = http.createServer(async (req, res) => {
         // تحديث آخر ظهور ونوع الجهاز
         let devEntry = license.devices_info.find(d => d.id === targetDev);
         if (!devEntry) {
-          devEntry = { id: targetDev, type: detectedType, activated_at: now.toISOString(), last_seen: now.toISOString() };
+          devEntry = { id: targetDev, type: detectedType, client_email: cleanClientEmail || '', activated_at: now.toISOString(), last_seen: now.toISOString() };
           license.devices_info.push(devEntry);
         } else {
           devEntry.last_seen = now.toISOString();
           if (detectedType && detectedType !== '📱 جهاز متصل') devEntry.type = detectedType;
+          if (cleanClientEmail) devEntry.client_email = cleanClientEmail;
         }
         db.update(license);
       }
@@ -931,11 +938,14 @@ const server = http.createServer(async (req, res) => {
       const msLeft = new Date(license.expiry_date).getTime() - now.getTime();
       const daysLeft = Math.ceil(msLeft / (1000 * 60 * 60 * 24));
 
+      const currentDevInfo = license.devices_info.find(d => d.id === targetDev);
+      const devEmail = cleanClientEmail || (currentDevInfo ? currentDevInfo.client_email : '') || '';
+
       return sendJson(res, 200, {
         status: 'success',
         message: 'الاشتراك سارٍ ونشط',
         serial_key: license.serial_key,
-        client_email: license.client_email || '',
+        client_email: devEmail, // فقط إيميل هذا الجهاز دون تسريب إيميل الأجهزة الأخرى
         device_id: targetDev,
         device_type: detectedType,
         devices_count: license.device_ids.length,
@@ -981,10 +991,13 @@ const server = http.createServer(async (req, res) => {
       const msLeft = new Date(license.expiry_date).getTime() - now.getTime();
       const daysLeft = Math.ceil(msLeft / (1000 * 60 * 60 * 24));
 
+      const currentDevInfo = Array.isArray(license.devices_info) ? license.devices_info.find(d => d.id === targetDev) : null;
+      const devEmail = (currentDevInfo ? currentDevInfo.client_email : '') || '';
+
       return sendJson(res, 200, {
         status: 'valid',
         serial_key: license.serial_key,
-        client_email: license.client_email || '',
+        client_email: devEmail, // خاص بهذا الجهاز فقط
         activated_at: license.activated_at,
         expires_at: license.expiry_date,
         days_left: daysLeft,
