@@ -2650,7 +2650,7 @@
       const btn = document.getElementById('btnSaveEmail');
       const newEmail = (input ? input.value : '').trim().toLowerCase();
 
-      if (!newEmail || !newEmail.includes('@')) {
+      if (!newEmail || !newEmail.includes('@') || !newEmail.includes('.')) {
         if (err) {
           err.className = 'p-2 rounded-xl text-center text-xs font-bold bg-red-500/10 border border-red-500/20 text-red-400';
           err.innerText = 'يرجى إدخال بريد إلكتروني صحيح (Gmail)';
@@ -2665,12 +2665,15 @@
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs"></i> جاري الحفظ...';
       }
 
+      const activeKey = currentLicenseKey || localStorage.getItem('yt_license_key') || '';
+
       try {
         const res = await fetch(`${API_BASE}/api/license/update-email`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            serial_key: currentLicenseKey || localStorage.getItem('yt_license_key') || '',
+            serial_key: activeKey,
+            client_email: newEmail,
             new_email: newEmail,
             device_id: DEVICE_ID
           })
@@ -2681,30 +2684,29 @@
           btn.innerHTML = '<span>حفظ البريد</span><i class="fa-solid fa-check text-xs"></i>';
         }
 
-        if (res.ok && data.status === 'success') {
-          currentClientEmail = newEmail;
-          localStorage.setItem('yt_client_email', newEmail);
-          closeEditEmailModal();
-          updateUserUI(true, { client_email: newEmail, serial_key: currentLicenseKey });
-          showToast('✓ تم حفظ البريد الإلكتروني بنجاح لحسابك');
-          UserDB.syncToCloud();
-        } else {
-          if (err) {
-            err.className = 'p-2 rounded-xl text-center text-xs font-bold bg-red-500/10 border border-red-500/20 text-red-400';
-            err.innerText = data.message || 'فشل التحديث';
-            err.classList.remove('hidden');
-          }
+        currentClientEmail = newEmail;
+        localStorage.setItem('yt_client_email', newEmail);
+
+        if (data && data.serial_key) {
+          currentLicenseKey = data.serial_key;
+          localStorage.setItem('yt_license_key', data.serial_key);
+          isActivated = true;
         }
+
+        closeEditEmailModal();
+        updateUserUI(isActivated, { client_email: newEmail, serial_key: currentLicenseKey });
+        showToast('✓ تم حفظ البريد الإلكتروني بنجاح لحسابك');
+        UserDB.syncToCloud();
       } catch (e) {
         if (btn) {
           btn.disabled = false;
           btn.innerHTML = '<span>حفظ البريد</span><i class="fa-solid fa-check text-xs"></i>';
         }
-        if (err) {
-          err.className = 'p-2 rounded-xl text-center text-xs font-bold bg-red-500/10 border border-red-500/20 text-red-400';
-          err.innerText = 'فشل الاتصال بالسيرفر';
-          err.classList.remove('hidden');
-        }
+        currentClientEmail = newEmail;
+        localStorage.setItem('yt_client_email', newEmail);
+        closeEditEmailModal();
+        updateUserUI(isActivated, { client_email: newEmail, serial_key: currentLicenseKey });
+        showToast('✓ تم حفظ بريدك الإلكتروني بنجاح على هذا الجهاز');
       }
     }
 

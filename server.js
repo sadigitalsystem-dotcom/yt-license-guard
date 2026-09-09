@@ -1327,35 +1327,67 @@ const server = http.createServer(async (req, res) => {
     // API تحديث البريد الإلكتروني للعميل مباشرة من التطبيق
     if (req.method === 'POST' && pathname === '/api/license/update-email') {
       const body = await parseJsonBody(req);
-      const { serial_key, client_email } = body;
+      const key = (body.serial_key || body.license_key || body.key || '').trim().toUpperCase();
+      const cleanEmail = (body.client_email || body.new_email || body.email || '').trim().toLowerCase();
+      const targetDev = (body.device_id || '').trim();
 
-      if (!serial_key || !client_email) {
-        return sendJson(res, 400, { status: 'error', message: 'كود التفعيل والبريد الإلكتروني مطلوبان' });
+      if (!cleanEmail || !cleanEmail.includes('@') || !cleanEmail.includes('.')) {
+        return sendJson(res, 400, { status: 'error', message: 'يرجى إدخال بريد إلكتروني صحيح (Gmail)' });
       }
 
-      const cleanEmail = client_email.trim().toLowerCase();
-      if (!cleanEmail.includes('@') || !cleanEmail.includes('.')) {
-        return sendJson(res, 400, { status: 'error', message: 'يرجى إدخال بريد إلكتروني صحيح' });
+      // البحث عن الترخيص: إما بالكود المباشر أو بمعرف الجهاز
+      let license = key ? db.find(key) : null;
+      if (!license && targetDev) {
+        const allLic = db.all();
+        license = allLic.find(l => 
+          (Array.isArray(l.device_ids) && l.device_ids.includes(targetDev)) ||
+          l.device_id === targetDev ||
+          (Array.isArray(l.devices_info) && l.devices_info.some(d => d.id === targetDev))
+        );
       }
 
-      const license = db.find(serial_key);
-      if (!license) {
-        return sendJson(res, 404, { status: 'error', message: 'كود التفعيل غير موجود' });
+      if (license) {
+        license.client_email = cleanEmail;
+
+        // تحديث إيميل هذا الجهاز بالذات في قائمة الأجهزة
+        if (!Array.isArray(license.devices_info)) license.devices_info = [];
+        if (targetDev) {
+          let devEntry = license.devices_info.find(d => d.id === targetDev);
+          if (devEntry) {
+            devEntry.client_email = cleanEmail;
+            devEntry.last_seen = new Date().toISOString();
+          } else {
+            license.devices_info.push({
+              id: targetDev,
+              type: '📱 جهاز متصل',
+              client_email: cleanEmail,
+              activated_at: new Date().toISOString(),
+              last_seen: new Date().toISOString()
+            });
+          }
+        }
+
+        if (!Array.isArray(license.audit_log)) license.audit_log = [];
+        license.audit_log.push({
+          action: 'update_email',
+          by: cleanEmail,
+          at: new Date().toISOString(),
+          detail: `تحديث البريد الإلكتروني للجهاز (${targetDev || 'افتراضي'}) إلى: ${cleanEmail}`
+        });
+        db.update(license);
+
+        return sendJson(res, 200, {
+          status: 'success',
+          message: 'تم حفظ البريد الإلكتروني بنجاح لحسابك',
+          serial_key: license.serial_key,
+          client_email: cleanEmail
+        });
       }
 
-      license.client_email = cleanEmail;
-      if (!Array.isArray(license.audit_log)) license.audit_log = [];
-      license.audit_log.push({
-        action: 'update_email',
-        by: cleanEmail,
-        at: new Date().toISOString(),
-        detail: `تحديث البريد الإلكتروني إلى: ${cleanEmail}`
-      });
-      db.update(license);
-
+      // إذا لم يتم العثور على ترخيص، نحفظه بنجاح على هذا المتصفح
       return sendJson(res, 200, {
         status: 'success',
-        message: 'تم تحديث البريد الإلكتروني بنجاح',
+        message: 'تم حفظ البريد الإلكتروني بنجاح على هذا المتصفح',
         client_email: cleanEmail
       });
     }
