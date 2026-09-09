@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title id="pageTitle">لوحة إدارة اشتراكات (يوتيوب بلس+)</title>
+  <title id="pageTitle">لوحة إدارة اشتراكات يوتيوب بلس+ - النظام الرقمي</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -23,6 +23,11 @@
       font-weight: 700;
       border-color: #ef4444 !important;
     }
+    /* ضمان ظهور كافة الأرقام بالإنجليزية دائماً */
+    .font-mono, .num-en {
+      font-family: 'Inter', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+      font-variant-numeric: tabular-nums;
+    }
   </style>
 </head>
 <body class="bg-zinc-950 text-zinc-100 min-h-screen flex flex-col selection:bg-red-500 selection:text-white">
@@ -33,17 +38,17 @@
   <header class="border-b border-zinc-800 bg-zinc-900/80 sticky top-0 z-40 backdrop-blur-md">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-3">
       
-      <!-- الشعار والعنوان (لغة واحدة فقط حسب التفضيل، بدون كلمة Guard) -->
+      <!-- الشعار والعنوان (بدون أقواس نهائياً وباسم النظام الرقمي) -->
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-2xl bg-red-600 flex items-center justify-center text-white shadow-lg shadow-red-600/30 shrink-0">
           <i class="fa-brands fa-youtube text-2xl"></i>
         </div>
         <div>
           <h1 id="brandTitle" class="font-extrabold text-lg sm:text-xl tracking-tight text-white leading-tight">
-            (يوتيوب بلس+)
+            يوتيوب بلس+
           </h1>
           <p id="brandSubtitle" class="text-[11px] sm:text-xs text-zinc-400">
-            إدارة التراخيص: هواتف • أجهزة لوحية • شاشات تلفزيون ذكية
+            النظام الرقمي: إدارة التراخيص • هواتف • كمبيوتر • شاشات ذكية
           </p>
         </div>
       </div>
@@ -63,9 +68,15 @@
           <span id="txtBtnGuide" class="hidden sm:inline">دليل الأجهزة</span>
         </button>
 
+        <!-- زر تخصيص روابط التحميل (قوقل درايف) -->
+        <button onclick="openSettingsModal()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 border border-zinc-700 shadow-sm" title="تخصيص روابط التحميل وقوقل درايف">
+          <i class="fa-brands fa-google-drive text-emerald-400 text-sm"></i>
+          <span id="txtBtnDrive" class="hidden sm:inline">روابط التحميل</span>
+        </button>
+
         <!-- زر أمان الحساب -->
         <button onclick="openSecurityModal()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 border border-zinc-700 shadow-sm" title="إعدادات الأمان">
-          <i class="fa-solid fa-lock text-emerald-400 text-sm"></i>
+          <i class="fa-solid fa-lock text-sky-400 text-sm"></i>
           <span id="txtBtnSecurity" class="hidden sm:inline">الأمان</span>
         </button>
 
@@ -90,7 +101,7 @@
   <!-- ========================================== -->
   <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 flex-1 w-full">
     
-    <!-- بطاقات الإحصائيات (متجاوبة: 2 أعمدة في الجوال، 4 في الشاشات الكبيرة) -->
+    <!-- بطاقات الإحصائيات بالأرقام الإنجليزية دائماً -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
       
       <!-- إجمالي الأكواد -->
@@ -99,7 +110,7 @@
           <span id="statTitleTotal" class="text-zinc-400 text-xs sm:text-sm font-medium">إجمالي الأكواد</span>
           <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-400"><i class="fa-solid fa-key text-xs"></i></span>
         </div>
-        <div id="statTotal" class="text-2xl sm:text-3xl font-extrabold mt-2 text-white">0</div>
+        <div id="statTotal" class="text-2xl sm:text-3xl font-extrabold mt-2 text-white font-mono">0</div>
         <div id="statDescTotal" class="text-[10px] sm:text-xs text-zinc-500 mt-1">كافة السيريالات الصادرة</div>
       </div>
 
@@ -109,7 +120,7 @@
           <span id="statTitleActive" class="text-emerald-400 text-xs sm:text-sm font-medium">الاشتراكات النشطة</span>
           <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400"><i class="fa-solid fa-circle-check text-xs"></i></span>
         </div>
-        <div id="statActive" class="text-2xl sm:text-3xl font-extrabold mt-2 text-emerald-400">0</div>
+        <div id="statActive" class="text-2xl sm:text-3xl font-extrabold mt-2 text-emerald-400 font-mono">0</div>
         <div id="statDescActive" class="text-[10px] sm:text-xs text-zinc-500 mt-1">تعمل حالياً على الأجهزة</div>
       </div>
 
@@ -119,7 +130,7 @@
           <span id="statTitlePending" class="text-amber-400 text-xs sm:text-sm font-medium">أكواد للتسليم</span>
           <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400"><i class="fa-solid fa-clock text-xs"></i></span>
         </div>
-        <div id="statPending" class="text-2xl sm:text-3xl font-extrabold mt-2 text-amber-400">0</div>
+        <div id="statPending" class="text-2xl sm:text-3xl font-extrabold mt-2 text-amber-400 font-mono">0</div>
         <div id="statDescPending" class="text-[10px] sm:text-xs text-zinc-500 mt-1">لم تُربط بجهاز بعد</div>
       </div>
 
@@ -129,7 +140,7 @@
           <span id="statTitleExpired" class="text-red-400 text-xs sm:text-sm font-medium">منتهية / محظورة</span>
           <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-400"><i class="fa-solid fa-ban text-xs"></i></span>
         </div>
-        <div id="statExpired" class="text-2xl sm:text-3xl font-extrabold mt-2 text-red-400">0</div>
+        <div id="statExpired" class="text-2xl sm:text-3xl font-extrabold mt-2 text-red-400 font-mono">0</div>
         <div id="statDescExpired" class="text-[10px] sm:text-xs text-zinc-500 mt-1">انتهت مدتها أو أوقفت</div>
       </div>
 
@@ -138,10 +149,10 @@
     <!-- بطاقة السجلات وإدارة التراخيص -->
     <div class="glass-card rounded-2xl overflow-hidden shadow-2xl">
       
-      <!-- شريط البحث والتحكم العلوي -->
+      <!-- شريط البحث والتحكم وإدارة المجموعات -->
       <div class="p-4 sm:p-6 border-b border-zinc-800/80 flex flex-col gap-4">
         
-        <!-- حقل البحث وأزرار التحديث السريع -->
+        <!-- حقل البحث وأزرار التحكم -->
         <div class="flex flex-col sm:flex-row gap-3 items-center justify-between">
           <div class="relative w-full sm:w-96">
             <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-3.5 text-zinc-500 text-sm"></i>
@@ -154,7 +165,7 @@
             >
           </div>
 
-          <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
             <!-- فلترة المجموعات المخصصة -->
             <div class="flex items-center gap-1.5">
               <span id="lblFilterGroup" class="text-xs text-zinc-400 hidden sm:inline">المجموعة:</span>
@@ -163,6 +174,13 @@
               </select>
             </div>
 
+            <!-- زر إنشاء مجموعة جديدة -->
+            <button onclick="openGroupModal()" class="bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0" title="إنشاء وإدارة المجموعات">
+              <i class="fa-solid fa-folder-plus text-xs"></i>
+              <span id="txtBtnNewGroup">مجموعة جديدة</span>
+            </button>
+
+            <!-- زر التحديث -->
             <button onclick="loadLicenses()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-1.5 shrink-0">
               <i class="fa-solid fa-rotate text-xs"></i>
               <span id="txtBtnRefresh">تحديث</span>
@@ -170,13 +188,13 @@
           </div>
         </div>
 
-        <!-- تبويبات الفلترة السريعة حسب مدة الاشتراك -->
-        <div class="flex items-center gap-1.5 overflow-x-auto custom-scroll pb-1 text-xs">
-          <button onclick="setDurationFilter('all')" id="tabAll" class="tab-btn active px-3.5 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 shrink-0 transition">الكل</button>
-          <button onclick="setDurationFilter('7')" id="tab7" class="tab-btn px-3.5 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 shrink-0 transition">7 أيام</button>
-          <button onclick="setDurationFilter('30')" id="tab30" class="tab-btn px-3.5 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 shrink-0 transition">30 يوماً</button>
-          <button onclick="setDurationFilter('90')" id="tab90" class="tab-btn px-3.5 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 shrink-0 transition">90 يوماً</button>
-          <button onclick="setDurationFilter('365')" id="tab365" class="tab-btn px-3.5 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 shrink-0 transition">سنة (365 يوم)</button>
+        <!-- تبويبات الفلترة السريعة حسب مدة الاشتراك (أرقام إنجليزية) -->
+        <div class="flex items-center gap-1.5 overflow-x-auto custom-scroll pb-1 text-xs font-mono">
+          <button onclick="setDurationFilter('all')" id="tabAll" class="tab-btn active px-3.5 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 shrink-0 transition font-sans">الكل</button>
+          <button onclick="setDurationFilter('7')" id="tab7" class="tab-btn px-3.5 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 shrink-0 transition">7 Days</button>
+          <button onclick="setDurationFilter('30')" id="tab30" class="tab-btn px-3.5 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 shrink-0 transition">30 Days</button>
+          <button onclick="setDurationFilter('90')" id="tab90" class="tab-btn px-3.5 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 shrink-0 transition">90 Days</button>
+          <button onclick="setDurationFilter('365')" id="tab365" class="tab-btn px-3.5 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 shrink-0 transition">365 Days (سنة)</button>
         </div>
 
       </div>
@@ -190,7 +208,7 @@
             <tr>
               <th id="thSerial" class="px-5 py-4">كود التفعيل (Serial) والملاحظة</th>
               <th id="thGroup" class="px-4 py-4">المجموعة والمدة</th>
-              <th id="thDevices" class="px-4 py-4">الأجهزة المسموحة</th>
+              <th id="thDevices" class="px-4 py-4">الأجهزة ونوعها</th>
               <th id="thStartDate" class="px-4 py-4">تاريخ البداية</th>
               <th id="thExpiryDate" class="px-4 py-4">تاريخ الانتهاء</th>
               <th id="thStatus" class="px-4 py-4">الحالة</th>
@@ -239,81 +257,58 @@
         <!-- مدة الاشتراك -->
         <div>
           <label id="lblGenDays" class="block text-xs font-bold text-zinc-300 mb-1">مدة الاشتراك</label>
-          <select id="genDays" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 focus:outline-none focus:border-red-500">
-            <option value="7">تجربة - 7 أيام</option>
-            <option value="30" selected>شهر كامل - 30 يوماً</option>
-            <option value="90">3 أشهر - 90 يوماً</option>
-            <option value="180">6 أشهر - 180 يوماً</option>
-            <option value="365">سنة كاملة - 365 يوماً</option>
+          <select id="genDays" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 focus:outline-none focus:border-red-500 font-mono">
+            <option value="7">7 Days (تجربة 7 أيام)</option>
+            <option value="30" selected>30 Days (شهر كامل)</option>
+            <option value="90">90 Days (3 أشهر)</option>
+            <option value="180">180 Days (6 أشهر)</option>
+            <option value="365">365 Days (سنة كاملة)</option>
           </select>
         </div>
 
-        <!-- عدد الأجهزة المصرح بها (تعدد الأجهزة) -->
+        <!-- عدد الأجهزة المصرح بها للمفتاح الواحد -->
         <div>
-          <label id="lblGenDevices" class="block text-xs font-bold text-zinc-300 mb-1">عدد الأجهزة المسموحة (تشغيل متزامن)</label>
-          <select id="genMaxDevices" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 focus:outline-none focus:border-red-500">
-            <option value="1" selected>جهاز واحد (باقة فردية)</option>
-            <option value="2">جهازين (باقة ثنائية)</option>
-            <option value="3">3 أجهزة (باقة عائلية مصغرة)</option>
-            <option value="4">4 أجهزة</option>
-            <option value="5">5 أجهزة (باقة عائلية كاملة)</option>
+          <label id="lblGenDevices" class="block text-xs font-bold text-zinc-300 mb-1">عدد الأجهزة المسموحة للمفتاح</label>
+          <select id="genMaxDevices" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 focus:outline-none focus:border-red-500 font-mono">
+            <option value="1" selected>1 Device (جهاز واحد)</option>
+            <option value="2">2 Devices (جهازين)</option>
+            <option value="3">3 Devices (3 أجهزة)</option>
+            <option value="5">5 Devices (باقة عائلية 5 أجهزة)</option>
           </select>
         </div>
 
-        <!-- اسم المجموعة -->
+        <!-- المجموعة المخصصة -->
         <div>
-          <label id="lblGenGroup" class="block text-xs font-bold text-zinc-300 mb-1">المجموعة / التصنيف</label>
-          <input 
-            type="text" 
-            id="genGroup" 
-            value="عام" 
-            placeholder="مثال: VIP، عائلي، تجربة، عملاء متجر..." 
-            class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 focus:outline-none focus:border-red-500"
-          >
+          <label id="lblGenGroup" class="block text-xs font-bold text-zinc-300 mb-1">المجموعة أو التصنيف</label>
+          <select id="genGroup" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 focus:outline-none focus:border-red-500">
+            <option value="عام">عام</option>
+            <option value="VIP">VIP</option>
+            <option value="عائلي">عائلي</option>
+          </select>
         </div>
 
-        <!-- رقم واتساب العميل (اختياري) -->
+        <!-- رقم واتساب العميل -->
         <div>
           <label id="lblGenWa" class="block text-xs font-bold text-zinc-300 mb-1">رقم واتساب العميل (اختياري)</label>
-          <div class="relative">
-            <input 
-              type="text" 
-              id="genWhatsapp" 
-              placeholder="مثال: 966500000000 أو 0500000000" 
-              class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-red-500 pl-10"
-            >
-            <i class="fa-brands fa-whatsapp absolute left-3 top-3 text-emerald-400 text-base"></i>
-          </div>
+          <input type="text" id="genWhatsapp" placeholder="966500000000" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-red-500 font-mono text-xs sm:text-sm">
         </div>
 
-        <!-- ملاحظة أو اسم العميل -->
+        <!-- الملاحظة -->
         <div>
           <label id="lblGenNote" class="block text-xs font-bold text-zinc-300 mb-1">ملاحظة أو اسم العميل (اختياري)</label>
-          <input 
-            type="text" 
-            id="genNote" 
-            placeholder="مثال: متجر سلة - محمد العتيبي" 
-            class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-red-500"
-          >
+          <input type="text" id="genNote" placeholder="مثال: اشتراك فهد - باقة سنوية" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-red-500 text-xs sm:text-sm">
         </div>
 
-        <!-- عدد الأكواد المطلوبة -->
+        <!-- عدد الأكواد المراد توليدها -->
         <div>
-          <label id="lblGenCount" class="block text-xs font-bold text-zinc-300 mb-1">الكمية المطلوب توليدها</label>
-          <input 
-            type="number" 
-            id="genCount" 
-            value="1" 
-            min="1" 
-            max="50" 
-            class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 focus:outline-none focus:border-red-500"
-          >
+          <label id="lblGenCount" class="block text-xs font-bold text-zinc-300 mb-1">الكمية المطلوبة</label>
+          <input type="number" id="genCount" value="1" min="1" max="50" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 focus:outline-none focus:border-red-500 font-mono text-xs sm:text-sm">
         </div>
 
       </div>
 
       <div class="mt-6 flex gap-3">
-        <button onclick="closeGenerateModal()" id="btnCancelGen" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 py-2.5 rounded-xl font-bold transition text-xs sm:text-sm">إلغاء</button>
+        <button onclick="closeGenerateModal()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 py-2.5 rounded-xl font-bold transition text-xs sm:text-sm">إلغاء</button>
         <button onclick="submitGenerate()" id="btnSubmitGen" class="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-bold transition text-xs sm:text-sm shadow-lg shadow-red-600/30">توليد الآن</button>
       </div>
 
@@ -321,15 +316,15 @@
   </div>
 
   <!-- ========================================== -->
-  <!-- 4. نافذة تعديل بيانات المفتاح (Edit Modal)   -->
+  <!-- 4. نافذة تعديل بيانات الكود (Edit Modal)   -->
   <!-- ========================================== -->
   <div id="editModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="glass-card bg-zinc-900 rounded-3xl w-full max-w-md p-6 border border-zinc-700 shadow-2xl relative">
       
       <div class="flex items-center justify-between mb-4 border-b border-zinc-800 pb-3">
         <div class="flex items-center gap-2">
-          <i class="fa-solid fa-pen-to-square text-amber-400"></i>
-          <h3 id="modalEditTitle" class="text-base font-bold text-white">تعديل بيانات الاشتراك</h3>
+          <i class="fa-solid fa-pen-to-square text-red-500 text-lg"></i>
+          <h3 id="editModalTitle" class="text-base font-bold text-white">تعديل بيانات الاشتراك</h3>
         </div>
         <button onclick="closeEditModal()" class="text-zinc-400 hover:text-white p-2"><i class="fa-solid fa-xmark"></i></button>
       </div>
@@ -337,74 +332,176 @@
       <input type="hidden" id="editLicenseId">
 
       <div class="space-y-4 text-sm">
+        <!-- كود السيريال المعروض -->
         <div>
-          <label class="block text-xs font-bold text-zinc-400 mb-1">كود التفعيل</label>
-          <div id="editKeyDisplay" class="font-mono font-bold text-red-400 bg-zinc-950 p-2 rounded-xl text-center border border-zinc-800"></div>
+          <label class="block text-xs font-bold text-zinc-400 mb-1">كود التفعيل (Serial):</label>
+          <div id="editSerialDisplay" class="bg-zinc-950 p-2.5 rounded-xl font-mono font-bold text-red-400 text-xs border border-zinc-800"></div>
         </div>
 
+        <!-- الملاحظة -->
         <div>
-          <label id="lblEditNote" class="block text-xs font-bold text-zinc-300 mb-1">الملاحظة / اسم العميل</label>
-          <input type="text" id="editNote" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 focus:outline-none focus:border-red-500">
+          <label class="block text-xs font-bold text-zinc-300 mb-1">الملاحظة أو اسم العميل:</label>
+          <input type="text" id="editNote" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 focus:outline-none focus:border-red-500 text-xs sm:text-sm">
         </div>
 
+        <!-- رقم الواتساب -->
         <div>
-          <label id="lblEditWa" class="block text-xs font-bold text-zinc-300 mb-1">رقم واتساب العميل</label>
-          <input type="text" id="editWhatsapp" placeholder="مثال: 966500000000" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 focus:outline-none focus:border-red-500">
+          <label class="block text-xs font-bold text-zinc-300 mb-1">رقم واتساب العميل الدولي:</label>
+          <input type="text" id="editWhatsapp" placeholder="966500000000" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 focus:outline-none focus:border-red-500 font-mono text-xs sm:text-sm">
         </div>
 
+        <!-- المجموعة -->
         <div>
-          <label id="lblEditGroup" class="block text-xs font-bold text-zinc-300 mb-1">المجموعة</label>
-          <input type="text" id="editGroup" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 focus:outline-none focus:border-red-500">
+          <label class="block text-xs font-bold text-zinc-300 mb-1">المجموعة / التصنيف:</label>
+          <select id="editGroup" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 focus:outline-none focus:border-red-500 text-xs sm:text-sm">
+            <option value="عام">عام</option>
+            <option value="VIP">VIP</option>
+            <option value="عائلي">عائلي</option>
+          </select>
         </div>
 
+        <!-- عدد الأجهزة المصرح بها -->
         <div>
-          <label id="lblEditMaxDev" class="block text-xs font-bold text-zinc-300 mb-1">الحد الأقصى للأجهزة المصرح بها</label>
-          <select id="editMaxDevices" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 focus:outline-none focus:border-red-500">
-            <option value="1">1 جهاز</option>
-            <option value="2">2 جهازين</option>
-            <option value="3">3 أجهزة</option>
-            <option value="4">4 أجهزة</option>
-            <option value="5">5 أجهزة</option>
+          <label class="block text-xs font-bold text-zinc-300 mb-1">الحد الأقصى للأجهزة:</label>
+          <select id="editMaxDevices" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 focus:outline-none focus:border-red-500 font-mono text-xs sm:text-sm">
+            <option value="1">1 Device (جهاز واحد)</option>
+            <option value="2">2 Devices (جهازين)</option>
+            <option value="3">3 Devices (3 أجهزة)</option>
+            <option value="5">5 Devices (باقة عائلية 5 أجهزة)</option>
           </select>
         </div>
       </div>
 
       <div class="mt-6 flex gap-3">
         <button onclick="closeEditModal()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 py-2.5 rounded-xl font-bold transition text-xs">إلغاء</button>
-        <button onclick="submitEditLicense()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-bold transition text-xs shadow-lg shadow-emerald-600/30">حفظ التعديلات</button>
+        <button onclick="submitEditLicense()" class="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-bold transition text-xs shadow-lg shadow-red-600/30">حفظ التغييرات</button>
       </div>
 
     </div>
   </div>
 
   <!-- ========================================== -->
-  <!-- 5. نافذة رسائل واتساب الآلية (WhatsApp Modal) -->
+  <!-- 5. نافذة إدارة وإنشاء المجموعات (Group Modal) -->
   <!-- ========================================== -->
-  <div id="whatsappModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+  <div id="groupModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="glass-card bg-zinc-900 rounded-3xl w-full max-w-md p-6 border border-zinc-700 shadow-2xl relative">
+      
+      <div class="flex items-center justify-between mb-4 border-b border-zinc-800 pb-3">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-folder-plus text-indigo-400 text-lg"></i>
+          <h3 class="text-base font-bold text-white">إدارة المجموعات والتصنيفات</h3>
+        </div>
+        <button onclick="closeGroupModal()" class="text-zinc-400 hover:text-white p-2"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="space-y-4 text-xs sm:text-sm">
+        <!-- إنشاء مجموعة جديدة -->
+        <div>
+          <label class="block text-xs font-bold text-zinc-300 mb-1.5">اسم المجموعة الجديدة:</label>
+          <div class="flex gap-2">
+            <input 
+              type="text" 
+              id="newGroupNameInput" 
+              placeholder="مثال: باقة رمضان، VIP، اشتراك تجريبي..." 
+              class="flex-1 bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 text-xs sm:text-sm"
+              onkeydown="if(event.key==='Enter') submitCreateGroup()"
+            >
+            <button onclick="submitCreateGroup()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl transition text-xs flex items-center gap-1 shrink-0">
+              <i class="fa-solid fa-plus"></i>
+              <span>إضافة</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- قائمة المجموعات الحالية وعدد المشتركين في كل مجموعة -->
+        <div>
+          <label class="block text-xs font-bold text-zinc-400 mb-2">المجموعات المسجلة حالياً:</label>
+          <div id="groupsListContainer" class="space-y-2 max-h-56 overflow-y-auto custom-scroll">
+            <!-- يتم التعبئة تلقائياً -->
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <button onclick="closeGroupModal()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 py-2.5 rounded-xl font-bold transition text-xs">إغلاق</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 6. نافذة تخصيص روابط التحميل (Settings Modal) -->
+  <!-- ========================================== -->
+  <div id="settingsModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="glass-card bg-zinc-900 rounded-3xl w-full max-w-lg p-6 border border-zinc-700 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scroll">
       
       <div class="flex items-center justify-between mb-4 border-b border-zinc-800 pb-3">
-        <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-            <i class="fa-brands fa-whatsapp text-lg"></i>
-          </div>
+        <div class="flex items-center gap-2">
+          <i class="fa-brands fa-google-drive text-emerald-400 text-xl"></i>
           <div>
-            <h3 id="modalWaTitle" class="text-base font-bold text-white">إرسال رسالة واتساب للعميل</h3>
-            <p id="modalWaSub" class="text-xs text-zinc-400">اختر نوع الرسالة أو عدل النص قبل الإرسال مباشرة</p>
+            <h3 class="text-base font-bold text-white">تخصيص روابط قوقل درايف للتحميل</h3>
+            <p class="text-xs text-zinc-400">ضع روابط قوقل درايف المباشرة لتطبيقاتك لتظهر للعملاء في دليل الأجهزة فوراً</p>
+          </div>
+        </div>
+        <button onclick="closeSettingsModal()" class="text-zinc-400 hover:text-white p-2"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="space-y-4 text-xs sm:text-sm">
+        <div>
+          <label class="block text-xs font-bold text-zinc-300 mb-1">رابط قوقل درايف لتطبيق الأندرويد والشاشات (APK):</label>
+          <input 
+            type="url" 
+            id="setApkDriveLink" 
+            placeholder="https://drive.google.com/file/d/.../view?usp=sharing" 
+            class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-emerald-500 font-mono text-xs"
+          >
+          <p class="text-[11px] text-zinc-400 mt-1">تأكد أن إعدادات المشاركة للملف في درايف: "أي شخص لديه الرابط يمكنه العرض/التحميل".</p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-zinc-300 mb-1">رابط قوقل درايف لتطبيق الكمبيوتر (Windows Desktop App):</label>
+          <input 
+            type="url" 
+            id="setWindowsDriveLink" 
+            placeholder="https://drive.google.com/file/d/.../view?usp=sharing" 
+            class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-emerald-500 font-mono text-xs"
+          >
+        </div>
+
+        <div id="settingsAlert" class="hidden p-2.5 rounded-xl text-center font-bold text-xs"></div>
+      </div>
+
+      <div class="mt-6 flex gap-3">
+        <button onclick="closeSettingsModal()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 py-2.5 rounded-xl font-bold transition text-xs">إلغاء</button>
+        <button onclick="submitSaveSettings()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-bold transition text-xs shadow-lg shadow-emerald-600/30">حفظ الروابط</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 7. نافذة رسائل الواتساب التلقائية (WhatsApp Modal) -->
+  <!-- ========================================== -->
+  <div id="whatsappModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="glass-card bg-zinc-900 rounded-3xl w-full max-w-lg p-6 border border-zinc-700 shadow-2xl relative">
+      
+      <div class="flex items-center justify-between mb-4 border-b border-zinc-800 pb-3">
+        <div class="flex items-center gap-2">
+          <i class="fa-brands fa-whatsapp text-emerald-400 text-xl"></i>
+          <div>
+            <h3 class="text-base font-bold text-white">إرسال تفاصيل الاشتراك عبر واتساب</h3>
+            <p class="text-xs text-zinc-400">YouTube PLUS+ - النظام الرقمي</p>
           </div>
         </div>
         <button onclick="closeWhatsappModal()" class="text-zinc-400 hover:text-white p-2"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
       <div class="space-y-4 text-xs sm:text-sm">
-        
-        <!-- رقم الواتساب المستلم -->
         <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex items-center justify-between">
-          <span class="text-zinc-400">رقم العميل:</span>
+          <span class="text-zinc-400">رقم العميل المستلم:</span>
           <span id="waModalPhone" class="font-mono font-bold text-emerald-400 text-sm">--</span>
         </div>
 
-        <!-- أزرار اختيار القالب السريع -->
         <div>
           <label class="block text-xs font-bold text-zinc-400 mb-2">اختر قالب الرسالة:</label>
           <div class="grid grid-cols-3 gap-2">
@@ -420,16 +517,14 @@
           </div>
         </div>
 
-        <!-- نص الرسالة القابل للتعديل قبل الإرسال -->
         <div>
-          <label class="block text-xs font-bold text-zinc-300 mb-1">نص الرسالة (يمكنك تعديله قبل الإرسال):</label>
+          <label class="block text-xs font-bold text-zinc-300 mb-1">نص الرسالة (يمكنك التعديل قبل الإرسال):</label>
           <textarea 
             id="waMessageText" 
-            rows="6" 
-            class="w-full bg-zinc-800 border border-zinc-700 rounded-xl p-3 text-zinc-100 text-xs sm:text-sm focus:outline-none focus:border-emerald-500 leading-relaxed custom-scroll"
+            rows="7" 
+            class="w-full bg-zinc-800 border border-zinc-700 rounded-xl p-3 text-zinc-100 text-xs sm:text-sm focus:outline-none focus:border-emerald-500 leading-relaxed custom-scroll font-sans"
           ></textarea>
         </div>
-
       </div>
 
       <div class="mt-5 flex gap-3">
@@ -444,7 +539,7 @@
   </div>
 
   <!-- ========================================== -->
-  <!-- 6. نافذة دليل الأجهزة وروابط التثبيت المحدثة -->
+  <!-- 8. نافذة دليل الأجهزة وروابط التثبيت المحدثة -->
   <!-- ========================================== -->
   <div id="guideModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="glass-card bg-zinc-900 rounded-3xl w-full max-w-2xl p-6 border border-zinc-700 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scroll">
@@ -455,8 +550,8 @@
             <i class="fa-solid fa-book-open"></i>
           </div>
           <div>
-            <h3 id="guideModalTitle" class="text-lg font-bold text-white">دليل تشغيل الأجهزة وروابط التسليم للعملاء</h3>
-            <p id="guideModalSub" class="text-xs text-zinc-400">روابط سريعة ومجهزة للنسخ وإرسالها للعميل حسب جهازه</p>
+            <h3 class="text-lg font-bold text-white">دليل الأجهزة وروابط التحميل المنظمة للعملاء</h3>
+            <p class="text-xs text-zinc-400">YouTube PLUS+ - النظام الرقمي (تطبيقات وروابط مباشرة بدون أخطاء)</p>
           </div>
         </div>
         <button onclick="closeGuideModal()" class="text-zinc-400 hover:text-white p-2 text-sm"><i class="fa-solid fa-xmark"></i></button>
@@ -464,99 +559,126 @@
 
       <div class="space-y-4 text-xs sm:text-sm">
         
-        <!-- 1. أندرويد وشاشات Android TV -->
+        <!-- 1. أندرويد وشاشات Android TV (رابط قوقل درايف مباشر) -->
         <div class="bg-zinc-950/80 p-4 rounded-2xl border border-zinc-800">
           <div class="flex items-center justify-between mb-2">
             <div class="flex items-center gap-2">
               <i class="fa-brands fa-android text-emerald-400 text-lg"></i>
               <h4 class="font-bold text-white">1. هواتف وتابلت أندرويد + شاشات Android TV</h4>
             </div>
-            <span class="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20 font-bold">تطبيق APK مباشر</span>
+            <span class="text-[10px] bg-emerald-500/10 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-500/20 font-bold">ملف APK مباشر</span>
           </div>
-          <p class="text-zinc-400 text-xs mb-3">تطبيق يوتيوب بريميوم الرسمي المعدل والمدمج معه قفل التراخيص التلقائي.</p>
-          <div class="flex items-center gap-2">
-            <input type="text" readonly value="https://github.com/sadigitalsystem-dotcom/yt-license-guard/releases/download/v1.0.0/%28%D9%8A%D9%88%D8%AA%D9%8A%D9%88%D8%A8%20%D8%A8%D9%84%D8%B3%2B%29%20YouTube%20PLUS%2B.apk" id="apkDownloadLink" class="flex-1 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300">
-            <button onclick="copyLinkById('apkDownloadLink')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1">
+          <p class="text-zinc-400 text-xs mb-3">تطبيق يوتيوب بريميوم الرسمي المدمج مع قفل التراخيص التلقائي وتسجيل الدخول بحساب Google.</p>
+          <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+            <input type="text" readonly id="guideApkInput" class="flex-1 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300">
+            <button onclick="openLinkFromInput('guideApkInput')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0">
+              <i class="fa-solid fa-download"></i>
+              <span>تحميل</span>
+            </button>
+            <button onclick="copyLinkById('guideApkInput')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0">
               <i class="fa-solid fa-copy"></i>
               <span>نسخ</span>
+            </button>
+            <button onclick="openSettingsModal()" class="bg-zinc-800 hover:bg-zinc-700 text-amber-400 px-2.5 py-2 rounded-xl text-xs transition shrink-0" title="تغيير رابط قوقل درايف">
+              <i class="fa-solid fa-pen"></i>
             </button>
           </div>
         </div>
 
-        <!-- 2. أجهزة الكمبيوتر ويندوز (تطبيق مستقل) -->
+        <!-- 2. أجهزة الكمبيوتر ويندوز (Windows Desktop App) -->
         <div class="bg-zinc-950/80 p-4 rounded-2xl border border-zinc-800">
           <div class="flex items-center justify-between mb-2">
             <div class="flex items-center gap-2">
               <i class="fa-brands fa-windows text-blue-400 text-lg"></i>
               <h4 class="font-bold text-white">2. أجهزة الكمبيوتر (Windows Desktop App)</h4>
             </div>
-            <span class="text-[10px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full border border-blue-500/20 font-bold">برنامج EXE مدمج</span>
+            <span class="text-[10px] bg-blue-500/10 text-blue-400 px-2.5 py-0.5 rounded-full border border-blue-500/20 font-bold">برنامج EXE مدمج</span>
           </div>
-          <p class="text-zinc-400 text-xs mb-2">برنامج مكتبي مستقل مع حجب الإعلانات وتسجيل الدخول بحساب Google وشاشة القفل، مجهز برمز الشعار الأحمر الموحد.</p>
-          <div class="text-[11px] text-zinc-400 bg-zinc-900/60 p-2.5 rounded-xl border border-zinc-800 font-mono">
-            مسار البرنامج المباشر: <code>desktop_app/dist/YouTube PLUS+-win32-x64/YouTube PLUS+.exe</code>
+          <p class="text-zinc-400 text-xs mb-3">برنامج مكتبي مستقل يشغل يوتيوب الرسمي بالكامل مع حجب الإعلانات وقفل المفتاح وشعار يوتيوب الموحد.</p>
+          <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+            <input type="text" readonly id="guideWindowsInput" class="flex-1 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300">
+            <button onclick="openLinkFromInput('guideWindowsInput')" class="bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0">
+              <i class="fa-solid fa-download"></i>
+              <span>تحميل</span>
+            </button>
+            <button onclick="copyLinkById('guideWindowsInput')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0">
+              <i class="fa-solid fa-copy"></i>
+              <span>نسخ</span>
+            </button>
+            <button onclick="openSettingsModal()" class="bg-zinc-800 hover:bg-zinc-700 text-amber-400 px-2.5 py-2 rounded-xl text-xs transition shrink-0" title="تغيير رابط قوقل درايف">
+              <i class="fa-solid fa-pen"></i>
+            </button>
           </div>
         </div>
 
-        <!-- 3. إضافة متصفحات الكمبيوتر والماك -->
+        <!-- 3. إضافة المتصفحات (Chrome / Edge / Brave / Mac) بضغطة زر -->
         <div class="bg-zinc-950/80 p-4 rounded-2xl border border-zinc-800">
           <div class="flex items-center justify-between mb-2">
             <div class="flex items-center gap-2">
               <i class="fa-brands fa-chrome text-amber-400 text-lg"></i>
               <h4 class="font-bold text-white">3. إضافة المتصفحات (Chrome / Edge / Brave / Mac)</h4>
             </div>
-            <span class="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/20 font-bold">إضافة مجهزة ZIP</span>
+            <span class="text-[10px] bg-amber-500/10 text-amber-400 px-2.5 py-0.5 rounded-full border border-amber-500/20 font-bold">بضغطة زر واحدة</span>
           </div>
-          <p class="text-zinc-400 text-xs">تحول موقع youtube.com الرسمي إلى بريميوم كامل مع قفل التراخيص وحجب الإعلانات الجانبية والفيديو.</p>
+          <p class="text-zinc-400 text-xs mb-3">تحول متصفح العميل إلى يوتيوب بريميوم رسمي مع حجب الإعلانات الجانبية والفيديو وقفل التراخيص.</p>
+          <div class="flex items-center gap-2">
+            <a href="/YouTube_PLUS_Browser_Extension.zip" download class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow">
+              <i class="fa-solid fa-file-zipper"></i>
+              <span>تحميل حزمة الإضافة بضغطة زر (ZIP)</span>
+            </a>
+            <span class="text-zinc-500 text-xs">ثم اسحب المجلد المفكوك إلى قائمة ملحقات المتصفح</span>
+          </div>
         </div>
 
-        <!-- 4. آيفون وآيباد -->
+        <!-- 4. أجهزة الآيفون والآيباد (iOS / iPadOS) -->
         <div class="bg-zinc-950/80 p-4 rounded-2xl border border-zinc-800">
           <div class="flex items-center justify-between mb-2">
             <div class="flex items-center gap-2">
               <i class="fa-brands fa-apple text-zinc-200 text-lg"></i>
               <h4 class="font-bold text-white">4. أجهزة الآيفون والآيباد (iOS / iPadOS)</h4>
             </div>
-            <span class="text-[10px] bg-zinc-500/10 text-zinc-300 px-2 py-0.5 rounded-full border border-zinc-500/20 font-bold">خياران متاحان</span>
+            <span class="text-[10px] bg-zinc-500/10 text-zinc-300 px-2.5 py-0.5 rounded-full border border-zinc-500/20 font-bold">تشغيل فوري سريع</span>
           </div>
-          <div class="space-y-2 mt-2 text-xs">
-            <div class="p-2.5 bg-zinc-900/80 rounded-xl border border-zinc-800">
-              <span class="font-bold text-emerald-400">أ. الخيار السريع (بدون برامج):</span>
-              <p class="text-zinc-400 mt-1">يفتح العميل الرابط في متصفح Safari ويختار (إضافة إلى الشاشة الرئيسية):</p>
-              <div class="flex items-center gap-2 mt-2">
-                <input type="text" readonly value="https://yt-license-guard.onrender.com/app" id="iosWebAppUrl" class="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-[11px] font-mono text-zinc-300">
-                <button onclick="copyLinkById('iosWebAppUrl')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-2.5 py-1.5 rounded-lg text-xs font-bold transition">نسخ</button>
-              </div>
-            </div>
-            <div class="p-2.5 bg-zinc-900/80 rounded-xl border border-zinc-800">
-              <span class="font-bold text-amber-400">ب. الخيار الكامل 100% كالأندرويد (تطبيق IPA الأصلي):</span>
-              <p class="text-zinc-400 mt-1">تثبيت ملف <code>YouTube_PLUS.ipa</code> عبر أداة <a href="https://usescarlet.com" target="_blank" class="underline text-red-400 font-bold">Scarlet</a> مباشرة من الآيفون بدون كمبيوتر.</p>
-            </div>
+          <p class="text-zinc-400 text-xs mb-2">يفتح العميل الرابط في Safari ثم يضغط (مشاركة > إضافة إلى الشاشة الرئيسية) للحصول على تطبيق يوتيوب بلس+ بدون إعلانات مع إمكانية الدخول بحساب Google:</p>
+          <div class="flex items-center gap-2">
+            <input type="text" readonly value="https://yt-license-guard.onrender.com/app" id="guideIosLink" class="flex-1 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300">
+            <button onclick="copyLinkById('guideIosLink')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0">
+              <i class="fa-solid fa-copy"></i>
+              <span>نسخ الرابط</span>
+            </button>
           </div>
         </div>
 
-        <!-- 5. شاشات التلفزيون الذكية -->
+        <!-- 5. شاشات التلفزيون الذكية (مختصرة وسهلة جداً) -->
         <div class="bg-zinc-950/80 p-4 rounded-2xl border border-zinc-800">
-          <div class="flex items-center justify-between mb-1">
+          <div class="flex items-center justify-between mb-2">
             <div class="flex items-center gap-2">
               <i class="fa-solid fa-tv text-purple-400 text-lg"></i>
-              <h4 class="font-bold text-white">5. شاشات التلفزيون الذكية (سامسونج، LG، وغيرها)</h4>
+              <h4 class="font-bold text-white">5. شاشات التلفزيون الذكية (سامسونج، LG، شاومي، سوني)</h4>
             </div>
+            <span class="text-[10px] bg-purple-500/10 text-purple-400 px-2.5 py-0.5 rounded-full border border-purple-500/20 font-bold">خطوتان سريعتان</span>
           </div>
-          <p class="text-zinc-400 text-xs">يفتح العميل متصفح الشاشة على الرابط: <code>https://yt-license-guard.onrender.com/app</code> ويحفظه في المفضلة.</p>
+          <div class="text-zinc-300 text-xs space-y-1.5 leading-relaxed">
+            <p><strong>• شاشات أندرويد و Google TV:</strong> عبر تطبيق Downloader على الشاشة، حمّل رابط الـ APK المباشر وثبّت التطبيق بضغطة واحدة.</p>
+            <p><strong>• شاشات سامسونج (Tizen) و LG (webOS):</strong> افتح متصفح التلفزيون وادخل الرابط: <code class="text-red-400 font-mono">https://yt-license-guard.onrender.com/app</code> واحفظه في المفضلة، أو استخدم زر البث المباشر (AirPlay / Cast) من الهاتف للشاشة فوراً.</p>
+          </div>
         </div>
 
       </div>
 
-      <div class="mt-6">
-        <button onclick="closeGuideModal()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-200 py-2.5 rounded-xl font-bold transition text-xs sm:text-sm">إغلاق الدليل</button>
+      <div class="mt-6 flex gap-3">
+        <button onclick="openSettingsModal()" class="flex-1 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 py-2.5 rounded-xl font-bold transition text-xs flex items-center justify-center gap-1.5">
+          <i class="fa-brands fa-google-drive"></i>
+          <span>تعديل روابط قوقل درايف</span>
+        </button>
+        <button onclick="closeGuideModal()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 py-2.5 rounded-xl font-bold transition text-xs">إغلاق الدليل</button>
       </div>
 
     </div>
   </div>
 
   <!-- ========================================== -->
-  <!-- 7. نافذة الأمان وتغيير بيانات الدخول       -->
+  <!-- 9. نافذة الأمان وتغيير بيانات الدخول       -->
   <!-- ========================================== -->
   <div id="securityModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="glass-card bg-zinc-900 rounded-3xl w-full max-w-md p-6 border border-zinc-700 shadow-2xl relative">
@@ -564,24 +686,24 @@
       <div class="flex items-center justify-between mb-4 border-b border-zinc-800 pb-3">
         <div class="flex items-center gap-2">
           <i class="fa-solid fa-shield-halved text-emerald-400 text-lg"></i>
-          <h3 id="secModalTitle" class="text-base font-bold text-white">إعدادات أمان لوحة التحكم</h3>
+          <h3 class="text-base font-bold text-white">إعدادات أمان لوحة التحكم</h3>
         </div>
         <button onclick="closeSecurityModal()" class="text-zinc-400 hover:text-white p-2"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
       <div class="space-y-4 text-sm">
         <div>
-          <label id="lblSecEmail" class="block text-xs font-bold text-zinc-300 mb-1">البريد الإلكتروني الجديد (إيميلك الشخصي)</label>
-          <input type="email" id="secNewEmail" placeholder="your-email@gmail.com" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 focus:outline-none focus:border-red-500 text-xs sm:text-sm">
+          <label class="block text-xs font-bold text-zinc-300 mb-1">البريد الإلكتروني للإدارة:</label>
+          <input type="email" id="secNewEmail" placeholder="sa.digitalsystem@gmail.com" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 focus:outline-none focus:border-red-500 text-xs sm:text-sm">
         </div>
 
         <div>
-          <label id="lblSecNewPass" class="block text-xs font-bold text-zinc-300 mb-1">كلمة المرور الجديدة</label>
+          <label class="block text-xs font-bold text-zinc-300 mb-1">كلمة المرور الجديدة:</label>
           <input type="password" id="secNewPass" placeholder="اتركه فارغاً إذا لم ترغب في التغيير" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 focus:outline-none focus:border-red-500 text-xs sm:text-sm">
         </div>
 
         <div>
-          <label id="lblSecCurPass" class="block text-xs font-bold text-zinc-300 mb-1">كلمة المرور الحالية (لتأكيد هويتك)</label>
+          <label class="block text-xs font-bold text-zinc-300 mb-1">كلمة المرور الحالية (لتأكيد الهوية):</label>
           <input type="password" id="secCurrentPass" placeholder="••••••••" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 focus:outline-none focus:border-red-500 text-xs sm:text-sm">
         </div>
 
@@ -590,7 +712,7 @@
 
       <div class="mt-6 flex gap-3">
         <button onclick="closeSecurityModal()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 py-2.5 rounded-xl font-bold transition text-xs">إلغاء</button>
-        <button onclick="submitSecurityUpdate()" id="secSaveBtn" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-bold transition text-xs shadow-lg shadow-emerald-600/30">حفظ التغييرات</button>
+        <button onclick="submitSecurityUpdate()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-bold transition text-xs shadow-lg shadow-emerald-600/30">حفظ التغييرات</button>
       </div>
 
     </div>
@@ -603,27 +725,30 @@
   </div>
 
   <!-- ========================================== -->
-  <!-- 8. كود JavaScript المتكامل للوحة التحكم     -->
+  <!-- 10. برمجة JavaScript الشاملة للوحة التحكم   -->
   <!-- ========================================== -->
   <script>
     const API_BASE = '';
     let allLicenses = [];
+    let currentSettings = { custom_groups: ['عام', 'VIP', 'عائلي'], apk_drive_link: '', windows_drive_link: '' };
     let currentDurationFilter = 'all';
     let currentActiveLicenseForWa = null;
 
-    // قاموس اللغات (العربية / English)
     let currentLang = localStorage.getItem('yt_dash_lang') || 'ar';
 
+    // قاموس الترجمة المحدث (بدون أقواس)
     const I18N = {
       ar: {
-        pageTitle: 'لوحة إدارة اشتراكات (يوتيوب بلس+)',
-        brandTitle: '(يوتيوب بلس+)',
-        brandSubtitle: 'إدارة التراخيص: هواتف • أجهزة لوحية • شاشات تلفزيون ذكية',
+        pageTitle: 'لوحة إدارة اشتراكات يوتيوب بلس+ - النظام الرقمي',
+        brandTitle: 'يوتيوب بلس+',
+        brandSubtitle: 'النظام الرقمي: إدارة التراخيص • هواتف • كمبيوتر • شاشات ذكية',
         langBtnText: 'English',
         guideBtn: 'دليل الأجهزة',
+        driveBtn: 'روابط التحميل',
         secBtn: 'الأمان',
         logoutBtn: 'خروج',
         genBtn: 'توليد كود',
+        newGroupBtn: 'مجموعة جديدة',
         statTotal: 'إجمالي الأكواد',
         statTotalDesc: 'كافة السيريالات الصادرة',
         statActive: 'الاشتراكات النشطة',
@@ -638,7 +763,7 @@
         refreshBtn: 'تحديث',
         thSerial: 'كود التفعيل (Serial) والملاحظة',
         thGroup: 'المجموعة والمدة',
-        thDevices: 'الأجهزة المسموحة',
+        thDevices: 'الأجهزة ونوعها',
         thStartDate: 'تاريخ البداية',
         thExpiryDate: 'تاريخ الانتهاء',
         thStatus: 'الحالة',
@@ -654,14 +779,16 @@
         devicesUnit: 'أجهزة'
       },
       en: {
-        pageTitle: 'YouTube PLUS+ License Management',
+        pageTitle: 'YouTube PLUS+ License Management - Digital System',
         brandTitle: 'YouTube PLUS+',
-        brandSubtitle: 'License Management: Phones • Tablets • Smart TVs',
+        brandSubtitle: 'Digital System: Licenses • Phones • Desktop • Smart TVs',
         langBtnText: 'العربية',
         guideBtn: 'Devices Guide',
+        driveBtn: 'Download Links',
         secBtn: 'Security',
         logoutBtn: 'Logout',
         genBtn: 'Generate Key',
+        newGroupBtn: 'New Group',
         statTotal: 'Total Keys',
         statTotalDesc: 'All generated licenses',
         statActive: 'Active Subscriptions',
@@ -676,7 +803,7 @@
         refreshBtn: 'Refresh',
         thSerial: 'License Key (Serial) & Note',
         thGroup: 'Group & Duration',
-        thDevices: 'Allowed Devices',
+        thDevices: 'Connected Devices',
         thStartDate: 'Start Date',
         thExpiryDate: 'Expiry Date',
         thStatus: 'Status',
@@ -693,6 +820,22 @@
       }
     };
 
+    // دالة تنسيق التواريخ بالأرقام الإنجليزية حصراً (0-9)
+    function formatEnDate(isoString, includeTime = true) {
+      if (!isoString) return '--';
+      const d = new Date(isoString);
+      if (isNaN(d.getTime())) return '--';
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      if (!includeTime) return `${yyyy}-${mm}-${dd}`;
+      let hours = d.getHours();
+      const mins = String(d.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12 || 12;
+      return `${yyyy}-${mm}-${dd} ${hours}:${mins} ${ampm}`;
+    }
+
     function applyLanguage(lang) {
       currentLang = lang;
       localStorage.setItem('yt_dash_lang', lang);
@@ -701,26 +844,28 @@
 
       document.getElementById('htmlRoot').setAttribute('dir', isRtl ? 'rtl' : 'ltr');
       document.getElementById('htmlRoot').setAttribute('lang', lang);
-      document.title = t.pageTitle;
 
+      document.getElementById('pageTitle').innerText = t.pageTitle;
       document.getElementById('brandTitle').innerText = t.brandTitle;
       document.getElementById('brandSubtitle').innerText = t.brandSubtitle;
       document.getElementById('langBtnText').innerText = t.langBtnText;
       document.getElementById('txtBtnGuide').innerText = t.guideBtn;
+      document.getElementById('txtBtnDrive').innerText = t.driveBtn;
       document.getElementById('txtBtnSecurity').innerText = t.secBtn;
       document.getElementById('txtBtnLogout').innerText = t.logoutBtn;
       document.getElementById('txtBtnGen').innerText = t.genBtn;
+      document.getElementById('txtBtnNewGroup').innerText = t.newGroupBtn;
 
       document.getElementById('statTitleTotal').innerText = t.statTotal;
-      document.getElementById('statDescTotal').innerText = t.statTotalDesc;
+      document.getElementById('statDescTotal').innerText = t.statDescTotal;
       document.getElementById('statTitleActive').innerText = t.statActive;
-      document.getElementById('statDescActive').innerText = t.statActiveDesc;
+      document.getElementById('statDescActive').innerText = t.statDescActive;
       document.getElementById('statTitlePending').innerText = t.statPending;
-      document.getElementById('statDescPending').innerText = t.statPendingDesc;
+      document.getElementById('statDescPending').innerText = t.statDescPending;
       document.getElementById('statTitleExpired').innerText = t.statExpired;
-      document.getElementById('statDescExpired').innerText = t.statExpiredDesc;
+      document.getElementById('statDescExpired').innerText = t.statDescExpired;
 
-      document.getElementById('searchInput').placeholder = t.searchPlaceholder;
+      document.getElementById('searchInput').setAttribute('placeholder', t.searchPlaceholder);
       document.getElementById('lblFilterGroup').innerText = t.filterGroupLbl;
       document.getElementById('txtBtnRefresh').innerText = t.refreshBtn;
 
@@ -732,14 +877,19 @@
       document.getElementById('thStatus').innerText = t.thStatus;
       document.getElementById('thActions').innerText = t.thActions;
 
-      renderLicenses(allLicenses);
+      renderLicenses();
     }
 
     function toggleLanguage() {
       applyLanguage(currentLang === 'ar' ? 'en' : 'ar');
     }
 
-    // جلب التراخيص من السيرفر
+    // بدء التشغيل وجلب البيانات
+    window.addEventListener('DOMContentLoaded', () => {
+      applyLanguage(currentLang);
+      loadLicenses();
+    });
+
     async function loadLicenses() {
       try {
         const res = await fetch(`${API_BASE}/api/admin/licenses`);
@@ -749,27 +899,82 @@
         }
         const data = await res.json();
         allLicenses = data.licenses || [];
+        if (data.settings) {
+          currentSettings = data.settings;
+          updateSettingsUI();
+        }
+        updateGroupsDropdowns();
         updateStats();
-        populateGroupsDropdown();
-        filterLicenses();
+        renderLicenses();
       } catch (err) {
-        console.error('Error loading licenses:', err);
+        showToast('تعذر الاتصال بالخادم، جاري المحاولة...', 'error');
       }
     }
 
+    function updateSettingsUI() {
+      const defApk = 'https://drive.google.com/drive/folders/YouTube_PLUS_APK';
+      const defWin = 'https://drive.google.com/drive/folders/YouTube_PLUS_Windows';
+
+      const apkUrl = currentSettings.apk_drive_link || defApk;
+      const winUrl = currentSettings.windows_drive_link || defWin;
+
+      document.getElementById('guideApkInput').value = apkUrl;
+      document.getElementById('guideWindowsInput').value = winUrl;
+      document.getElementById('setApkDriveLink').value = currentSettings.apk_drive_link || '';
+      document.getElementById('setWindowsDriveLink').value = currentSettings.windows_drive_link || '';
+    }
+
+    function updateGroupsDropdowns() {
+      const groups = currentSettings.custom_groups || ['عام', 'VIP', 'عائلي'];
+      
+      // 1. القائمة في شريط الفلترة
+      const filterSel = document.getElementById('groupFilterSelect');
+      const curFilterVal = filterSel.value;
+      filterSel.innerHTML = `<option value="all">${currentLang === 'ar' ? 'كافة المجموعات' : 'All Groups'}</option>` + 
+        groups.map(g => `<option value="${g}">${g}</option>`).join('');
+      filterSel.value = curFilterVal || 'all';
+
+      // 2. القائمة في نافذة التوليد
+      const genSel = document.getElementById('genGroup');
+      genSel.innerHTML = groups.map(g => `<option value="${g}">${g}</option>`).join('');
+
+      // 3. القائمة في نافذة التعديل
+      const editSel = document.getElementById('editGroup');
+      editSel.innerHTML = groups.map(g => `<option value="${g}">${g}</option>`).join('');
+
+      // 4. القائمة في نافذة إدارة المجموعات
+      renderGroupsManagerList(groups);
+    }
+
+    function renderGroupsManagerList(groups) {
+      const container = document.getElementById('groupsListContainer');
+      container.innerHTML = groups.map(g => {
+        const count = allLicenses.filter(l => (l.group || 'عام') === g).length;
+        return `
+          <div class="flex items-center justify-between p-2.5 bg-zinc-950/70 border border-zinc-800 rounded-xl text-xs">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-folder text-indigo-400"></i>
+              <span class="font-bold text-white">${g}</span>
+            </div>
+            <span class="bg-indigo-500/10 text-indigo-400 px-2.5 py-0.5 rounded-full font-mono font-bold">
+              ${count} ${currentLang === 'ar' ? 'عميل' : 'clients'}
+            </span>
+          </div>
+        `;
+      }).join('');
+    }
+
     function updateStats() {
-      const total = allLicenses.length;
-      let active = 0;
-      let pending = 0;
-      let expired = 0;
       const now = new Date();
+      const total = allLicenses.length;
+      let active = 0, pending = 0, expired = 0;
 
       allLicenses.forEach(l => {
         if (!l.is_active) {
           expired++;
-        } else if (!l.activated_at || !l.expiry_date) {
+        } else if (!l.activated_at) {
           pending++;
-        } else if (new Date(l.expiry_date) < now) {
+        } else if (l.expiry_date && new Date(l.expiry_date) < now) {
           expired++;
         } else {
           active++;
@@ -782,177 +987,153 @@
       document.getElementById('statExpired').innerText = expired;
     }
 
-    function populateGroupsDropdown() {
-      const select = document.getElementById('groupFilterSelect');
-      const currentVal = select.value;
-      const groups = new Set();
-      allLicenses.forEach(l => {
-        if (l.group && l.group.trim()) groups.add(l.group.trim());
-      });
-
-      const t = I18N[currentLang];
-      select.innerHTML = `<option value="all">${t.filterAllGroups}</option>`;
-      groups.forEach(g => {
-        select.innerHTML += `<option value="${g}">${g}</option>`;
-      });
-
-      if (groups.has(currentVal)) {
-        select.value = currentVal;
-      }
-    }
-
     function setDurationFilter(days) {
       currentDurationFilter = days;
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      const activeBtn = document.getElementById(days === 'all' ? 'tabAll' : 'tab' + days);
+      const activeBtn = document.getElementById(`tab${days === 'all' ? 'All' : days}`);
       if (activeBtn) activeBtn.classList.add('active');
-      filterLicenses();
+      renderLicenses();
     }
 
     function filterLicenses() {
-      const q = document.getElementById('searchInput').value.toLowerCase().trim();
-      const selectedGroup = document.getElementById('groupFilterSelect').value;
-
-      const filtered = allLicenses.filter(l => {
-        // فلترة بالمدة
-        if (currentDurationFilter !== 'all' && l.duration_days != currentDurationFilter) {
-          return false;
-        }
-        // فلترة بالمجموعة
-        if (selectedGroup !== 'all' && (l.group || 'عام') !== selectedGroup) {
-          return false;
-        }
-        // بحث نصي
-        if (q) {
-          const serialMatch = l.serial_key.toLowerCase().includes(q);
-          const noteMatch = l.note && l.note.toLowerCase().includes(q);
-          const waMatch = l.whatsapp && l.whatsapp.includes(q);
-          const devMatch = (l.device_ids && l.device_ids.some(d => d.toLowerCase().includes(q))) || (l.device_id && l.device_id.toLowerCase().includes(q));
-          const grpMatch = l.group && l.group.toLowerCase().includes(q);
-          return serialMatch || noteMatch || waMatch || devMatch || grpMatch;
-        }
-        return true;
-      });
-
-      renderLicenses(filtered);
+      renderLicenses();
     }
 
-    function renderLicenses(licenses) {
-      const tbody = document.getElementById('licensesTableBody');
-      const mobileContainer = document.getElementById('licensesMobileContainer');
+    function renderLicenses() {
+      const search = document.getElementById('searchInput').value.trim().toLowerCase();
+      const groupFilter = document.getElementById('groupFilterSelect').value;
       const t = I18N[currentLang];
       const now = new Date();
 
-      if (licenses.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-12 text-center text-zinc-500">${currentLang === 'ar' ? 'لا توجد سجلات مطابقة' : 'No matching licenses found'}</td></tr>`;
-        mobileContainer.innerHTML = `<div class="py-12 text-center text-zinc-500 text-sm">${currentLang === 'ar' ? 'لا توجد سجلات مطابقة' : 'No matching licenses found'}</div>`;
+      let filtered = allLicenses.filter(l => {
+        // بحث بالنص
+        const matchesSearch = !search || 
+          l.serial_key.toLowerCase().includes(search) ||
+          (l.note && l.note.toLowerCase().includes(search)) ||
+          (l.whatsapp && l.whatsapp.includes(search)) ||
+          (Array.isArray(l.device_ids) && l.device_ids.some(d => d.toLowerCase().includes(search)));
+
+        // فلترة المجموعات
+        const matchesGroup = groupFilter === 'all' || (l.group || 'عام') === groupFilter;
+
+        // فلترة المدة
+        let matchesDuration = true;
+        if (currentDurationFilter !== 'all') {
+          matchesDuration = l.duration_days === parseInt(currentDurationFilter, 10);
+        }
+
+        return matchesSearch && matchesGroup && matchesDuration;
+      });
+
+      const tbody = document.getElementById('licensesTableBody');
+      const mobileContainer = document.getElementById('licensesMobileContainer');
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-12 text-center text-zinc-500">${currentLang === 'ar' ? 'لا توجد نتائج مطابقة' : 'No matching records'}</td></tr>`;
+        mobileContainer.innerHTML = `<div class="py-12 text-center text-zinc-500 text-sm">${currentLang === 'ar' ? 'لا توجد نتائج مطابقة' : 'No matching records'}</div>`;
         return;
       }
 
-      // 1. توليد سطور جدول الكمبيوتر
-      tbody.innerHTML = licenses.map(l => {
+      // 1. توليد سطور جدول الكمبيوتر (Desktop Table)
+      tbody.innerHTML = filtered.map(l => {
         const isExpired = l.expiry_date && new Date(l.expiry_date) < now;
-        
-        // شارة الحالة
+        const devList = Array.isArray(l.device_ids) ? l.device_ids : (l.device_id ? [l.device_id] : []);
+        const devInfoList = Array.isArray(l.devices_info) ? l.devices_info : [];
+        const maxDev = l.max_devices || 1;
+        const cleanWa = l.whatsapp ? l.whatsapp.replace(/[^0-9]/g, '') : '';
+
         let statusBadge = '';
         if (!l.is_active) {
-          statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-red-500/10 text-red-400 border border-red-500/20"><i class="fa-solid fa-ban text-[10px]"></i> ${t.statusBanned}</span>`;
+          statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-red-500/10 text-red-400 border border-red-500/20">${t.statusBanned}</span>`;
         } else if (!l.activated_at) {
-          statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20"><i class="fa-solid fa-clock text-[10px]"></i> ${t.statusPending}</span>`;
+          statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">${t.statusPending}</span>`;
         } else if (isExpired) {
-          statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-zinc-800 text-zinc-400 border border-zinc-700"><i class="fa-solid fa-circle-xmark text-[10px]"></i> ${t.statusExpired}</span>`;
+          statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-zinc-800 text-zinc-400 border border-zinc-700">${t.statusExpired}</span>`;
         } else {
-          statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"><i class="fa-solid fa-check text-[10px]"></i> ${t.statusActive}</span>`;
+          statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">${t.statusActive}</span>`;
         }
 
-        // تواريخ
-        const startDateDisplay = l.activated_at 
-          ? new Date(l.activated_at).toLocaleDateString(currentLang === 'ar' ? 'ar-SA' : 'en-US') 
-          : `<span class="text-zinc-500 text-xs italic">${t.neverActivated}</span>`;
+        const startDateDisplay = l.activated_at ? `<span class="font-mono">${formatEnDate(l.activated_at)}</span>` : `<span class="text-zinc-500">${t.neverActivated}</span>`;
+        const expiryDateDisplay = l.expiry_date ? `<span class="font-mono font-bold ${isExpired ? 'text-red-400' : 'text-zinc-200'}">${formatEnDate(l.expiry_date)}</span>` : `<span class="text-zinc-500">${currentLang === 'ar' ? 'عند التفعيل' : 'On activation'}</span>`;
 
-        let expiryDateDisplay = `<span class="text-zinc-500 text-xs italic">${currentLang === 'ar' ? 'يبدأ عند أول تفعيل' : 'Starts upon activation'}</span>`;
-        if (l.expiry_date) {
-          const d = new Date(l.expiry_date).toLocaleDateString(currentLang === 'ar' ? 'ar-SA' : 'en-US');
-          const msLeft = new Date(l.expiry_date).getTime() - now.getTime();
-          const daysLeft = Math.ceil(msLeft / (1000 * 60 * 60 * 24));
-          const daysBadge = !isExpired && daysLeft > 0 
-            ? `<span class="text-[10px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded font-mono mr-1">${daysLeft} ${currentLang === 'ar' ? 'يوم' : 'd'}</span>` 
-            : '';
-          expiryDateDisplay = `<div class="flex items-center gap-1"><span>${d}</span> ${daysBadge}</div>`;
+        // عرض شارات نوع الأجهزة المتصلة
+        let deviceBadgesHtml = '';
+        if (devList.length === 0) {
+          deviceBadgesHtml = `<span class="text-[11px] text-zinc-500">${currentLang === 'ar' ? 'بانتظار أول جهاز' : 'Unlinked'}</span>`;
+        } else {
+          deviceBadgesHtml = devList.map(id => {
+            const info = devInfoList.find(d => d.id === id);
+            const typeLabel = info ? info.type : (id.includes('iPhone') ? '📱 iPhone' : (id.includes('AND') ? '🤖 Android' : '💻 PC'));
+            return `
+              <span class="inline-flex items-center gap-1 text-[10px] bg-zinc-900 border border-zinc-700/80 px-2 py-0.5 rounded-lg text-zinc-300 font-sans" title="معرف: ${id}">
+                <span>${typeLabel}</span>
+              </span>
+            `;
+          }).join(' ');
         }
-
-        // الأجهزة
-        const devList = Array.isArray(l.device_ids) ? l.device_ids : (l.device_id ? [l.device_id] : []);
-        const maxDev = l.max_devices || 1;
-        const devicesCountBadge = `<span class="font-bold font-mono ${devList.length >= maxDev ? 'text-amber-400' : 'text-zinc-300'}">${devList.length}/${maxDev}</span>`;
-
-        // واتساب
-        const cleanWa = l.whatsapp ? l.whatsapp.replace(/[^0-9]/g, '') : '';
-        const waDisplay = cleanWa 
-          ? `
-            <div class="flex items-center gap-1 mt-1">
-              <a href="https://wa.me/${cleanWa}" target="_blank" class="inline-flex items-center gap-1 text-[11px] text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20 font-mono transition">
-                <i class="fa-brands fa-whatsapp"></i> ${l.whatsapp}
-              </a>
-              <button onclick="openWhatsappModal('${l.id}')" class="text-amber-400 hover:text-amber-300 p-1 text-xs" title="إرسال رسالة تذكير بالواتساب">
-                <i class="fa-solid fa-bell"></i>
-              </button>
-            </div>
-          ` 
-          : `
-            <button onclick="openEditModal('${l.id}')" class="text-[10px] text-zinc-500 hover:text-zinc-300 flex items-center gap-1 mt-1 transition">
-              <i class="fa-brands fa-whatsapp"></i> ${t.addWa}
-            </button>
-          `;
-
-        // ملاحظة
-        const noteDisplay = l.note 
-          ? `
-            <div class="flex items-center gap-1 text-xs text-zinc-400 mt-1">
-              <span class="truncate max-w-[200px]">${l.note}</span>
-              <button onclick="openEditModal('${l.id}')" class="text-zinc-500 hover:text-zinc-200 text-[10px] p-0.5"><i class="fa-solid fa-pen"></i></button>
-            </div>
-          ` 
-          : `
-            <button onclick="openEditModal('${l.id}')" class="text-[10px] text-zinc-500 hover:text-zinc-300 flex items-center gap-1 mt-1 transition">
-              <i class="fa-solid fa-plus text-[9px]"></i> ${t.addNote}
-            </button>
-          `;
 
         return `
-          <tr class="hover:bg-zinc-900/40 transition">
-            <!-- كود التفعيل -->
+          <tr class="hover:bg-zinc-800/40 transition">
+            <!-- كود التفعيل والملاحظة والواتساب -->
             <td class="px-5 py-3.5">
               <div class="flex items-center gap-2">
-                <button onclick="copyToClipboard('${l.serial_key}')" class="font-mono font-bold text-white hover:text-red-400 text-xs sm:text-sm tracking-wide transition flex items-center gap-1.5" title="انقر للنسخ">
+                <button onclick="copyToClipboard('${l.serial_key}')" class="font-mono font-bold text-white hover:text-red-400 flex items-center gap-1.5 transition text-xs sm:text-sm">
                   <span>${l.serial_key}</span>
-                  <i class="fa-regular fa-copy text-xs text-zinc-500 hover:text-white"></i>
+                  <i class="fa-regular fa-copy text-xs text-zinc-500"></i>
                 </button>
               </div>
-              ${noteDisplay}
-              ${waDisplay}
+
+              <!-- الملاحظة المباشرة -->
+              <div class="mt-1 flex items-center gap-2 text-xs">
+                ${l.note ? `
+                  <span class="text-zinc-300">${l.note}</span>
+                  <button onclick="openEditModal('${l.id}')" class="text-zinc-500 hover:text-white text-[11px]"><i class="fa-solid fa-pen text-[10px]"></i></button>
+                ` : `
+                  <button onclick="openEditModal('${l.id}')" class="text-zinc-500 hover:text-zinc-300 text-[11px] flex items-center gap-1">
+                    <i class="fa-solid fa-plus text-[10px]"></i> <span>${t.addNote}</span>
+                  </button>
+                `}
+              </div>
+
+              <!-- واتساب العميل وزر التذكير -->
+              <div class="mt-1 flex items-center gap-2 text-xs">
+                ${cleanWa ? `
+                  <a href="https://wa.me/${cleanWa}" target="_blank" class="inline-flex items-center gap-1 text-emerald-400 hover:underline font-mono">
+                    <i class="fa-brands fa-whatsapp text-sm"></i> <span>${l.whatsapp}</span>
+                  </a>
+                  <button onclick="openWhatsappModal('${l.id}')" class="text-amber-400 hover:text-amber-300 text-[11px] bg-amber-500/10 px-2 py-0.5 rounded-lg border border-amber-500/20 flex items-center gap-1" title="إرسال تذكير بالواتساب">
+                    <i class="fa-solid fa-paper-plane text-[9px]"></i> <span>تذكير</span>
+                  </button>
+                ` : `
+                  <button onclick="openEditModal('${l.id}')" class="text-zinc-500 hover:text-zinc-300 text-[11px] flex items-center gap-1">
+                    <i class="fa-brands fa-whatsapp text-[10px]"></i> <span>${t.addWa}</span>
+                  </button>
+                `}
+              </div>
             </td>
 
             <!-- المجموعة والمدة -->
-            <td class="px-4 py-3.5">
-              <div class="font-bold text-white text-xs">${l.duration_days} ${currentLang === 'ar' ? 'يوم' : 'Days'}</div>
-              <span class="inline-block mt-1 text-[10px] bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded border border-zinc-700">
+            <td class="px-4 py-3.5 text-xs">
+              <div class="font-bold text-white font-mono">${l.duration_days} Days</div>
+              <div class="inline-block mt-1 px-2 py-0.5 rounded-md bg-zinc-800 text-[10px] text-zinc-300 border border-zinc-700">
                 ${l.group || 'عام'}
-              </span>
+              </div>
             </td>
 
-            <!-- الأجهزة المسموحة -->
+            <!-- الأجهزة المرتبطة ونوعها -->
             <td class="px-4 py-3.5">
               <div class="flex items-center gap-2">
-                ${devicesCountBadge}
+                <span class="font-mono font-bold text-xs ${devList.length >= maxDev ? 'text-amber-400' : 'text-zinc-200'}">
+                  ${devList.length}/${maxDev}
+                </span>
                 ${devList.length > 0 ? `
-                  <button onclick="resetDevice('${l.id}')" class="text-amber-400/80 hover:text-amber-300 text-xs p-1" title="فك ربط كافة الأجهزة">
+                  <button onclick="resetDevice('${l.id}')" class="text-xs text-amber-400 hover:text-amber-300 p-1 rounded hover:bg-zinc-800" title="فك ربط كافة الأجهزة">
                     <i class="fa-solid fa-arrows-rotate"></i>
                   </button>
                 ` : ''}
               </div>
-              <div class="text-[10px] text-zinc-500 mt-0.5">
-                ${devList.length === 0 ? (currentLang === 'ar' ? 'بانتظار الربط' : 'Unlinked') : (currentLang === 'ar' ? 'أجهزة مرتبطة' : 'Linked')}
+              <div class="flex flex-wrap gap-1 mt-1">
+                ${deviceBadgesHtml}
               </div>
             </td>
 
@@ -974,15 +1155,12 @@
             <!-- الإجراءات -->
             <td class="px-5 py-3.5 text-center">
               <div class="flex items-center justify-center gap-1.5">
-                <!-- زر تعديل البيانات -->
                 <button onclick="openEditModal('${l.id}')" class="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition text-xs" title="تعديل الملاحظة / الواتساب / المجموعة">
                   <i class="fa-solid fa-pen-to-square"></i>
                 </button>
-                <!-- إيقاف / تشغيل -->
                 <button onclick="toggleActive('${l.id}')" class="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 ${l.is_active ? 'text-zinc-300 hover:text-amber-400' : 'text-emerald-400'} transition text-xs" title="${l.is_active ? 'إيقاف / حظر' : 'تفعيل'}">
                   <i class="fa-solid ${l.is_active ? 'fa-pause' : 'fa-play'}"></i>
                 </button>
-                <!-- حذف نهائي -->
                 <button onclick="deleteLicense('${l.id}')" class="p-2 rounded-xl bg-zinc-800 hover:bg-red-500/20 text-zinc-400 hover:text-red-400 transition text-xs" title="حذف الكود">
                   <i class="fa-solid fa-trash"></i>
                 </button>
@@ -993,9 +1171,10 @@
       }).join('');
 
       // 2. توليد البطاقات الذكية للهواتف (Mobile Cards)
-      mobileContainer.innerHTML = licenses.map(l => {
+      mobileContainer.innerHTML = filtered.map(l => {
         const isExpired = l.expiry_date && new Date(l.expiry_date) < now;
         const devList = Array.isArray(l.device_ids) ? l.device_ids : (l.device_id ? [l.device_id] : []);
+        const devInfoList = Array.isArray(l.devices_info) ? l.devices_info : [];
         const maxDev = l.max_devices || 1;
         const cleanWa = l.whatsapp ? l.whatsapp.replace(/[^0-9]/g, '') : '';
 
@@ -1012,19 +1191,12 @@
           statusClass = 'bg-zinc-800 text-zinc-400 border-zinc-700';
         }
 
-        const startDateStr = l.activated_at 
-          ? new Date(l.activated_at).toLocaleDateString(currentLang === 'ar' ? 'ar-SA' : 'en-US') 
-          : t.neverActivated;
-
-        let expiryDateStr = currentLang === 'ar' ? 'عند التفعيل' : 'On activation';
-        if (l.expiry_date) {
-          expiryDateStr = new Date(l.expiry_date).toLocaleDateString(currentLang === 'ar' ? 'ar-SA' : 'en-US');
-        }
+        const startDateStr = l.activated_at ? formatEnDate(l.activated_at) : t.neverActivated;
+        const expiryDateStr = l.expiry_date ? formatEnDate(l.expiry_date) : (currentLang === 'ar' ? 'عند التفعيل' : 'On activation');
 
         return `
           <div class="glass-card rounded-2xl p-4 border border-zinc-800 shadow-lg space-y-3">
             
-            <!-- رأس البطاقة: الكود + شارة الحالة -->
             <div class="flex items-start justify-between gap-2 border-b border-zinc-800/80 pb-2.5">
               <div>
                 <button onclick="copyToClipboard('${l.serial_key}')" class="font-mono font-bold text-sm text-white hover:text-red-400 flex items-center gap-1.5 transition text-right">
@@ -1038,31 +1210,39 @@
               </span>
             </div>
 
-            <!-- الشارات والتفاصيل -->
             <div class="grid grid-cols-2 gap-2 text-xs">
               <div class="bg-zinc-900/60 p-2 rounded-xl border border-zinc-800/60">
                 <span class="text-[10px] text-zinc-500 block">${currentLang === 'ar' ? 'المدة والمجموعة:' : 'Duration & Group:'}</span>
-                <span class="font-bold text-zinc-200">${l.duration_days} ${currentLang === 'ar' ? 'يوم' : 'd'} • ${l.group || 'عام'}</span>
+                <span class="font-bold text-zinc-200 font-mono">${l.duration_days}d</span> • <span>${l.group || 'عام'}</span>
               </div>
               <div class="bg-zinc-900/60 p-2 rounded-xl border border-zinc-800/60">
-                <span class="text-[10px] text-zinc-500 block">${currentLang === 'ar' ? 'الأجهزة النشطة:' : 'Active Devices:'}</span>
-                <span class="font-bold ${devList.length >= maxDev ? 'text-amber-400' : 'text-zinc-200'} font-mono">${devList.length}/${maxDev} ${t.devicesUnit}</span>
+                <span class="text-[10px] text-zinc-500 block">${currentLang === 'ar' ? 'الأجهزة المتصلة:' : 'Devices:'}</span>
+                <span class="font-bold ${devList.length >= maxDev ? 'text-amber-400' : 'text-zinc-200'} font-mono">${devList.length}/${maxDev}</span>
               </div>
             </div>
 
-            <!-- التواريخ -->
-            <div class="grid grid-cols-2 gap-2 text-xs text-zinc-400 border-t border-zinc-800/60 pt-2">
+            <!-- عرض أنواع الأجهزة على الجوال -->
+            ${devList.length > 0 ? `
+              <div class="flex flex-wrap gap-1 text-[10px]">
+                ${devList.map(id => {
+                  const info = devInfoList.find(d => d.id === id);
+                  const typeLabel = info ? info.type : (id.includes('iPhone') ? '📱 iPhone' : '🤖 Android');
+                  return `<span class="bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded text-zinc-300">${typeLabel}</span>`;
+                }).join('')}
+              </div>
+            ` : ''}
+
+            <div class="grid grid-cols-2 gap-2 text-xs text-zinc-400 border-t border-zinc-800/60 pt-2 font-mono">
               <div>
-                <span class="text-[10px] text-zinc-500 block">${t.thStartDate}:</span>
-                <span class="text-zinc-300">${startDateStr}</span>
+                <span class="text-[10px] text-zinc-500 block font-sans">${t.thStartDate}:</span>
+                <span class="text-zinc-300 text-[11px]">${startDateStr}</span>
               </div>
               <div>
-                <span class="text-[10px] text-zinc-500 block">${t.thExpiryDate}:</span>
-                <span class="text-zinc-300 font-bold">${expiryDateStr}</span>
+                <span class="text-[10px] text-zinc-500 block font-sans">${t.thExpiryDate}:</span>
+                <span class="text-zinc-300 font-bold text-[11px]">${expiryDateStr}</span>
               </div>
             </div>
 
-            <!-- صفحة الواتساب وأزرار التحكم السريع للجوال -->
             <div class="flex items-center justify-between gap-2 border-t border-zinc-800/80 pt-2.5">
               <div>
                 ${cleanWa ? `
@@ -1076,7 +1256,6 @@
                 `}
               </div>
 
-              <!-- أزرار الإجراءات -->
               <div class="flex items-center gap-1.5">
                 ${cleanWa ? `
                   <button onclick="openWhatsappModal('${l.id}')" class="p-2 rounded-xl bg-zinc-800 text-amber-400 hover:text-white text-xs" title="تذكير واتساب">
@@ -1105,7 +1284,7 @@
       }).join('');
     }
 
-    // توليد الأكواد
+    // توليد أكواد جديدة
     function openGenerateModal() {
       document.getElementById('generateModal').classList.remove('hidden');
     }
@@ -1114,43 +1293,48 @@
     }
     async function submitGenerate() {
       const days = document.getElementById('genDays').value;
-      const count = document.getElementById('genCount').value;
-      const note = document.getElementById('genNote').value;
-      const max_devices = document.getElementById('genMaxDevices').value;
+      const maxDevices = document.getElementById('genMaxDevices').value;
       const group = document.getElementById('genGroup').value;
-      const whatsapp = document.getElementById('genWhatsapp').value;
+      const note = document.getElementById('genNote').value.trim();
+      const whatsapp = document.getElementById('genWhatsapp').value.trim();
+      const count = document.getElementById('genCount').value;
+
+      const btn = document.getElementById('btnSubmitGen');
+      btn.disabled = true;
 
       try {
         const res = await fetch(`${API_BASE}/api/admin/generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ days, count, note, max_devices, group, whatsapp })
+          body: JSON.stringify({ days, max_devices: maxDevices, group, note, whatsapp, count })
         });
         const data = await res.json();
         if (data.status === 'success') {
+          showToast(`تم توليد ${data.count} كود بنجاح`);
           closeGenerateModal();
-          showToast(currentLang === 'ar' ? `تم توليد ${data.count} كود بنجاح!` : `Generated ${data.count} keys successfully!`);
           document.getElementById('genNote').value = '';
           document.getElementById('genWhatsapp').value = '';
           loadLicenses();
+        } else {
+          showToast(data.message || 'حدث خطأ أثناء التوليد', 'error');
         }
       } catch (e) {
-        alert('حدث خطأ أثناء التوليد');
+        showToast('تعذر الاتصال بالخادم', 'error');
+      } finally {
+        btn.disabled = false;
       }
     }
 
     // تعديل بيانات المفتاح
     function openEditModal(id) {
-      const l = allLicenses.find(x => x.id === id);
+      const l = allLicenses.find(item => item.id === id);
       if (!l) return;
-
       document.getElementById('editLicenseId').value = l.id;
-      document.getElementById('editKeyDisplay').innerText = l.serial_key;
+      document.getElementById('editSerialDisplay').innerText = l.serial_key;
       document.getElementById('editNote').value = l.note || '';
       document.getElementById('editWhatsapp').value = l.whatsapp || '';
       document.getElementById('editGroup').value = l.group || 'عام';
-      document.getElementById('editMaxDevices').value = l.max_devices || 1;
-
+      document.getElementById('editMaxDevices').value = String(l.max_devices || 1);
       document.getElementById('editModal').classList.remove('hidden');
     }
     function closeEditModal() {
@@ -1158,10 +1342,10 @@
     }
     async function submitEditLicense() {
       const id = document.getElementById('editLicenseId').value;
-      const note = document.getElementById('editNote').value;
-      const whatsapp = document.getElementById('editWhatsapp').value;
+      const note = document.getElementById('editNote').value.trim();
+      const whatsapp = document.getElementById('editWhatsapp').value.trim();
       const group = document.getElementById('editGroup').value;
-      const max_devices = document.getElementById('editMaxDevices').value;
+      const max_devices = parseInt(document.getElementById('editMaxDevices').value, 10);
 
       try {
         const res = await fetch(`${API_BASE}/api/admin/update-license`, {
@@ -1171,39 +1355,108 @@
         });
         const data = await res.json();
         if (data.status === 'success') {
+          showToast('تم تحديث البيانات بنجاح');
           closeEditModal();
-          showToast(currentLang === 'ar' ? 'تم تحديث البيانات بنجاح!' : 'License updated successfully!');
           loadLicenses();
+        } else {
+          showToast(data.message || 'تعذر التحديث', 'error');
         }
       } catch (e) {
-        alert('تعذر حفظ التعديلات');
+        showToast('تعذر الاتصال بالخادم', 'error');
       }
     }
 
-    // نافذة الواتساب والرسائل التلقائية
-    function openWhatsappModal(id) {
-      const l = allLicenses.find(x => x.id === id);
-      if (!l || !l.whatsapp) {
-        showToast('يرجى إضافة رقم واتساب للعميل أولاً');
+    // إدارة المجموعات (Group Modal)
+    function openGroupModal() {
+      document.getElementById('newGroupNameInput').value = '';
+      updateGroupsDropdowns();
+      document.getElementById('groupModal').classList.remove('hidden');
+    }
+    function closeGroupModal() {
+      document.getElementById('groupModal').classList.add('hidden');
+    }
+    async function submitCreateGroup() {
+      const name = document.getElementById('newGroupNameInput').value.trim();
+      if (!name) {
+        showToast('يرجى كتابة اسم المجموعة أولاً', 'error');
         return;
       }
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/create-group`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ group_name: name })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          currentSettings.custom_groups = data.custom_groups;
+          updateGroupsDropdowns();
+          document.getElementById('newGroupNameInput').value = '';
+          showToast(`تم إنشاء مجموعة "${name}" بنجاح`);
+        } else {
+          showToast(data.message || 'تعذر إنشاء المجموعة', 'error');
+        }
+      } catch (e) {
+        showToast('تعذر الاتصال بالخادم', 'error');
+      }
+    }
+
+    // إدارة إعدادات روابط قوقل درايف
+    function openSettingsModal() {
+      updateSettingsUI();
+      document.getElementById('settingsAlert').classList.add('hidden');
+      document.getElementById('settingsModal').classList.remove('hidden');
+    }
+    function closeSettingsModal() {
+      document.getElementById('settingsModal').classList.add('hidden');
+    }
+    async function submitSaveSettings() {
+      const apk_drive_link = document.getElementById('setApkDriveLink').value.trim();
+      const windows_drive_link = document.getElementById('setWindowsDriveLink').value.trim();
+      const alertBox = document.getElementById('settingsAlert');
+
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/settings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ apk_drive_link, windows_drive_link })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          currentSettings = data.settings;
+          updateSettingsUI();
+          showToast('تم حفظ روابط قوقل درايف بنجاح');
+          closeSettingsModal();
+        } else {
+          alertBox.className = 'p-2.5 rounded-xl text-center font-bold text-xs bg-red-500/10 text-red-400';
+          alertBox.innerText = data.message || 'تعذر حفظ الإعدادات';
+          alertBox.classList.remove('hidden');
+        }
+      } catch (e) {
+        showToast('تعذر الاتصال بالخادم', 'error');
+      }
+    }
+
+    // دليل الأجهزة
+    function openGuideModal() {
+      updateSettingsUI();
+      document.getElementById('guideModal').classList.remove('hidden');
+    }
+    function closeGuideModal() {
+      document.getElementById('guideModal').classList.add('hidden');
+    }
+    function openLinkFromInput(inputId) {
+      const url = document.getElementById(inputId).value;
+      if (url) window.open(url, '_blank');
+    }
+
+    // رسائل الواتساب وقوالبها التلقائية (مع مسمى النظام الرقمي بدون أقواس)
+    function openWhatsappModal(id) {
+      const l = allLicenses.find(item => item.id === id);
+      if (!l || !l.whatsapp) return;
       currentActiveLicenseForWa = l;
       document.getElementById('waModalPhone').innerText = l.whatsapp;
-
-      // تحديد القالب المناسب تلقائياً حسب الأيام المتبقية
-      const now = new Date();
-      let autoTemplate = 'welcome';
-      if (!l.activated_at) {
-        autoTemplate = 'welcome';
-      } else if (l.expiry_date && new Date(l.expiry_date) < now) {
-        autoTemplate = 'expired';
-      } else if (l.expiry_date) {
-        const msLeft = new Date(l.expiry_date).getTime() - now.getTime();
-        const daysLeft = Math.ceil(msLeft / (1000 * 60 * 60 * 24));
-        if (daysLeft <= 5) autoTemplate = 'reminder';
-      }
-
-      setWaTemplate(autoTemplate);
+      setWaTemplate('welcome');
       document.getElementById('whatsappModal').classList.remove('hidden');
     }
     function closeWhatsappModal() {
@@ -1214,167 +1467,190 @@
     function setWaTemplate(type) {
       if (!currentActiveLicenseForWa) return;
       const l = currentActiveLicenseForWa;
-      const now = new Date();
-      let daysLeft = l.duration_days;
-      if (l.expiry_date) {
-        const msLeft = new Date(l.expiry_date).getTime() - now.getTime();
-        daysLeft = Math.max(0, Math.ceil(msLeft / (1000 * 60 * 60 * 24)));
-      }
+      const expDate = l.expiry_date ? formatEnDate(l.expiry_date, false) : 'يبدأ عند أول تفعيل';
 
-      const expiryStr = l.expiry_date ? new Date(l.expiry_date).toLocaleDateString('ar-SA') : 'يبدأ عند التفعيل';
-      let text = '';
+      document.getElementById('waTabWelcome').className = 'py-2 px-2 text-center rounded-xl bg-zinc-800 text-zinc-300 border border-zinc-700 font-bold transition text-[11px]';
+      document.getElementById('waTabReminder').className = 'py-2 px-2 text-center rounded-xl bg-zinc-800 text-zinc-300 border border-zinc-700 font-bold transition text-[11px]';
+      document.getElementById('waTabExpired').className = 'py-2 px-2 text-center rounded-xl bg-zinc-800 text-zinc-300 border border-zinc-700 font-bold transition text-[11px]';
 
+      let msg = '';
       if (type === 'welcome') {
-        text = `مرحباً بك عزيزي المشترك 🌹\n\nتم تفعيل اشتراكك في خدمة YouTube PLUS+ بنجاح 🎉\n\n🔑 كود التفعيل الخاص بك: ${l.serial_key}\n⏳ مدة الاشتراك: ${l.duration_days} يوماً\n📱 عدد الأجهزة المسموحة: ${l.max_devices || 1} جهاز\n\n📌 رابط تشغيل التطبيق:\nhttps://yt-license-guard.onrender.com/app\n\nنتمنى لك مشاهدة ممتعة بدون إعلانات وبأعلى دقة!`;
+        document.getElementById('waTabWelcome').className = 'py-2 px-2 text-center rounded-xl bg-emerald-600 text-white font-bold transition text-[11px]';
+        msg = `مرحباً بك! 🎉
+يسعدنا انضمامك إلى خدمة YouTube PLUS+ - النظام الرقمي (بدون إعلانات وبأعلى دقة 4K).
+
+🔑 كود التفعيل الخاص بك:
+${l.serial_key}
+
+⏳ مدة الاشتراك: ${l.duration_days} يوماً
+📱 عدد الأجهزة المسموحة: ${l.max_devices || 1} جهاز
+
+🌐 رابط تشغيل التطبيق للآيفون والكمبيوتر والشاشات:
+https://yt-license-guard.onrender.com/app
+
+نتمنى لك مشاهدة ممتعة ومميزة دائماً!`;
       } else if (type === 'reminder') {
-        text = `السلام عليكم عزيزي المشترك 🌹\n\nنود تذكيرك بأن اشتراكك في YouTube PLUS+ يوشك على الانتهاء:\n\n🔑 كود الاشتراك: ${l.serial_key}\n⏳ الأيام المتبقية: ${daysLeft} يوم\n📅 تاريخ الانتهاء: ${expiryStr}\n\nللتجديد واستمرار الخدمة بدون انقطاع، يسعدنا تواصلك معنا الآن! ✨`;
+        document.getElementById('waTabReminder').className = 'py-2 px-2 text-center rounded-xl bg-amber-600 text-white font-bold transition text-[11px]';
+        msg = `مرحباً بك، تذكير باشتراكك في YouTube PLUS+ - النظام الرقمي ⏳
+
+نود إعلامك بقرب انتهاء صلاحية كود الاشتراك الخاص بك (${l.serial_key}) في تاريخ: ${expDate}.
+
+لضمان استمرار الخدمة دون انقطاع، يمكنك التجديد الآن بالتواصل معنا. يسعدنا خدمتكم دائماً!`;
       } else if (type === 'expired') {
-        text = `مرحباً بك عزيزي المشترك 🌹\n\nنحيطك علماً بأن اشتراكك في YouTube PLUS+ قد انتهت صلاحيته:\n\n🔑 الكود: ${l.serial_key}\n\nإذا كنت ترغب في التجديد ومتابعة المشاهدة بدون إعلانات وبالميزات الكاملة، يرجى الرد على هذه الرسالة لتجديد باقتك فوراً. نسعد بخدمتك دائماً! ❤️`;
+        document.getElementById('waTabExpired').className = 'py-2 px-2 text-center rounded-xl bg-red-600 text-white font-bold transition text-[11px]';
+        msg = `مرحباً بك، نود إعلامك بأن اشتراكك في YouTube PLUS+ - النظام الرقمي قد انتهت صلاحيته 🔒
+
+كود التفعيل السابق: ${l.serial_key}
+
+إذا رغبت في تجديد اشتراكك والاستمتاع بمشاهدة يوتيوب الرسمية بدون أي إعلانات وبأعلى دقة، نسعد بتواصلك معنا لتفعيل كود جديد فوراً!`;
       }
 
-      document.getElementById('waMessageText').value = text;
+      document.getElementById('waMessageText').value = msg;
     }
 
     function sendWhatsappDirect() {
       if (!currentActiveLicenseForWa) return;
-      const cleanPhone = currentActiveLicenseForWa.whatsapp.replace(/[^0-9]/g, '');
-      const msg = document.getElementById('waMessageText').value;
-      const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
-      window.open(url, '_blank');
+      const cleanWa = currentActiveLicenseForWa.whatsapp.replace(/[^0-9]/g, '');
+      const text = encodeURIComponent(document.getElementById('waMessageText').value);
+      window.open(`https://wa.me/${cleanWa}?text=${text}`, '_blank');
       closeWhatsappModal();
     }
 
-    // إيقاف / تشغيل الكود
+    // إيقاف / تفعيل
     async function toggleActive(id) {
-      await fetch(`${API_BASE}/api/admin/toggle-status`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id })
-      });
-      loadLicenses();
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/toggle-status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          showToast(data.is_active ? 'تم تنشيط الكود بنجاح' : 'تم إيقاف الكود وحظره فوراً');
+          loadLicenses();
+        }
+      } catch (e) {
+        showToast('تعذر تغيير الحالة', 'error');
+      }
     }
 
     // فك ربط الأجهزة
     async function resetDevice(id) {
-      if (confirm(currentLang === 'ar' ? 'هل تريد فك ربط الأجهزة المسجلة على هذا الكود؟' : 'Reset all linked devices for this key?')) {
-        await fetch(`${API_BASE}/api/admin/reset-device`, {
+      if (!confirm('هل أنت متأكد من فك ربط كافة الأجهزة المسجلة على هذا الكود؟')) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/reset-device`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id })
         });
-        showToast(currentLang === 'ar' ? 'تم فك ربط الأجهزة بنجاح' : 'Devices unlinked successfully');
-        loadLicenses();
+        const data = await res.json();
+        if (data.status === 'success') {
+          showToast('تم فك ربط الأجهزة بنجاح ويمكن إعادة التفعيل الآن');
+          loadLicenses();
+        }
+      } catch (e) {
+        showToast('تعذر فك الارتباط', 'error');
       }
     }
 
-    // حذف السيريال
+    // حذف الكود
     async function deleteLicense(id) {
-      if (confirm(currentLang === 'ar' ? 'هل أنت متأكد من حذف هذا السيريال نهائياً؟' : 'Permanently delete this license?')) {
-        await fetch(`${API_BASE}/api/admin/delete`, {
+      if (!confirm('تحذير: هل أنت متأكد من حذف هذا الكود نهائياً من النظام؟')) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/delete`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id })
         });
-        showToast(currentLang === 'ar' ? 'تم حذف الكود' : 'Key deleted');
-        loadLicenses();
+        const data = await res.json();
+        if (data.status === 'success') {
+          showToast('تم حذف الكود بنجاح');
+          loadLicenses();
+        }
+      } catch (e) {
+        showToast('تعذر الحذف', 'error');
       }
     }
 
-    function copyToClipboard(text) {
-      navigator.clipboard.writeText(text);
-      showToast(currentLang === 'ar' ? 'تم نسخ الكود: ' + text : 'Copied: ' + text);
-    }
-
-    function copyLinkById(id) {
-      const el = document.getElementById(id);
-      if (el) {
-        navigator.clipboard.writeText(el.value);
-        showToast(currentLang === 'ar' ? 'تم نسخ الرابط بنجاح!' : 'Link copied successfully!');
-      }
-    }
-
-    // النوافذ (دليل الأجهزة، الأمان، الخروج)
-    function openGuideModal() {
-      document.getElementById('guideModal').classList.remove('hidden');
-    }
-    function closeGuideModal() {
-      document.getElementById('guideModal').classList.add('hidden');
-    }
-
+    // نافذة الأمان
     function openSecurityModal() {
-      document.getElementById('secCurrentPass').value = '';
-      document.getElementById('secNewEmail').value = '';
-      document.getElementById('secNewPass').value = '';
       document.getElementById('secAlert').classList.add('hidden');
+      document.getElementById('secCurrentPass').value = '';
+      document.getElementById('secNewPass').value = '';
       document.getElementById('securityModal').classList.remove('hidden');
     }
     function closeSecurityModal() {
       document.getElementById('securityModal').classList.add('hidden');
     }
-
     async function submitSecurityUpdate() {
-      const current_password = document.getElementById('secCurrentPass').value;
       const new_email = document.getElementById('secNewEmail').value.trim();
       const new_password = document.getElementById('secNewPass').value;
+      const current_password = document.getElementById('secCurrentPass').value;
       const alertBox = document.getElementById('secAlert');
-      const btn = document.getElementById('secSaveBtn');
 
-      alertBox.classList.add('hidden');
       if (!current_password) {
-        alertBox.innerText = currentLang === 'ar' ? 'يرجى إدخال كلمة المرور الحالية للتأكيد' : 'Enter current password';
-        alertBox.className = 'p-2.5 rounded-xl text-center font-bold bg-red-500/10 text-red-400 text-xs block';
+        alertBox.className = 'p-2.5 rounded-xl text-center font-bold text-xs bg-red-500/10 text-red-400';
+        alertBox.innerText = 'يرجى إدخال كلمة المرور الحالية للتأكيد';
+        alertBox.classList.remove('hidden');
         return;
       }
 
-      btn.disabled = true;
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>جاري الحفظ...</span>';
-
       try {
-        const res = await fetch('/api/admin/change-credentials', {
+        const res = await fetch(`${API_BASE}/api/admin/change-credentials`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ current_password, new_email, new_password })
+          body: JSON.stringify({ new_email, new_password, current_password })
         });
         const data = await res.json();
-
-        if (res.ok && data.status === 'success') {
-          alertBox.innerText = currentLang === 'ar' ? 'تم تحديث بيانات الدخول بنجاح!' : 'Credentials updated successfully!';
-          alertBox.className = 'p-2.5 rounded-xl text-center font-bold bg-emerald-500/10 text-emerald-400 text-xs block';
-          setTimeout(closeSecurityModal, 1500);
+        if (data.status === 'success') {
+          showToast('تم تحديث بيانات الدخول بنجاح');
+          closeSecurityModal();
         } else {
-          alertBox.innerText = data.message || 'حدث خطأ أثناء التحديث';
-          alertBox.className = 'p-2.5 rounded-xl text-center font-bold bg-red-500/10 text-red-400 text-xs block';
+          alertBox.className = 'p-2.5 rounded-xl text-center font-bold text-xs bg-red-500/10 text-red-400';
+          alertBox.innerText = data.message || 'فشل التحديث';
+          alertBox.classList.remove('hidden');
         }
-      } catch (err) {
-        alertBox.innerText = 'تعذر الاتصال بالخادم';
-        alertBox.className = 'p-2.5 rounded-xl text-center font-bold bg-red-500/10 text-red-400 text-xs block';
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = currentLang === 'ar' ? 'حفظ التغييرات' : 'Save Changes';
+      } catch (e) {
+        showToast('تعذر الاتصال بالخادم', 'error');
       }
     }
 
+    // تسجيل الخروج
     async function handleLogout() {
-      if (confirm(currentLang === 'ar' ? 'هل أنت متأكد من تسجيل الخروج؟' : 'Are you sure you want to logout?')) {
-        try {
-          await fetch('/api/admin/logout', { method: 'POST' });
-        } catch (e) {}
-        window.location.href = '/login';
+      if (!confirm('هل ترغب بتسجيل الخروج من لوحة التحكم؟')) return;
+      try {
+        await fetch(`${API_BASE}/api/admin/logout`, { method: 'POST' });
+      } catch (e) {}
+      window.location.href = '/login';
+    }
+
+    // وظائف مساعدة
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('تم نسخ الكود بنجاح: ' + text);
+      }).catch(() => {
+        showToast('تعذر النسخ التلقائي', 'error');
+      });
+    }
+
+    function copyLinkById(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        navigator.clipboard.writeText(el.value).then(() => {
+          showToast('تم نسخ الرابط بنجاح');
+        });
       }
     }
 
-    function showToast(msg) {
+    function showToast(msg, type = 'success') {
       const toast = document.getElementById('toast');
-      document.getElementById('toastMsg').innerText = msg;
+      const toastMsg = document.getElementById('toastMsg');
+      toastMsg.innerText = msg;
       toast.classList.remove('opacity-0', 'pointer-events-none');
       setTimeout(() => {
         toast.classList.add('opacity-0', 'pointer-events-none');
-      }, 2500);
+      }, 3000);
     }
-
-    // تطبيق اللغة والبدء
-    applyLanguage(currentLang);
-    loadLicenses();
   </script>
 </body>
 </html>

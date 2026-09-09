@@ -1,0 +1,67 @@
+{
+  "licenses": [
+    {
+      "id": "90dbff97-d732-45c3-82fb-0937e2cd4863",
+      "serial_key": "PLUS-76DC61-82D786-4FD894",
+      "duration_days": 7,
+      "note": "",
+      "device_id": "AND-TEST-DEVICE-01",
+      "created_at": "2026-09-06T22:50:01.966Z",
+      "activated_at": "2026-09-07T11:11:24.032Z",
+      "expiry_date": "2026-09-14T11:11:24.054Z",
+      "is_active": true,
+      "max_devices": 1,
+      "device_ids": [
+        "AND-TEST-DEVICE-01"
+      ],
+      "group": "عام",
+      "whatsapp": "",
+      "devices_info": [
+        {
+          "id": "AND-TEST-DEVICE-01",
+          "type": "🤖 أندرويد (Android)",
+          "activated_at": "2026-09-07T11:11:24.032Z",
+          "last_seen": "2026-09-07T11:11:24.032Z"
+        }
+      ]
+    },
+    {
+      "id": "4fc9890a-b592-4413-ade9-4f5863a9e4ad",
+      "serial_key": "PLUS-AFF48A-338801-2AA72E",
+      "duration_days": 30,
+      "note": "?????? ??????",
+      "device_id": "iPhone-15-Pro-UUID-ABC-123",
+      "created_at": "2026-09-06T22:48:42.726Z",
+      "activated_at": "2026-09-06T22:48:43.001Z",
+      "expiry_date": "2026-10-06T22:48:43.001Z",
+      "is_active": true,
+      "max_devices": 1,
+      "device_ids": [
+        "iPhone-15-Pro-UUID-ABC-123"
+      ],
+      "group": "عام",
+      "whatsapp": "",
+      "devices_info": [
+        {
+          "id": "iPhone-15-Pro-UUID-ABC-123",
+          "type": "📱 آيفون (iPhone)",
+          "activated_at": "2026-09-06T22:48:43.001Z",
+          "last_seen": "2026-09-06T22:48:43.001Z"
+        }
+      ]
+    }
+  ],
+  "admin": {
+    "email": "sa.digitalsystem@gmail.com",
+    "password": "Admin@YT2026!"
+  },
+  "settings": {
+    "custom_groups": [
+      "عام",
+      "VIP",
+      "عائلي"
+    ],
+    "apk_drive_link": "",
+    "windows_drive_link": ""
+  }
+}

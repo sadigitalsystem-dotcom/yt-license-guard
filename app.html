@@ -3,8 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>(يوتيوب بلس+) YouTube PLUS+ - المنصة الشاملة</title>
+  <title>YouTube PLUS+ - النظام الرقمي</title>
+  
+  <!-- OpenGraph & Social Media Meta (معاينة الروابط في الواتساب وتيليجرام) -->
+  <meta property="og:title" content="YouTube PLUS+ - النظام الرقمي">
+  <meta property="og:description" content="النظام الرقمي لتشغيل يوتيوب بلس+ بدون إعلانات وبأعلى دقة 4K مع ميزات بريميوم الكاملة">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="النظام الرقمي">
+  <meta property="og:image" content="/app_icon.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="YouTube PLUS+ - النظام الرقمي">
+  <meta name="twitter:description" content="النظام الرقمي لتشغيل يوتيوب بلس+ بدون إعلانات وبأعلى دقة 4K">
+  <meta name="twitter:image" content="/app_icon.png">
+
   <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/png" href="/app_icon.png">
+  <link rel="apple-touch-icon" href="/app_icon.png">
   <meta name="theme-color" content="#0f0f0f">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -50,19 +64,18 @@
     .custom-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
     .custom-scroll::-webkit-scrollbar-track { background: #111; }
     .cat-chip.active { background-color: #ffffff !important; color: #000000 !important; font-weight: 700; }
-    .tv-focus:focus { outline: 3px solid #ff0000 !important; transform: scale(1.02); }
-    @keyframes pulseSlow { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     .pulse-slow { animation: pulseSlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    @keyframes pulseSlow { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
   </style>
 </head>
 <body class="min-h-screen bg-yt-black flex flex-col text-zinc-100 overflow-x-hidden">
 
   <!-- ========================================== -->
-  <!-- 1. شريط العنوان العلوي (هوية YouTube الأصلية) -->
+  <!-- 1. شريط العنوان العلوي (هوية YouTube PLUS+) -->
   <!-- ========================================== -->
   <header class="bg-yt-black/95 border-b border-yt-border sticky top-0 z-50 px-3 sm:px-6 py-2.5 flex items-center justify-between backdrop-blur">
     
-    <!-- الجانب الأيمن: زر القائمة الجانبية والشعار -->
+    <!-- الجانب الأيمن: القائمة والشعار الرسمي بدون أقواس -->
     <div class="flex items-center gap-3">
       <button onclick="toggleSidebar()" class="hidden md:flex p-2 rounded-full hover:bg-yt-hover text-zinc-300 transition" title="القائمة">
         <i class="fa-solid fa-bars text-lg"></i>
@@ -72,14 +85,17 @@
         <div class="w-8 h-8 rounded-xl bg-yt-red flex items-center justify-center text-white shadow-lg shadow-red-600/30">
           <i class="fa-brands fa-youtube text-lg"></i>
         </div>
-        <div class="flex items-baseline gap-1">
-          <span class="font-black text-lg tracking-tight text-white">YouTube</span>
-          <span class="text-[10px] font-black text-yt-red bg-red-500/10 border border-red-500/20 px-1.5 py-0.5 rounded font-mono">PLUS+</span>
+        <div class="flex flex-col text-right">
+          <div class="flex items-baseline gap-1">
+            <span class="font-black text-lg tracking-tight text-white">YouTube</span>
+            <span class="text-[10px] font-black text-yt-red bg-red-500/10 border border-red-500/20 px-1.5 py-0.5 rounded font-mono">PLUS+</span>
+          </div>
+          <span class="text-[9px] text-zinc-400 -mt-1 font-bold">النظام الرقمي</span>
         </div>
       </div>
     </div>
 
-    <!-- الوسط: شريط البحث الشامل -->
+    <!-- الوسط: شريط البحث الشامل الحي في فيديوهات يوتيوب -->
     <div id="headerSearchWrapper" class="flex-1 max-w-xl mx-2 sm:mx-6">
       <div class="relative flex items-center">
         <div class="relative flex-1">
@@ -99,22 +115,34 @@
           <i class="fa-solid fa-magnifying-glass text-xs sm:text-sm"></i>
         </button>
 
-        <!-- قائمة اقتراحات البحث الحية -->
+        <!-- قائمة اقتراحات البحث الحية من محرك يوتيوب الرسمي -->
         <div id="suggestBox" class="hidden absolute top-full right-0 left-0 mt-1 bg-yt-card border border-yt-border rounded-2xl shadow-2xl overflow-hidden z-50">
           <div id="suggestItems" class="py-1 max-h-60 overflow-y-auto custom-scroll text-xs sm:text-sm"></div>
         </div>
       </div>
     </div>
 
-    <!-- الجانب الأيسر: شارة الاشتراك وأزرار التحكم -->
+    <!-- الجانب الأيسر: شارة الاشتراك، زر يوتيوب الرسمي بحساب Google، وتثبيت التطبيق -->
     <div class="flex items-center gap-2 sm:gap-3">
+      <!-- زر الانتقال ليوتيوب الرسمي مع حساب Google -->
+      <a 
+        href="https://m.youtube.com" 
+        target="_blank" 
+        id="btnOfficialYt"
+        class="hidden sm:flex bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-200 text-xs font-bold px-3 py-1.5 rounded-full items-center gap-1.5 transition"
+        title="فتح موقع يوتيوب الرسمي لتسجيل الدخول بحساب Google والاشتراك بالقنوات"
+      >
+        <i class="fa-solid fa-arrow-up-right-from-square text-[11px] text-red-500"></i>
+        <span>يوتيوب الرسمي</span>
+      </a>
+
       <!-- زر تثبيت التطبيق PWA -->
       <button id="installPwaBtn" onclick="triggerPwaInstall()" class="hidden sm:flex bg-gradient-to-r from-yt-red to-yt-redDark hover:from-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow items-center gap-1.5 transition active:scale-95 border border-red-400/30">
         <i class="fa-solid fa-download text-[11px]"></i>
-        <span>تثبيت التطبيق</span>
+        <span>تثبيت</span>
       </button>
 
-      <!-- حالة الاشتراك -->
+      <!-- حالة الاشتراك المباشرة -->
       <div id="headerLicenseBadge" class="hidden sm:flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full text-[11px] font-bold text-emerald-400">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
         <span id="headerDaysLeft">بريميوم نشط</span>
@@ -135,9 +163,10 @@
       <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-red-600/10 border border-red-500/20 flex items-center justify-center text-yt-red shadow-inner">
         <i class="fa-solid fa-shield-halved text-3xl"></i>
       </div>
-      <h2 class="text-xl sm:text-2xl font-black text-white">تفعيل (يوتيوب بلس+)</h2>
-      <p class="text-xs sm:text-sm text-zinc-400 mt-2 leading-relaxed mb-6">
-        يرجى إدخال مفتاح التفعيل التسلسلي لفتح ميزات YouTube Premium بالكامل على هذا الجهاز بدون إعلانات:
+      <h2 class="text-xl sm:text-2xl font-black text-white">تفعيل يوتيوب بلس+</h2>
+      <p class="text-xs text-zinc-400 mt-1 font-bold">النظام الرقمي - YouTube PLUS+</p>
+      <p class="text-xs text-zinc-400 mt-2 leading-relaxed mb-6">
+        أدخل كود التفعيل الخاص بك لتشغيل ميزات يوتيوب بريميوم بدون إعلانات وبأعلى دقة:
       </p>
 
       <div class="space-y-4">
@@ -158,13 +187,14 @@
           <i class="fa-solid fa-bolt text-xs"></i>
         </button>
 
-        <!-- معرف الجهاز -->
-        <div class="pt-2 text-[11px] text-zinc-500 font-mono flex items-center justify-center gap-1">
-          <span>معرف جهازك:</span>
-          <span id="dispDeviceId" class="text-zinc-400 font-bold"></span>
+        <!-- كشف معرف ونوع الجهاز -->
+        <div class="pt-2 text-[11px] text-zinc-500 font-mono flex items-center justify-center gap-1.5">
+          <span id="dispDeviceType" class="text-zinc-400 font-semibold"></span>
+          <span>•</span>
+          <span id="dispDeviceId" class="text-zinc-500"></span>
         </div>
 
-        <div id="errorAlert" class="hidden p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs text-center"></div>
+        <div id="errorAlert" class="hidden p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs text-center font-bold"></div>
       </div>
     </div>
   </div>
@@ -179,11 +209,7 @@
       <div class="space-y-1">
         <button onclick="goHome()" class="w-full flex items-center gap-4 px-3.5 py-2.5 rounded-xl bg-yt-hover text-white text-xs font-bold">
           <i class="fa-solid fa-house text-base text-yt-red"></i>
-          <span>الرئيسية</span>
-        </button>
-        <button onclick="playShortsMode()" class="w-full flex items-center gap-4 px-3.5 py-2.5 rounded-xl hover:bg-yt-hover text-zinc-300 hover:text-white text-xs font-semibold transition">
-          <i class="fa-solid fa-bolt text-base text-amber-400"></i>
-          <span>فيديوهات Shorts</span>
+          <span>الرئيسية (شائع)</span>
         </button>
         <button onclick="filterCategory('quran')" class="w-full flex items-center gap-4 px-3.5 py-2.5 rounded-xl hover:bg-yt-hover text-zinc-300 hover:text-white text-xs font-semibold transition">
           <i class="fa-solid fa-book-quran text-base text-emerald-400"></i>
@@ -193,25 +219,47 @@
           <i class="fa-solid fa-podcast text-base text-purple-400"></i>
           <span>بودكاست وبرامج</span>
         </button>
+        <button onclick="filterCategory('tech')" class="w-full flex items-center gap-4 px-3.5 py-2.5 rounded-xl hover:bg-yt-hover text-zinc-300 hover:text-white text-xs font-semibold transition">
+          <i class="fa-solid fa-laptop-code text-base text-blue-400"></i>
+          <span>تقنية وهواتف</span>
+        </button>
         <button onclick="filterCategory('nature')" class="w-full flex items-center gap-4 px-3.5 py-2.5 rounded-xl hover:bg-yt-hover text-zinc-300 hover:text-white text-xs font-semibold transition">
           <i class="fa-solid fa-mountain-sun text-base text-sky-400"></i>
           <span>طبيعة واسترخاء 4K</span>
+        </button>
+        <button onclick="filterCategory('gaming')" class="w-full flex items-center gap-4 px-3.5 py-2.5 rounded-xl hover:bg-yt-hover text-zinc-300 hover:text-white text-xs font-semibold transition">
+          <i class="fa-solid fa-gamepad text-base text-amber-400"></i>
+          <span>ألعاب وقيمنق</span>
         </button>
       </div>
 
       <hr class="border-yt-border my-3">
 
-      <div class="text-[11px] font-bold text-zinc-500 px-3.5 mb-2">ميزات YouTube PLUS+</div>
+      <!-- زر فتح يوتيوب الرسمي وتسجيل الدخول -->
+      <div class="px-2 py-1">
+        <a 
+          href="https://m.youtube.com" 
+          target="_blank" 
+          class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-red-600/10 hover:bg-red-600/20 text-red-400 border border-red-500/20 text-xs font-bold transition"
+        >
+          <i class="fa-brands fa-google text-sm"></i>
+          <span>تسجيل الدخول بحساب Google</span>
+        </a>
+      </div>
+
+      <hr class="border-yt-border my-3">
+
+      <div class="text-[11px] font-bold text-zinc-500 px-3.5 mb-2">ميزات يوتيوب بلس+</div>
       <div class="space-y-1 text-xs text-zinc-300">
-        <div class="flex items-center gap-3 px-3.5 py-2 text-emerald-400 font-semibold">
+        <div class="flex items-center gap-3 px-3.5 py-1.5 text-emerald-400 font-semibold">
           <i class="fa-solid fa-ban text-sm"></i>
           <span>حجب تام للإعلانات</span>
         </div>
-        <div class="flex items-center gap-3 px-3.5 py-2 text-sky-400 font-semibold">
+        <div class="flex items-center gap-3 px-3.5 py-1.5 text-sky-400 font-semibold">
           <i class="fa-solid fa-headphones text-sm"></i>
           <span>تشغيل في الخلفية</span>
         </div>
-        <div class="flex items-center gap-3 px-3.5 py-2 text-amber-400 font-semibold">
+        <div class="flex items-center gap-3 px-3.5 py-1.5 text-amber-400 font-semibold">
           <i class="fa-solid fa-display text-sm"></i>
           <span>بث للشاشات الذكية</span>
         </div>
@@ -237,16 +285,16 @@
     <!-- المحتوى الرئيسي القابل للتمرير -->
     <main class="flex-1 min-w-0 flex flex-col pb-20 md:pb-6 overflow-y-auto custom-scroll" id="contentArea">
 
-      <!-- المشغل التفاعلي المباشر (عند اختيار أي فيديو) -->
+      <!-- المشغل التفاعلي المباشر (عند تشغيل أي فيديو) -->
       <div id="playerSection" class="hidden w-full bg-black sticky top-0 z-40 shadow-2xl transition-all duration-300">
         <div class="max-w-5xl mx-auto">
-          <!-- المشغل نفسه -->
+          <!-- مشغل الفيديو الخالي تماماً من الإعلانات -->
           <div class="w-full aspect-video bg-black relative">
             <iframe 
               id="activeIframe" 
               class="w-full h-full" 
               src="about:blank" 
-              title="YouTube PLUS Player" 
+              title="YouTube PLUS+ Player" 
               frameborder="0" 
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
               allowfullscreen
@@ -258,10 +306,10 @@
             <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
               <div class="flex-1">
                 <h1 id="playerTitle" class="text-sm sm:text-base font-bold text-white leading-snug">
-                  اختر أي فيديو أو ابحث في شريط البحث لتشغيله مباشرة بدون إعلانات
+                  جاري التشغيل...
                 </h1>
                 <div class="flex items-center gap-2 text-xs text-zinc-400 mt-1.5 flex-wrap">
-                  <span id="playerMeta">YouTube PLUS+ 4K</span>
+                  <span id="playerMeta">YouTube PLUS+</span>
                   <span>•</span>
                   <span class="text-emerald-400 font-bold flex items-center gap-1">
                     <i class="fa-solid fa-shield-check"></i> بدون إعلانات
@@ -271,18 +319,10 @@
 
               <!-- أزرار تفاعل المشغل -->
               <div class="flex items-center gap-2 overflow-x-auto hide-scrollbar text-xs shrink-0 flex-wrap sm:flex-nowrap">
-                <button onclick="switchPlayerServer()" class="bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 px-3 py-1.5 rounded-full flex items-center gap-1.5 transition" title="تبديل سيرفر البث في حال ظهر الفيديو غير متاح">
-                  <i class="fa-solid fa-server"></i>
-                  <span id="serverNameBadge">سيرفر بديل (بدون حظر)</span>
-                </button>
-                <a id="openInYouTubeBtn" href="#" target="_blank" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-1.5 rounded-full flex items-center gap-1.5 transition">
+                <a id="openInYouTubeBtn" href="https://m.youtube.com" target="_blank" class="bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-full flex items-center gap-1.5 transition">
                   <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                  <span>فتح في YouTube</span>
+                  <span>فتح بحسابك في YouTube</span>
                 </a>
-                <button onclick="togglePictureInPicture()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded-full flex items-center gap-1.5 transition">
-                  <i class="fa-solid fa-up-right-from-square"></i>
-                  <span>PiP</span>
-                </button>
                 <button onclick="shareCurrentVideo()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded-full flex items-center gap-1.5 transition">
                   <i class="fa-solid fa-share"></i>
                   <span>مشاركة</span>
@@ -296,26 +336,54 @@
         </div>
       </div>
 
-      <!-- شريط التصنيفات السريعة (Category Chips) -->
-      <div class="px-3 sm:px-6 py-3 overflow-x-auto hide-scrollbar flex items-center gap-2 sticky top-0 bg-yt-black/90 backdrop-blur z-30">
-        <button onclick="filterCategory('all')" class="cat-chip active bg-white text-black text-xs font-bold px-3.5 py-1.5 rounded-lg shrink-0 transition">الكل</button>
-        <button onclick="filterCategory('quran')" class="cat-chip bg-yt-card text-zinc-200 hover:bg-zinc-700 text-xs font-semibold px-3.5 py-1.5 rounded-lg shrink-0 transition">القرآن الكريم</button>
-        <button onclick="filterCategory('podcasts')" class="cat-chip bg-yt-card text-zinc-200 hover:bg-zinc-700 text-xs font-semibold px-3.5 py-1.5 rounded-lg shrink-0 transition">بودكاست وفيديوهات طويلة</button>
-        <button onclick="filterCategory('nature')" class="cat-chip bg-yt-card text-zinc-200 hover:bg-zinc-700 text-xs font-semibold px-3.5 py-1.5 rounded-lg shrink-0 transition">طبيعة واسترخاء 4K</button>
-        <button onclick="filterCategory('tech')" class="cat-chip bg-yt-card text-zinc-200 hover:bg-zinc-700 text-xs font-semibold px-3.5 py-1.5 rounded-lg shrink-0 transition">تقنية وأجهزة</button>
-        <button onclick="filterCategory('gaming')" class="cat-chip bg-yt-card text-zinc-200 hover:bg-zinc-700 text-xs font-semibold px-3.5 py-1.5 rounded-lg shrink-0 transition">ألعاب وقيمنق</button>
+      <!-- بنر الدخول السريع بحساب Google الرسمي للشاشات والهواتف -->
+      <div class="mx-3 sm:mx-6 mt-3 p-3.5 bg-gradient-to-r from-red-950/40 via-zinc-900 to-zinc-900 border border-red-900/30 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-3 text-right">
+          <div class="w-8 h-8 rounded-xl bg-red-600/20 text-red-500 flex items-center justify-center text-base shrink-0">
+            <i class="fa-brands fa-youtube"></i>
+          </div>
+          <div>
+            <div class="font-bold text-white">هل ترغب بتسجيل الدخول بحساب Google الرسمي؟</div>
+            <div class="text-zinc-400 text-[11px]">يمكنك تصفح يوتيوب الرسمي بحسابك والاشتراك بالقنوات مع استمرار حجب الإعلانات</div>
+          </div>
+        </div>
+        <a 
+          href="https://m.youtube.com" 
+          target="_blank" 
+          class="bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold px-4 py-2 rounded-xl transition shadow flex items-center gap-2 shrink-0 text-xs"
+        >
+          <span>الانتقال ليوتيوب الرسمي</span>
+          <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+        </a>
       </div>
 
-      <!-- قسم الفيديوهات الرئيسي (Video Grid) المطابق لـ YouTube الحقيقي -->
+      <!-- شريط التصنيفات الحية السريعة (Live Categories) -->
+      <div class="px-3 sm:px-6 py-3 overflow-x-auto hide-scrollbar flex items-center gap-2 sticky top-0 bg-yt-black/90 backdrop-blur z-30">
+        <button onclick="filterCategory('trending')" class="cat-chip active bg-white text-black text-xs font-bold px-3.5 py-1.5 rounded-lg shrink-0 transition">🔥 شائع اليوم</button>
+        <button onclick="filterCategory('quran')" class="cat-chip bg-yt-card text-zinc-200 hover:bg-zinc-700 text-xs font-semibold px-3.5 py-1.5 rounded-lg shrink-0 transition">القرآن الكريم</button>
+        <button onclick="filterCategory('podcasts')" class="cat-chip bg-yt-card text-zinc-200 hover:bg-zinc-700 text-xs font-semibold px-3.5 py-1.5 rounded-lg shrink-0 transition">بودكاست</button>
+        <button onclick="filterCategory('tech')" class="cat-chip bg-yt-card text-zinc-200 hover:bg-zinc-700 text-xs font-semibold px-3.5 py-1.5 rounded-lg shrink-0 transition">تقنية وأجهزة</button>
+        <button onclick="filterCategory('nature')" class="cat-chip bg-yt-card text-zinc-200 hover:bg-zinc-700 text-xs font-semibold px-3.5 py-1.5 rounded-lg shrink-0 transition">طبيعة واسترخاء 4K</button>
+        <button onclick="filterCategory('gaming')" class="cat-chip bg-yt-card text-zinc-200 hover:bg-zinc-700 text-xs font-semibold px-3.5 py-1.5 rounded-lg shrink-0 transition">ألعاب وقيمنق</button>
+        <button onclick="filterCategory('news')" class="cat-chip bg-yt-card text-zinc-200 hover:bg-zinc-700 text-xs font-semibold px-3.5 py-1.5 rounded-lg shrink-0 transition">أخبار وبرامج</button>
+      </div>
+
+      <!-- قسم الفيديوهات الحية المباشرة من YouTube -->
       <div class="px-3 sm:px-6 pt-2 pb-12">
         <div id="gridHeader" class="text-xs font-bold text-zinc-400 mb-3 flex items-center justify-between">
-          <span id="gridTitle">فيديوهات مميزة مقترحة لك:</span>
+          <span id="gridTitle">فيديوهات يوتيوب الشائعة اليوم:</span>
           <span id="videoCountBadge" class="text-[11px] text-zinc-500 font-mono"></span>
         </div>
 
-        <!-- شبكة الفيديوهات -->
+        <!-- مؤشر التحميل الحي -->
+        <div id="loadingIndicator" class="hidden py-16 text-center text-zinc-400">
+          <i class="fa-solid fa-spinner fa-spin text-3xl text-red-500 mb-3"></i>
+          <p class="text-xs">جاري جلب الفيديوهات الحية من YouTube...</p>
+        </div>
+
+        <!-- شبكة الفيديوهات الحية -->
         <div id="videoGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
-          <!-- يتم ملؤها ديناميكياً بواسطة Javascript -->
+          <!-- يتم التعبئة تلقائياً عبر نتائج البحث الحقيقية -->
         </div>
       </div>
 
@@ -330,10 +398,10 @@
       <i class="fa-solid fa-house text-base"></i>
       <span>الرئيسية</span>
     </button>
-    <button onclick="playShortsMode()" class="flex flex-col items-center gap-0.5 hover:text-white transition">
-      <i class="fa-solid fa-bolt text-base text-yt-red"></i>
-      <span>Shorts</span>
-    </button>
+    <a href="https://m.youtube.com" target="_blank" class="flex flex-col items-center gap-0.5 hover:text-white transition text-zinc-400">
+      <i class="fa-brands fa-youtube text-base text-red-500"></i>
+      <span>يوتيوب الرسمي</span>
+    </a>
     <button onclick="focusSearch()" class="flex flex-col items-center gap-0.5 hover:text-white transition">
       <div class="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-white -mt-1 shadow">
         <i class="fa-solid fa-magnifying-glass text-xs"></i>
@@ -358,7 +426,9 @@
       <div class="w-12 h-12 mx-auto rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-xl">
         👑
       </div>
-      <h3 class="text-base font-bold text-white">اشتراك YouTube PLUS+</h3>
+      <h3 class="text-base font-bold text-white">اشتراك يوتيوب بلس+</h3>
+      <p class="text-xs text-zinc-400">النظام الرقمي - YouTube PLUS+</p>
+      
       <div class="bg-zinc-900 border border-yt-border rounded-2xl p-3.5 text-xs text-right space-y-2">
         <div class="flex justify-between">
           <span class="text-zinc-400">كود التفعيل:</span>
@@ -366,17 +436,22 @@
         </div>
         <div class="flex justify-between">
           <span class="text-zinc-400">المدة المتبقية:</span>
-          <span id="modalDays" class="text-emerald-400 font-bold"></span>
+          <span id="modalDays" class="text-emerald-400 font-bold font-mono"></span>
         </div>
         <div class="flex justify-between">
           <span class="text-zinc-400">تاريخ الانتهاء:</span>
           <span id="modalExpiry" class="text-zinc-300 font-mono"></span>
         </div>
         <div class="flex justify-between border-t border-yt-border pt-2 text-[11px]">
+          <span class="text-zinc-500">نوع الجهاز:</span>
+          <span id="modalDeviceType" class="text-zinc-300 font-bold"></span>
+        </div>
+        <div class="flex justify-between text-[11px]">
           <span class="text-zinc-500">معرف الجهاز:</span>
           <span id="modalDeviceId" class="text-zinc-400 font-mono"></span>
         </div>
       </div>
+
       <div class="flex gap-2">
         <button onclick="disconnectLicense()" class="flex-1 bg-zinc-800 hover:bg-red-600/30 text-red-400 hover:text-red-300 py-2.5 rounded-xl text-xs font-bold transition">
           تسجيل الخروج
@@ -389,129 +464,25 @@
   </div>
 
   <!-- ========================================== -->
-  <!-- 6. برمجة المنصة التفاعلية ومحرك التشغيل -->
+  <!-- 6. برمجة المنصة ومحرك البحث والتشغيل الحي -->
   <!-- ========================================== -->
   <script>
     const API_BASE = window.location.origin;
 
-    // بنك الفيديوهات الغني المباشر لمختلف التصنيفات
-    const VIDEO_CATALOG = [
-      // القرآن الكريم
-      {
-        id: "2h0B1G8Y9uE",
-        title: "سورة البقرة كاملة بصوت الشيخ ماهر المعيقلي - تلاوة خاشعة بدقة 4K",
-        channel: "إذاعة القرآن الكريم",
-        views: "18.4M",
-        time: "قبل 5 أشهر",
-        dur: "2:04:15",
-        cat: "quran",
-        thumb: "https://i.ytimg.com/vi/2h0B1G8Y9uE/hqdefault.jpg"
-      },
-      {
-        id: "a7_Z4r5Z6sU",
-        title: "تلاوة هادئة ومريحة للنفس تريح القلب وتزيل الهم والغم",
-        channel: "تلاوات خاشعة",
-        views: "9.1M",
-        time: "قبل سنة",
-        dur: "1:15:30",
-        cat: "quran",
-        thumb: "https://i.ytimg.com/vi/a7_Z4r5Z6sU/hqdefault.jpg"
-      },
-      {
-        id: "3yX9Q_H7dM0",
-        title: "القرآن الكريم كامل بصوت الشيخ ياسر الدوسري - جودة عالية بدون إعلانات",
-        channel: "مصحف الحرمين",
-        views: "14.2M",
-        time: "قبل سنتين",
-        dur: "11:42:10",
-        cat: "quran",
-        thumb: "https://i.ytimg.com/vi/3yX9Q_H7dM0/hqdefault.jpg"
-      },
-
-      // بودكاست
-      {
-        id: "lK8iP9r7mQo",
-        title: "بودكاست فنجان: كيف تنجح في بناء ثروتك وتطوير ذاتك من الصفر؟",
-        channel: "ثمانية / Thmanyah",
-        views: "2.8M",
-        time: "قبل 3 أسابيع",
-        dur: "1:48:22",
-        cat: "podcasts",
-        thumb: "https://i.ytimg.com/vi/lK8iP9r7mQo/hqdefault.jpg"
-      },
-      {
-        id: "k9W3pL0e4rM",
-        title: "أسرار العقل البشري والتركيز الفائق مع د. عمار بكار",
-        channel: "بودكاست أبجورة",
-        views: "1.4M",
-        time: "قبل شهر",
-        dur: "1:12:45",
-        cat: "podcasts",
-        thumb: "https://i.ytimg.com/vi/k9W3pL0e4rM/hqdefault.jpg"
-      },
-
-      // طبيعة واسترخاء 4K
-      {
-        id: "L_LUpnjgPso",
-        title: "صوت المدفأة الدافئة مع نار مشتعلة هادئة للاسترخاء والنوم 4K Ultra HD",
-        channel: "Relaxing Ambiance",
-        views: "24.5M",
-        time: "قبل سنتين",
-        dur: "8:00:00",
-        cat: "nature",
-        thumb: "https://i.ytimg.com/vi/L_LUpnjgPso/hqdefault.jpg"
-      },
-      {
-        id: "kJQP7kiw5Fk",
-        title: "جولة ساحرة في أعماق الغابات والأنهار السويسرية بدقة 4K 60FPS",
-        channel: "Nature Relaxation Films",
-        views: "7.9M",
-        time: "قبل 8 أشهر",
-        dur: "3:20:15",
-        cat: "nature",
-        thumb: "https://i.ytimg.com/vi/kJQP7kiw5Fk/hqdefault.jpg"
-      },
-
-      // تقنية
-      {
-        id: "fJ9rUzIMcZQ",
-        title: "المراجعة الشاملة لأحدث هواتف هذا العام - كل ما تحتاج معرفته قبل الشراء",
-        channel: "فيصل السيف / Tech",
-        views: "1.1M",
-        time: "قبل أسبوعين",
-        dur: "18:40",
-        cat: "tech",
-        thumb: "https://i.ytimg.com/vi/fJ9rUzIMcZQ/hqdefault.jpg"
-      },
-      {
-        id: "eVTXPUF4Oz4",
-        title: "مقارنة الكاميرات والبطارية في الهواتف الرائدة 2026",
-        channel: "عمر دايزر",
-        views: "2.3M",
-        time: "قبل شهرين",
-        dur: "22:15",
-        cat: "tech",
-        thumb: "https://i.ytimg.com/vi/eVTXPUF4Oz4/hqdefault.jpg"
-      },
-
-      // قيمنق
-      {
-        id: "09R8_2nJtjg",
-        title: "تحدي الهروب المستحيل في العالم المفتوح - لحظات حماسية غير متوقعة!",
-        channel: "بندريتا إكس / BanderitaX",
-        views: "4.5M",
-        time: "قبل 4 أيام",
-        dur: "25:30",
-        cat: "gaming",
-        thumb: "https://i.ytimg.com/vi/09R8_2nJtjg/hqdefault.jpg"
+    // كشف نوع الجهاز تلقائياً
+    function detectClientDeviceType() {
+      const ua = navigator.userAgent || '';
+      if (/iPad/.test(ua)) return '📱 آيباد (iPad)';
+      if (/iPhone|iPod/.test(ua)) return '📱 آيفون (iPhone)';
+      if (/SmartTV|Tizen|Web0S|NetCast|AppleTV/i.test(ua)) return '📺 شاشة ذكية (Smart TV)';
+      if (/Android/i.test(ua)) {
+        return /Mobile/i.test(ua) ? '🤖 هاتف أندرويد (Android)' : '🤖 تابلت أندرويد';
       }
-    ];
+      if (/Windows/i.test(ua)) return '💻 كمبيوتر (Windows PC)';
+      if (/Macintosh|Mac OS/i.test(ua)) return '🍏 ماك (Mac)';
+      return '📱 جهاز متصل';
+    }
 
-    let currentVideos = [...VIDEO_CATALOG];
-    let activeVideoId = null;
-    let deferredPrompt = null;
-
-    // إنشاء معرف فريد للجهاز
     function getDeviceIdentifier() {
       let id = localStorage.getItem('yt_device_id');
       if (!id) {
@@ -520,7 +491,7 @@
         if (/iPad/.test(ua)) prefix = 'IPAD';
         else if (/iPhone|iPod/.test(ua)) prefix = 'IOS';
         else if (/android/i.test(ua)) prefix = 'AND';
-        else if (/SmartTV|Tizen|Web0S|NetCast|AppleTV/i.test(ua)) prefix = 'TV';
+        else if (/SmartTV|Tizen|Web0S/i.test(ua)) prefix = 'TV';
         
         const rand = Math.random().toString(36).substring(2, 7).toUpperCase();
         id = `${prefix}-${rand}`;
@@ -528,11 +499,16 @@
       }
       return id;
     }
-    const DEVICE_ID = getDeviceIdentifier();
-    document.getElementById('dispDeviceId').innerText = DEVICE_ID;
-    document.getElementById('modalDeviceId').innerText = DEVICE_ID;
 
-    // التحقق التلقائي عند بدء التشغيل
+    const DEVICE_ID = getDeviceIdentifier();
+    const DEVICE_TYPE = detectClientDeviceType();
+    
+    document.getElementById('dispDeviceId').innerText = DEVICE_ID;
+    document.getElementById('dispDeviceType').innerText = DEVICE_TYPE;
+    document.getElementById('modalDeviceId').innerText = DEVICE_ID;
+    document.getElementById('modalDeviceType').innerText = DEVICE_TYPE;
+
+    // بدء الجلسة والتحقق التلقائي
     window.addEventListener('DOMContentLoaded', () => {
       initSession();
     });
@@ -556,21 +532,22 @@
           unlockApp(savedKey, data.expires_at, data.days_left);
         } else {
           localStorage.removeItem('yt_license_key');
-          showLock(data.message || 'انتهت صلاحية مفتاح التفعيل');
+          showLock(data.message || 'انتهت صلاحية كود التفعيل أو تم إيقافه');
         }
       } catch (e) {
-        // في حال عدم توفر اتصال مؤقت بالسيرفر
-        unlockApp(savedKey, null, '30');
+        unlockApp(savedKey, null, 30);
       }
     }
 
     function showLock(errMsg = '') {
       document.getElementById('lockSection').classList.remove('hidden');
       document.getElementById('mainPlatform').classList.add('hidden');
+      const errBox = document.getElementById('errorAlert');
       if (errMsg) {
-        const errBox = document.getElementById('errorAlert');
         errBox.innerText = errMsg;
         errBox.classList.remove('hidden');
+      } else {
+        errBox.classList.add('hidden');
       }
     }
 
@@ -578,26 +555,28 @@
       document.getElementById('lockSection').classList.add('hidden');
       document.getElementById('mainPlatform').classList.remove('hidden');
 
-      // تحديث بيانات الاشتراك في الواجهة
+      // تحديث بيانات الاشتراك بالأرقام الإنجليزية
       document.getElementById('modalKey').innerText = key;
-      document.getElementById('modalDays').innerText = `${daysLeft || 30} يوم متبقي`;
-      document.getElementById('headerDaysLeft').innerText = `بريميوم نشط (${daysLeft || 30} يوم)`;
+      document.getElementById('modalDays').innerText = `${daysLeft || 30} Days (يوم)`;
+      document.getElementById('headerDaysLeft').innerText = `بريميوم نشط (${daysLeft || 30}d)`;
       document.getElementById('headerLicenseBadge').classList.remove('hidden');
-      document.getElementById('sideBadgeDays').innerText = `${daysLeft || 30} يوم`;
+      document.getElementById('sideBadgeDays').innerText = `${daysLeft || 30}d`;
 
       if (expiresAt) {
-        const d = new Date(expiresAt).toLocaleDateString('ar-SA');
-        document.getElementById('modalExpiry').innerText = d;
-        document.getElementById('sideExpiry').innerText = d;
+        const d = new Date(expiresAt);
+        const formatted = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        document.getElementById('modalExpiry').innerText = formatted;
+        document.getElementById('sideExpiry').innerText = formatted;
       }
 
-      // عرض شبكة الفيديوهات الرئيسية مثل يوتيوب الأصلي تماماً
-      renderVideos(currentVideos);
+      // جلب الفيديوهات الحية والشائعة فور فتح المنصة
+      loadLiveVideos('شائع اليوم');
 
-      // بدء الفحص الحي المباشر (Heartbeat) كل 10 ثوانٍ لقطع البث فور حظر المفتاح
+      // بدء الفحص اللحظي المباشر كل 10 ثوانٍ لقطع البث فور حظر المفتاح
       startLicenseHeartbeat(key, DEVICE_ID);
     }
 
+    // الفحص اللحظي الدوري (Heartbeat)
     let heartbeatTimer = null;
     function startLicenseHeartbeat(key, devId) {
       if (heartbeatTimer) clearInterval(heartbeatTimer);
@@ -614,12 +593,13 @@
             heartbeatTimer = null;
             localStorage.removeItem('yt_license_key');
             closePlayer();
-            lockApp('تم إيقاف أو حظر هذا الاشتراك من قبل الإدارة فوراً!');
+            showLock('تم إيقاف أو حظر هذا الاشتراك من قبل الإدارة فوراً!');
           }
         } catch (e) {}
       }, 10000);
     }
 
+    // زر تفعيل الكود
     async function handleActivation() {
       const key = document.getElementById('keyInput').value.trim().toUpperCase();
       const errBox = document.getElementById('errorAlert');
@@ -639,7 +619,11 @@
         const res = await fetch(`${API_BASE}/api/activate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ serial_key: key, device_id: DEVICE_ID, device_type: 'Web-Platform' })
+          body: JSON.stringify({
+            serial_key: key,
+            device_id: DEVICE_ID,
+            device_type: DEVICE_TYPE
+          })
         });
         const data = await res.json();
 
@@ -651,11 +635,34 @@
           errBox.classList.remove('hidden');
         }
       } catch (e) {
-        errBox.innerText = 'تعذر الاتصال بالسيرفر السحابي، تأكد من الإنترنت';
+        errBox.innerText = 'تعذر الاتصال بالسيرفر السحابي، تأكد من اتصال الإنترنت';
         errBox.classList.remove('hidden');
       } finally {
         btn.disabled = false;
         btn.innerHTML = '<span>تفعيل وتشغيل الآن</span> <i class="fa-solid fa-bolt text-xs"></i>';
+      }
+    }
+
+    // جلب الفيديوهات الحية من YouTube
+    async function loadLiveVideos(query) {
+      const loading = document.getElementById('loadingIndicator');
+      const grid = document.getElementById('videoGrid');
+      loading.classList.remove('hidden');
+      grid.innerHTML = '';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/yt/search?q=${encodeURIComponent(query)}`);
+        const data = await res.json();
+        loading.classList.add('hidden');
+
+        if (data.status === 'success' && Array.isArray(data.videos) && data.videos.length > 0) {
+          renderVideos(data.videos);
+        } else {
+          renderVideos(getFallbackVideos(query));
+        }
+      } catch (e) {
+        loading.classList.add('hidden');
+        renderVideos(getFallbackVideos(query));
       }
     }
 
@@ -664,23 +671,23 @@
       const grid = document.getElementById('videoGrid');
       document.getElementById('videoCountBadge').innerText = `${videos.length} فيديو`;
 
-      if (videos.length === 0) {
+      if (!videos || videos.length === 0) {
         grid.innerHTML = `
           <div class="col-span-full py-16 text-center text-zinc-500">
             <i class="fa-solid fa-film text-4xl mb-3 opacity-40"></i>
-            <p class="text-sm">لا توجد نتائج مطابقة، جرّب البحث بكلمات أخرى في شريط البحث بالأعلى</p>
+            <p class="text-sm">لا توجد نتائج، جرب البحث بكلمات أخرى في شريط البحث بالأعلى</p>
           </div>
         `;
         return;
       }
 
       grid.innerHTML = videos.map(v => `
-        <div onclick="playVideo('${v.id}', '${v.title.replace(/'/g, "\\'")}', '${v.channel} • ${v.views} مشاهدة')" class="group cursor-pointer flex flex-col bg-yt-black rounded-2xl overflow-hidden transition active:scale-[0.98]">
+        <div onclick="playVideo('${v.id}', '${v.title.replace(/'/g, "\\'")}', '${(v.channel || '').replace(/'/g, "\\'")}')" class="group cursor-pointer flex flex-col bg-yt-black rounded-2xl overflow-hidden transition active:scale-[0.98]">
           <!-- الصورة المصغرة -->
           <div class="relative aspect-video w-full rounded-2xl overflow-hidden bg-yt-card border border-yt-border/50">
             <img src="${v.thumb}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy" onerror="this.src='https://i.ytimg.com/vi/${v.id}/hqdefault.jpg'">
             <span class="absolute bottom-2 left-2 bg-black/85 text-white text-[10px] font-mono font-bold px-1.5 py-0.5 rounded shadow">
-              ${v.dur}
+              ${v.dur || 'HD'}
             </span>
             <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
               <div class="w-10 h-10 rounded-full bg-yt-red flex items-center justify-center text-white shadow-xl">
@@ -690,9 +697,9 @@
           </div>
 
           <!-- تفاصيل الفيديو -->
-          <div class="flex gap-3 mt-2.5 px-1">
+          <div class="flex gap-3 mt-2.5 px-1 text-right">
             <div class="w-9 h-9 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-white font-bold text-xs shrink-0">
-              ${v.channel.charAt(0)}
+              ${(v.channel || 'Y').charAt(0)}
             </div>
             <div class="flex-1 min-w-0">
               <h3 class="font-bold text-xs sm:text-sm text-white line-clamp-2 leading-snug group-hover:text-yt-red transition">
@@ -701,8 +708,8 @@
               <p class="text-[11px] text-zinc-400 mt-1 truncate">
                 ${v.channel}
               </p>
-              <p class="text-[10px] text-zinc-500">
-                ${v.views} • ${v.time}
+              <p class="text-[10px] text-zinc-500 font-mono">
+                ${v.views || ''} ${v.time ? '• ' + v.time : ''}
               </p>
             </div>
           </div>
@@ -710,34 +717,27 @@
       `).join('');
     }
 
-    // تشغيل الفيديو المباشر مع دعم السيرفرات البديلة لتفادي حظر التضمين
-    let currentVideoId = null;
-    let currentServerIndex = 0;
-
-    function playVideo(videoId, title, meta) {
-      activeVideoId = videoId;
-      currentVideoId = videoId;
-      currentServerIndex = 0;
-      
+    // تشغيل الفيديو المباشر في المشغل بدون إعلانات
+    function playVideo(videoId, title, channel) {
       document.getElementById('playerTitle').innerText = title;
-      document.getElementById('playerMeta').innerText = meta || 'YouTube PLUS+';
+      document.getElementById('playerMeta').innerText = channel || 'YouTube PLUS+';
       
       const ytDirectBtn = document.getElementById('openInYouTubeBtn');
       if (ytDirectBtn) ytDirectBtn.href = `https://www.youtube.com/watch?v=${videoId}`;
 
-      loadPlayerStream(videoId);
+      const iframe = document.getElementById('activeIframe');
+      iframe.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0&modestbranding=1`;
 
-      // فتح قسم المشغل بسلاسة
       const playerSec = document.getElementById('playerSection');
       playerSec.classList.remove('hidden');
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
-      // تحديث ميزة التشغيل بالخلفية على الآيفون (MediaSession API)
+      // تفعيل تشغيل الخلفية على أجهزة Apple و Android
       if ('mediaSession' in navigator) {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: title,
-          artist: 'YouTube PLUS+ (بدون إعلانات)',
-          album: 'بريميوم نشط',
+          artist: channel || 'YouTube PLUS+',
+          album: 'بريميوم نشط (بدون إعلانات)',
           artwork: [
             { src: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`, sizes: '480x360', type: 'image/jpeg' }
           ]
@@ -745,60 +745,13 @@
       }
     }
 
-    function loadPlayerStream(videoId) {
-      const iframe = document.getElementById('activeIframe');
-      const origin = window.location.origin;
-      if (currentServerIndex === 0) {
-        iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(origin)}`;
-      } else if (currentServerIndex === 1) {
-        iframe.src = `https://piped.video/embed/${videoId}?autoplay=1`;
-      } else {
-        iframe.src = `https://yewtu.be/embed/${videoId}?autoplay=1`;
-      }
-    }
-
-    function switchPlayerServer() {
-      if (!currentVideoId) return;
-      currentServerIndex = (currentServerIndex + 1) % 3;
-      loadPlayerStream(currentVideoId);
-      const names = ['سيرفر يوتيوب المباشر', 'سيرفر الحماية 1 (Piped)', 'سيرفر الحماية 2 (Invidious)'];
-      const badge = document.getElementById('serverNameBadge');
-      if (badge) badge.innerText = names[currentServerIndex];
-      showToast('تم التبديل إلى: ' + names[currentServerIndex]);
-    }
-
-    // إغلاق المشغل
     function closePlayer() {
       const iframe = document.getElementById('activeIframe');
       if (iframe) iframe.src = 'about:blank';
       document.getElementById('playerSection').classList.add('hidden');
-      activeVideoId = null;
-      currentVideoId = null;
     }
 
-    // فلترة التصنيفات
-    function filterCategory(cat) {
-      document.querySelectorAll('.cat-chip').forEach(btn => btn.classList.remove('active'));
-      event.target.classList.add('active');
-
-      if (cat === 'all') {
-        currentVideos = [...VIDEO_CATALOG];
-        document.getElementById('gridTitle').innerText = 'فيديوهات مميزة مقترحة لك:';
-      } else {
-        currentVideos = VIDEO_CATALOG.filter(v => v.cat === cat);
-        const catNames = {
-          quran: 'تلاوات القرآن الكريم المختارة',
-          podcasts: 'بودكاست وبرامج وثائقية',
-          nature: 'فيديوهات الطبيعة والاسترخاء 4K',
-          tech: 'شروحات ومراجعات تقنية',
-          gaming: 'تحديات وألعاب القيمنق'
-        };
-        document.getElementById('gridTitle').innerText = catNames[cat] || 'فيديوهات مصنفة:';
-      }
-      renderVideos(currentVideos);
-    }
-
-    // تنفيذ البحث الحي
+    // البحث الفوري
     function executeSearch() {
       const q = document.getElementById('mainSearchInput').value.trim();
       if (!q) return;
@@ -808,33 +761,16 @@
       // فحص إذا كان رابط يوتيوب مباشر
       const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
       const match = q.match(regExp);
-
       if (match && match[2].length === 11) {
-        playVideo(match[2], 'تشغيل مباشر للرابط في YouTube PLUS+', 'تم الفتح عبر الرابط');
+        playVideo(match[2], 'تشغيل مباشر للرابط', 'YouTube PLUS+');
         return;
       }
 
-      // البحث المباشر في قاعدة بيانات يوتيوب وتوليد مشغل البحث الفوري
       document.getElementById('gridTitle').innerText = `نتائج البحث عن: "${q}"`;
-      
-      // تشغيل الفيديو الأول للبحث فوراً في المشغل
-      const iframe = document.getElementById('activeIframe');
-      iframe.src = `https://www.youtube-nocookie.com/embed?listType=search&list=${encodeURIComponent(q)}&autoplay=1&playsinline=1`;
-      document.getElementById('playerTitle').innerText = `نتائج البحث عن: ${q}`;
-      document.getElementById('playerMeta').innerText = 'بحث YouTube PLUS+ المباشر';
-      document.getElementById('playerSection').classList.remove('hidden');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-
-      // تصفية الفيديوهات المحلية إذا طابقت أي كلمة
-      const localMatches = VIDEO_CATALOG.filter(v => 
-        v.title.includes(q) || v.channel.includes(q) || v.cat.includes(q)
-      );
-      if (localMatches.length > 0) {
-        renderVideos(localMatches);
-      }
+      loadLiveVideos(q);
     }
 
-    // اقتراحات البحث الحية
+    // اقتراحات البحث من جوجل ويوتيوب
     let suggestTimer = null;
     function handleSearchInput(val) {
       const clearBtn = document.getElementById('clearSearchBtn');
@@ -889,24 +825,44 @@
       document.getElementById('mainSearchInput').value = '';
       document.getElementById('clearSearchBtn').classList.add('hidden');
       hideSuggestions();
-      currentVideos = [...VIDEO_CATALOG];
-      renderVideos(currentVideos);
+      goHome();
     }
 
-    // وضع Shorts
-    function playShortsMode() {
-      playVideo('kJQP7kiw5Fk', 'وضع الفيديوهات القصيرة Shorts - ممتع وخالٍ من الإعلانات', 'Shorts PLUS');
-    }
+    // تصنيفات البحث الحية
+    function filterCategory(cat) {
+      document.querySelectorAll('.cat-chip').forEach(btn => btn.classList.remove('active'));
+      if (event && event.target && event.target.classList.contains('cat-chip')) {
+        event.target.classList.add('active');
+      }
 
-    function toggleSidebar() {
-      const side = document.getElementById('mainSidebar');
-      side.classList.toggle('hidden');
+      const queries = {
+        trending: 'شائع اليوم',
+        quran: 'تلاوة قرآن كريم خاشعة',
+        podcasts: 'بودكاست عربي حديث',
+        tech: 'مراجعة هواتف وتقنية حديثة',
+        nature: 'طبيعة واسترخاء 4K',
+        gaming: 'ألعاب قيمنق ممتعة',
+        news: 'برامج وثائقية وأخبار'
+      };
+
+      const labels = {
+        trending: 'فيديوهات يوتيوب الشائعة اليوم:',
+        quran: 'تلاوات القرآن الكريم المختارة:',
+        podcasts: 'بودكاست وبرامج وثائقية:',
+        tech: 'شروحات ومراجعات تقنية:',
+        nature: 'فيديوهات الطبيعة والاسترخاء 4K:',
+        gaming: 'تحديات وألعاب القيمنق:',
+        news: 'برامج وأخبار وثائقية:'
+      };
+
+      document.getElementById('gridTitle').innerText = labels[cat] || 'فيديوهات يوتيوب:';
+      loadLiveVideos(queries[cat] || 'شائع اليوم');
     }
 
     function goHome() {
       document.getElementById('mainSearchInput').value = '';
-      currentVideos = [...VIDEO_CATALOG];
-      renderVideos(currentVideos);
+      document.getElementById('gridTitle').innerText = 'فيديوهات يوتيوب الشائعة اليوم:';
+      loadLiveVideos('شائع اليوم');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -915,21 +871,19 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // ميزة الصورة داخل صورة (PiP)
-    function togglePictureInPicture() {
-      alert('لتفعيل الشاشة العائمة، استخدم أيقونة (PiP) المصغرة داخل زاوية مشغل الفيديو نفسه أو اسحب لأعلى على الآيفون.');
+    function toggleSidebar() {
+      document.getElementById('mainSidebar').classList.toggle('hidden');
     }
 
     function shareCurrentVideo() {
       if (navigator.share) {
-        navigator.share({ title: 'YouTube PLUS+', url: window.location.href });
+        navigator.share({ title: 'YouTube PLUS+ - النظام الرقمي', url: window.location.href });
       } else {
         navigator.clipboard.writeText(window.location.href);
-        alert('تم نسخ رابط المنصة للمشاركة!');
+        alert('تم نسخ الرابط بنجاح!');
       }
     }
 
-    // إدارة نافذة تفاصيل الاشتراك
     function showLicenseModal() {
       document.getElementById('licenseModal').classList.remove('hidden');
     }
@@ -939,14 +893,15 @@
     }
 
     function disconnectLicense() {
-      if (confirm('هل أنت متأكد من رغبتك في تسجيل الخروج من هذا الجهاز؟')) {
+      if (confirm('هل أنت متأكد من تسجيل الخروج من هذا الجهاز؟')) {
         localStorage.removeItem('yt_license_key');
         hideLicenseModal();
+        closePlayer();
         showLock('تم تسجيل الخروج بنجاح.');
       }
     }
 
-    // دعم تثبيت PWA
+    let deferredPrompt = null;
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
@@ -958,8 +913,50 @@
         deferredPrompt.prompt();
         deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
       } else {
-        alert('على الآيفون: اضغط على زر المشاركة (Share) في سفاري ثم اختر "إضافة إلى الشاشة الرئيسية".\nعلى الكمبيوتر: اضغط أيقونة التثبيت في شريط العنوان بالمتصفح.');
+        alert('على الآيفون والآيباد: اضغط زر المشاركة (Share) في سفاري ثم اختر "إضافة إلى الشاشة الرئيسية".\nعلى أجهزة الكمبيوتر والأندرويد: اضغط أيقونة التثبيت في شريط المتصفح.');
       }
+    }
+
+    // بنك الفيديوهات الاحتياطي في حال انقطاع الإنترنت أو التعذر المؤقت
+    function getFallbackVideos(q) {
+      return [
+        {
+          id: "2h0B1G8Y9uE",
+          title: "سورة البقرة كاملة بصوت الشيخ ماهر المعيقلي - تلاوة خاشعة بدقة 4K",
+          channel: "إذاعة القرآن الكريم",
+          views: "18.4M",
+          time: "قبل 5 أشهر",
+          dur: "2:04:15",
+          thumb: "https://i.ytimg.com/vi/2h0B1G8Y9uE/hqdefault.jpg"
+        },
+        {
+          id: "lK8iP9r7mQo",
+          title: "بودكاست فنجان: كيف تنجح في بناء ثروتك وتطوير ذاتك من الصفر؟",
+          channel: "ثمانية / Thmanyah",
+          views: "2.8M",
+          time: "قبل 3 أسابيع",
+          dur: "1:48:22",
+          thumb: "https://i.ytimg.com/vi/lK8iP9r7mQo/hqdefault.jpg"
+        },
+        {
+          id: "kJQP7kiw5Fk",
+          title: "جولة ساحرة في أعماق الغابات والأنهار السويسرية بدقة 4K 60FPS",
+          channel: "Nature Relaxation Films",
+          views: "7.9M",
+          time: "قبل 8 أشهر",
+          dur: "3:20:15",
+          thumb: "https://i.ytimg.com/vi/kJQP7kiw5Fk/hqdefault.jpg"
+        },
+        {
+          id: "fJ9rUzIMcZQ",
+          title: "المراجعة الشاملة لأحدث هواتف هذا العام - كل ما تحتاج معرفته قبل الشراء",
+          channel: "فيصل السيف / Tech",
+          views: "1.1M",
+          time: "قبل أسبوعين",
+          dur: "18:40",
+          thumb: "https://i.ytimg.com/vi/fJ9rUzIMcZQ/hqdefault.jpg"
+        }
+      ];
     }
   </script>
 </body>
