@@ -272,23 +272,23 @@
       <!-- قسم الاستكشاف -->
       <div class="px-3 py-1 text-xs font-bold text-zinc-400">الاستكشاف</div>
       <div class="space-y-1 mt-1">
-        <div onclick="filterCategory('trending')" class="sidebar-item">
+        <div onclick="filterCategory('trending', this)" class="sidebar-item" id="sideTrending">
           <i class="fa-solid fa-fire text-amber-500"></i>
           <span>المحتوى الرائج</span>
         </div>
-        <div onclick="filterCategory('music')" class="sidebar-item">
+        <div onclick="filterCategory('music', this)" class="sidebar-item" id="sideMusic">
           <i class="fa-solid fa-music"></i>
           <span>الموسيقى</span>
         </div>
-        <div onclick="filterCategory('gaming')" class="sidebar-item">
+        <div onclick="filterCategory('gaming', this)" class="sidebar-item" id="sideGaming">
           <i class="fa-solid fa-gamepad text-emerald-400"></i>
           <span>ألعاب الفيديو</span>
         </div>
-        <div onclick="filterCategory('news')" class="sidebar-item">
+        <div onclick="filterCategory('news', this)" class="sidebar-item" id="sideNews">
           <i class="fa-regular fa-newspaper text-blue-400"></i>
           <span>الأخبار</span>
         </div>
-        <div onclick="filterCategory('podcasts')" class="sidebar-item">
+        <div onclick="filterCategory('podcasts', this)" class="sidebar-item" id="sidePodcasts">
           <i class="fa-solid fa-podcast text-purple-400"></i>
           <span>البودكاست</span>
         </div>
@@ -433,16 +433,16 @@
 
       <!-- شريط التصنيفات الرسمي (Category Chips) مطابق تماماً ليوتيوب الرسمي -->
       <div id="chipsSection" class="px-4 py-3 overflow-x-auto hide-scrollbar flex items-center gap-3 sticky top-0 bg-[#0f0f0f]/95 backdrop-blur z-30">
-        <button onclick="filterCategory('all', this)" class="yt-chip active">الكل</button>
-        <button onclick="filterCategory('gaming', this)" class="yt-chip">ألعاب الفيديو</button>
-        <button onclick="filterCategory('sports', this)" class="yt-chip">أهداف ومباريات</button>
-        <button onclick="filterCategory('music', this)" class="yt-chip">موسيقى</button>
-        <button onclick="filterCategory('live', this)" class="yt-chip">بث مباشر</button>
-        <button onclick="filterCategory('podcasts', this)" class="yt-chip">بودكاست</button>
-        <button onclick="filterCategory('quran', this)" class="yt-chip">قرآن كريم</button>
-        <button onclick="filterCategory('series', this)" class="yt-chip">مسلسلات</button>
-        <button onclick="filterCategory('news', this)" class="yt-chip">أخبار</button>
-        <button onclick="filterCategory('nature', this)" class="yt-chip">طبيعة 4K</button>
+        <button onclick="filterCategory('all', this)" data-cat="all" class="yt-chip active">الكل</button>
+        <button onclick="filterCategory('gaming', this)" data-cat="gaming" class="yt-chip">ألعاب الفيديو</button>
+        <button onclick="filterCategory('sports', this)" data-cat="sports" class="yt-chip">أهداف ومباريات</button>
+        <button onclick="filterCategory('music', this)" data-cat="music" class="yt-chip">موسيقى</button>
+        <button onclick="filterCategory('live', this)" data-cat="live" class="yt-chip">بث مباشر</button>
+        <button onclick="filterCategory('podcasts', this)" data-cat="podcasts" class="yt-chip">بودكاست</button>
+        <button onclick="filterCategory('quran', this)" data-cat="quran" class="yt-chip">قرآن كريم</button>
+        <button onclick="filterCategory('series', this)" data-cat="series" class="yt-chip">مسلسلات</button>
+        <button onclick="filterCategory('news', this)" data-cat="news" class="yt-chip">أخبار</button>
+        <button onclick="filterCategory('nature', this)" data-cat="nature" class="yt-chip">طبيعة 4K</button>
       </div>
 
       <!-- شبكة الفيديوهات الرسمية لـ YouTube -->
@@ -463,7 +463,7 @@
   <!-- ========================================== -->
   <!-- 3. شريط التنقل السفلي للهواتف (Mobile Bottom Bar) -->
   <!-- ========================================== -->
-  <nav class="md:hidden fixed bottom-0 left-0 right-0 h-14 bg-[#0f0f0f] border-t border-white/10 z-50 flex items-center justify-around text-[10px] text-zinc-400">
+  <nav id="mobileBottomNav" class="md:hidden fixed bottom-0 left-0 right-0 h-14 bg-[#0f0f0f] border-t border-white/10 z-50 flex items-center justify-around text-[10px] text-zinc-400">
     <button onclick="goHome()" class="flex flex-col items-center gap-1 text-white" id="navHome">
       <i class="fa-solid fa-house text-base"></i>
       <span>الرئيسية</span>
@@ -1328,11 +1328,16 @@
     // 6. عرض الصفحات التفاعلية الحية (الاشتراكات، الإعجابات، السجل، القوائم، وشورتس)
     // =====================================================
     function setCustomViewActive() {
-      document.getElementById('chipsSection').classList.add('hidden');
-      document.getElementById('videoGrid').parentElement.classList.add('hidden');
+      const chips = document.getElementById('chipsSection');
+      if (chips) chips.classList.add('hidden');
+      const grid = document.getElementById('videoGrid');
+      if (grid && grid.parentElement) grid.parentElement.classList.add('hidden');
       const view = document.getElementById('customViewSection');
-      view.classList.remove('hidden');
-      view.innerHTML = '';
+      if (view) {
+        view.classList.remove('hidden');
+        view.innerHTML = '';
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return view;
     }
 
@@ -1838,9 +1843,12 @@
         const sideEl = document.getElementById(sideId);
         if (sideEl) sideEl.classList.add('active');
       }
-      document.querySelectorAll('nav.md\:hidden button').forEach(el => {
-        el.className = 'flex flex-col items-center gap-1 hover:text-white transition';
-      });
+      const bottomNav = document.getElementById('mobileBottomNav');
+      if (bottomNav) {
+        bottomNav.querySelectorAll('button').forEach(el => {
+          el.className = 'flex flex-col items-center gap-1 hover:text-white transition';
+        });
+      }
       if (navId) {
         const navEl = document.getElementById(navId);
         if (navEl) navEl.className = 'flex flex-col items-center gap-1 text-white';
@@ -1932,10 +1940,28 @@
         showShortsSection();
         return;
       }
+      document.querySelectorAll('#mainSidebar .sidebar-item').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.yt-chip').forEach(btn => btn.classList.remove('active'));
+
       if (btnEl) {
         btnEl.classList.add('active');
       }
+
+      const matchingChip = document.querySelector(`.yt-chip[data-cat="${cat}"]`);
+      if (matchingChip) matchingChip.classList.add('active');
+
+      const sideIdMap = {
+        'trending': 'sideTrending',
+        'music': 'sideMusic',
+        'gaming': 'sideGaming',
+        'news': 'sideNews',
+        'podcasts': 'sidePodcasts'
+      };
+      if (sideIdMap[cat]) {
+        const sideEl = document.getElementById(sideIdMap[cat]);
+        if (sideEl) sideEl.classList.add('active');
+      }
+
       currentActiveCategory = cat;
       document.getElementById('mainSearchInput').value = '';
       closeWatchPage();
