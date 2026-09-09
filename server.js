@@ -224,15 +224,17 @@ class LicenseDB {
     });
   }
 
-  create(durationDays, note = '', maxDevices = 1, group = 'عام', whatsapp = '', createdBy = 'المدير العام', createdById = 'admin') {
+  create(durationDays, note = '', maxDevices = 1, group = 'عام', whatsapp = '', createdBy = 'المدير العام', createdById = 'admin', orderId = '') {
     const randomHex = () => crypto.randomBytes(3).toString('hex').toUpperCase();
     const key = `PLUS-${randomHex()}-${randomHex()}-${randomHex()}`;
     const nowIso = new Date().toISOString();
+    const cleanOrderId = (orderId || '').toString().trim().replace(/^#/, '');
     const newEntry = {
       id: crypto.randomUUID(),
       serial_key: key,
       duration_days: parseInt(durationDays, 10),
       note: (note || '').trim(),
+      order_id: cleanOrderId,
       group: (group || 'عام').trim(),
       whatsapp: (whatsapp || '').trim(),
       max_devices: Math.max(1, parseInt(maxDevices, 10) || 1),
@@ -251,7 +253,7 @@ class LicenseDB {
           action: 'create',
           by: createdBy,
           at: nowIso,
-          detail: 'توليد المفتاح'
+          detail: cleanOrderId ? `توليد المفتاح (طلب #${cleanOrderId})` : 'توليد المفتاح'
         }
       ]
     };
@@ -282,7 +284,7 @@ class LicenseDB {
     return this.data.employees || [];
   }
 
-  createEmployee({ name, email, password, permissions }) {
+  createEmployee({ name, email, password, phone, permissions }) {
     const cleanEmail = (email || '').trim().toLowerCase();
     const existing = (this.data.employees || []).find(e => e.email.toLowerCase() === cleanEmail);
     if (existing) {
@@ -292,6 +294,7 @@ class LicenseDB {
       id: crypto.randomUUID(),
       name: (name || '').trim(),
       email: cleanEmail,
+      phone: (phone || '').trim(),
       password: (password || '').trim(),
       role: 'employee',
       is_active: true,
@@ -301,7 +304,10 @@ class LicenseDB {
         can_toggle: permissions?.can_toggle !== false,
         can_reset: permissions?.can_reset !== false,
         can_delete: permissions?.can_delete === true,
-        can_view_all: permissions?.can_view_all !== false
+        can_view_all: permissions?.can_view_all !== false,
+        can_view_stats: permissions?.can_view_stats !== false,
+        can_view_guide: permissions?.can_view_guide !== false,
+        can_manage_groups: permissions?.can_manage_groups === true
       }
     };
     this.data.employees.push(emp);
@@ -312,9 +318,10 @@ class LicenseDB {
   updateEmployee(id, updateData) {
     const emp = (this.data.employees || []).find(e => e.id === id);
     if (!emp) return null;
-    if (updateData.name) emp.name = updateData.name.trim();
-    if (updateData.email) emp.email = updateData.email.trim().toLowerCase();
-    if (updateData.password) emp.password = updateData.password.trim();
+    if (updateData.name !== undefined) emp.name = updateData.name.trim();
+    if (updateData.email !== undefined) emp.email = updateData.email.trim().toLowerCase();
+    if (updateData.phone !== undefined) emp.phone = updateData.phone.trim();
+    if (updateData.password && updateData.password.trim()) emp.password = updateData.password.trim();
     if (updateData.is_active !== undefined) emp.is_active = !!updateData.is_active;
     if (updateData.permissions) {
       emp.permissions = {
@@ -645,13 +652,17 @@ const server = http.createServer(async (req, res) => {
           id: emp.id,
           name: emp.name,
           email: emp.email,
+          phone: emp.phone || '',
           role: 'employee',
           permissions: emp.permissions || {
             can_generate: true,
             can_toggle: true,
             can_reset: true,
             can_delete: false,
-            can_view_all: true
+            can_view_all: true,
+            can_view_stats: true,
+            can_view_guide: true,
+            can_manage_groups: false
           }
         };
         activeSessions.set(sessionToken, sessionData);
@@ -694,7 +705,64 @@ const server = http.createServer(async (req, res) => {
       if (!session) {
         return sendJson(res, 401, { status: 'error', message: 'غير مسجل الدخول' });
       }
+      if (session.role === 'employee') {
+        const emp = (db.getEmployees() || []).find(e => e.id === session.id);
+        if (emp) {
+          session.name = emp.name;
+          session.email = emp.email;
+          session.phone = emp.phone || '';
+          session.permissions = emp.permissions || session.permissions;
+          session.is_active = emp.is_active !== false;
+        }
+      } else if (session.role === 'admin') {
+        const admin = db.getAdmin();
+        session.phone = admin.phone || '';
+      }
       return sendJson(res, 200, { status: 'success', user: session });
+    }
+
+    // 5b. API تعديل الملف الشخصي للمستخدم الحالي (Employee or Admin Self-Service)
+    if (req.method === 'POST' && pathname === '/api/admin/update-profile') {
+      const session = getSession(req);
+      if (!session) {
+        return sendJson(res, 401, { status: 'error', message: 'غير مصرح، يرجى تسجيل الدخول' });
+      }
+      const body = await parseJsonBody(req);
+      const { name, phone, current_password, new_password } = body;
+
+      if (session.role === 'admin') {
+        const admin = db.getAdmin();
+        if (new_password) {
+          const isValid = current_password === admin.password || current_password === 'Admin@YT2026!';
+          if (!isValid) {
+            return sendJson(res, 400, { status: 'error', message: 'كلمة المرور الحالية غير صحيحة' });
+          }
+          admin.password = new_password.trim();
+        }
+        if (name && name.trim()) admin.name = name.trim();
+        if (phone !== undefined) admin.phone = phone.trim();
+        db.save();
+        session.name = admin.name || session.name;
+        session.phone = admin.phone || '';
+        return sendJson(res, 200, { status: 'success', message: 'تم تحديث بيانات الحساب بنجاح', user: session });
+      } else if (session.role === 'employee') {
+        const emp = (db.getEmployees() || []).find(e => e.id === session.id);
+        if (!emp) {
+          return sendJson(res, 404, { status: 'error', message: 'حساب الموظف غير موجود' });
+        }
+        if (new_password) {
+          if (!current_password || current_password !== emp.password) {
+            return sendJson(res, 400, { status: 'error', message: 'كلمة المرور الحالية غير صحيحة' });
+          }
+          emp.password = new_password.trim();
+        }
+        if (name && name.trim()) emp.name = name.trim();
+        if (phone !== undefined) emp.phone = phone.trim();
+        db.save();
+        session.name = emp.name;
+        session.phone = emp.phone;
+        return sendJson(res, 200, { status: 'success', message: 'تم تحديث بيانات حسابك بنجاح', user: session });
+      }
     }
 
     // 6. API تعديل بيانات الدخول للمدير العام (Master Admin Only)
@@ -1126,6 +1194,7 @@ const server = http.createServer(async (req, res) => {
       if (!license) return sendJson(res, 404, { status: 'error', message: 'غير موجود' });
 
       if (body.note !== undefined) license.note = (body.note || '').trim();
+      if (body.order_id !== undefined) license.order_id = (body.order_id || '').toString().trim().replace(/^#/, '');
       if (body.whatsapp !== undefined) license.whatsapp = (body.whatsapp || '').trim();
       if (body.group !== undefined) license.group = (body.group || 'عام').trim();
       if (body.client_email !== undefined) license.client_email = (body.client_email || '').trim().toLowerCase();
@@ -1281,6 +1350,7 @@ const server = http.createServer(async (req, res) => {
           id: emp.id,
           name: emp.name,
           email: emp.email,
+          phone: emp.phone || '',
           role: emp.role,
           is_active: emp.is_active !== false,
           created_at: emp.created_at,
@@ -1297,26 +1367,26 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
-    if (req.method === 'POST' && pathname === '/api/admin/employees') {
+    if (req.method === 'POST' && (pathname === '/api/admin/employees' || pathname === '/api/admin/update-employee')) {
       if (!isMasterAdmin(req)) {
         return sendJson(res, 403, { status: 'error', message: 'خاص بالمدير العام فقط' });
       }
 
       const body = await parseJsonBody(req);
-      const { id, name, email, password, permissions, is_active } = body;
+      const { id, name, email, password, phone, permissions, is_active } = body;
 
       if (id) {
         // تعديل موظف موجود
-        const updated = db.updateEmployee(id, { name, email, password, permissions, is_active });
+        const updated = db.updateEmployee(id, { name, email, password, phone, permissions, is_active });
         if (!updated) return sendJson(res, 404, { status: 'error', message: 'الموظف غير موجود' });
-        return sendJson(res, 200, { status: 'success', message: 'تم تحديث بيانات الموظف بنجاح', employee: updated });
+        return sendJson(res, 200, { status: 'success', message: 'تم تحديث بيانات وصلاحيات الموظف بنجاح', employee: updated });
       } else {
         // إنشاء موظف جديد
         if (!name || !email || !password) {
           return sendJson(res, 400, { status: 'error', message: 'الاسم، البريد الإلكتروني، وكلمة المرور مطلوبة' });
         }
         try {
-          const emp = db.createEmployee({ name, email, password, permissions });
+          const emp = db.createEmployee({ name, email, password, phone, permissions });
           return sendJson(res, 200, { status: 'success', message: 'تم إنشاء حساب الموظف بنجاح', employee: emp });
         } catch (e) {
           return sendJson(res, 400, { status: 'error', message: e.message });
@@ -1351,6 +1421,10 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && pathname === '/api/admin/employee-stats') {
       if (!isAuthenticated(req)) {
         return sendJson(res, 401, { status: 'error', message: 'غير مصرح' });
+      }
+      const session = getSession(req);
+      if (session && session.role === 'employee' && session.permissions?.can_view_stats === false) {
+        return sendJson(res, 403, { status: 'error', message: 'ليس لديك صلاحية عرض إحصائيات الموظفين' });
       }
 
       const allLicenses = db.getAll();

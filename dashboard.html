@@ -28,6 +28,42 @@
       font-family: 'Inter', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
       font-variant-numeric: tabular-nums;
     }
+    /* نمط الوضع النهاري */
+    body.light-theme {
+      background-color: #f8fafc !important;
+      color: #0f172a !important;
+    }
+    body.light-theme .glass-card {
+      background: rgba(255, 255, 255, 0.95) !important;
+      border-color: rgba(0, 0, 0, 0.08) !important;
+      color: #0f172a !important;
+    }
+    body.light-theme header {
+      background: rgba(255, 255, 255, 0.95) !important;
+      border-color: rgba(0, 0, 0, 0.08) !important;
+    }
+    body.light-theme .text-white {
+      color: #0f172a !important;
+    }
+    body.light-theme .text-zinc-400 {
+      color: #64748b !important;
+    }
+    body.light-theme .text-zinc-300 {
+      color: #334155 !important;
+    }
+    body.light-theme .bg-zinc-900, body.light-theme .bg-zinc-950 {
+      background-color: #f1f5f9 !important;
+      border-color: #e2e8f0 !important;
+    }
+    body.light-theme .bg-zinc-800 {
+      background-color: #e2e8f0 !important;
+      color: #1e293b !important;
+    }
+    body.light-theme input, body.light-theme select {
+      background-color: #ffffff !important;
+      border-color: #cbd5e1 !important;
+      color: #0f172a !important;
+    }
   </style>
 </head>
 <body class="bg-zinc-950 text-zinc-100 min-h-screen flex flex-col selection:bg-red-500 selection:text-white">
@@ -56,26 +92,13 @@
       <!-- أزرار التحكم في الهيدر -->
       <div class="flex items-center gap-2 flex-wrap">
         
-        <!-- زر تبديل اللغة (عربي / English) -->
-        <button onclick="toggleLanguage()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 border border-zinc-700 shadow-sm" title="Change Language / تغيير اللغة">
-          <i class="fa-solid fa-globe text-blue-400 text-sm"></i>
-          <span id="langBtnText">English</span>
-        </button>
-
-        <!-- زر دليل الأجهزة المحدث -->
-        <button onclick="openGuideModal()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 border border-zinc-700 shadow-sm" title="دليل الأجهزة وروابط التثبيت">
+        <!-- زر دليل الأجهزة وروابط التحميل المنظمة -->
+        <button id="btnGuide" onclick="openGuideModal()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 border border-zinc-700 shadow-sm" title="دليل الأجهزة وروابط التثبيت">
           <i class="fa-solid fa-book-open text-amber-400 text-sm"></i>
           <span id="txtBtnGuide" class="hidden sm:inline">دليل الأجهزة</span>
         </button>
 
-        <!-- زر تخصيص روابط التحميل (قوقل درايف) -->
-        <button onclick="openSettingsModal()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 border border-zinc-700 shadow-sm" title="تخصيص روابط التحميل وقوقل درايف">
-          <i class="fa-brands fa-google-drive text-emerald-400 text-sm"></i>
-          <span id="txtBtnDrive" class="hidden sm:inline">روابط التحميل</span>
-        </button>
-
-        
-        <!-- زر إدارة الموظفين (للمدير العام) -->
+        <!-- زر إدارة الموظفين (خاص بالمدير العام) -->
         <button id="headerBtnEmployees" onclick="openEmployeesModal()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 border border-zinc-700 shadow-sm" title="إدارة الموظفين والصلاحيات">
           <i class="fa-solid fa-users text-purple-400 text-sm"></i>
           <span id="txtBtnEmployees" class="hidden sm:inline">الموظفون</span>
@@ -87,23 +110,80 @@
           <span id="txtBtnStats" class="hidden sm:inline">إحصائيات الشهر</span>
         </button>
 
-        <!-- زر أمان الحساب -->
-        <button onclick="openSecurityModal()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 border border-zinc-700 shadow-sm" title="إعدادات الأمان">
-          <i class="fa-solid fa-lock text-sky-400 text-sm"></i>
-          <span id="txtBtnSecurity" class="hidden sm:inline">الأمان</span>
-        </button>
-
-        <!-- زر تسجيل الخروج -->
-        <button onclick="handleLogout()" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 border border-red-500/20 shadow-sm" title="تسجيل الخروج">
-          <i class="fa-solid fa-right-from-bracket text-red-500 text-sm"></i>
-          <span id="txtBtnLogout" class="hidden sm:inline">خروج</span>
-        </button>
-
         <!-- زر توليد كود جديد -->
-        <button onclick="openGenerateModal()" class="bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-bold px-4 py-2 rounded-xl transition flex items-center gap-2 shadow-lg shadow-red-600/30 active:scale-[0.98]">
+        <button id="btnGenModal" onclick="openGenerateModal()" class="bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-bold px-4 py-2 rounded-xl transition flex items-center gap-2 shadow-lg shadow-red-600/30 active:scale-[0.98]">
           <i class="fa-solid fa-plus text-sm"></i>
           <span id="txtBtnGen">توليد كود</span>
         </button>
+
+        <!-- قائمة الملف الشخصي الفخمة المنسدلة (Profile Menu) -->
+        <div class="relative" id="profileDropdownWrapper">
+          <button onclick="toggleProfileDropdown()" id="btnUserProfile" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs sm:text-sm font-bold px-2.5 sm:px-3 py-1.5 rounded-xl transition flex items-center gap-2 border border-zinc-700 shadow-sm">
+            <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-purple-600 to-red-500 text-white flex items-center justify-center text-xs font-extrabold shadow-sm shrink-0" id="userAvatarInitials">
+              م
+            </div>
+            <div class="text-right hidden sm:block">
+              <div class="text-xs font-bold text-white leading-tight" id="navUserName">المدير العام</div>
+              <div class="text-[10px] text-zinc-400 font-normal leading-tight" id="navUserRole">مدير النظام</div>
+            </div>
+            <i class="fa-solid fa-chevron-down text-[10px] text-zinc-400"></i>
+          </button>
+
+          <!-- القائمة المنسدلة -->
+          <div id="profileDropdownMenu" class="hidden absolute left-0 mt-2 w-64 bg-zinc-900/95 backdrop-blur-md rounded-2xl border border-zinc-700 shadow-2xl z-50 overflow-hidden py-1">
+            <!-- رأس القائمة: معلومات المستخدم -->
+            <div class="p-3.5 bg-zinc-950/70 border-b border-zinc-800 flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-red-500 text-white flex items-center justify-center text-sm font-bold shadow-md shrink-0" id="menuUserAvatar">
+                م
+              </div>
+              <div class="overflow-hidden">
+                <div class="font-bold text-xs text-white truncate" id="menuUserName">المدير العام</div>
+                <div class="text-[11px] font-mono text-zinc-400 truncate" id="menuUserEmail">admin@yt.com</div>
+                <div class="text-[10px] text-emerald-400 font-mono flex items-center gap-1 mt-0.5" id="menuUserPhoneContainer">
+                  <i class="fa-brands fa-whatsapp text-xs"></i>
+                  <span id="menuUserPhone">--</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- خيارات القائمة المنسدلة -->
+            <div class="p-1 space-y-0.5 text-xs">
+              <!-- إعدادات الحساب -->
+              <button onclick="openAccountSettingsModal(); closeProfileDropdown()" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-zinc-200 hover:text-white hover:bg-zinc-800 transition">
+                <i class="fa-solid fa-user-gear text-purple-400 w-4 text-center"></i>
+                <span class="font-bold">إعدادات الحساب</span>
+              </button>
+
+              <!-- تبديل المظهر النهاري / الليلي -->
+              <button onclick="toggleTheme(); closeProfileDropdown()" class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-zinc-200 hover:text-white hover:bg-zinc-800 transition">
+                <div class="flex items-center gap-2.5">
+                  <i id="themeMenuIcon" class="fa-solid fa-moon text-amber-400 w-4 text-center"></i>
+                  <span id="themeMenuLabel">الوضع الليلي</span>
+                </div>
+                <span class="text-[10px] bg-zinc-800 px-2 py-0.5 rounded-md text-zinc-400" id="themeCurrentBadge">ليلي</span>
+              </button>
+
+              <!-- تبديل اللغة -->
+              <button onclick="toggleLanguage(); closeProfileDropdown()" class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-zinc-200 hover:text-white hover:bg-zinc-800 transition">
+                <div class="flex items-center gap-2.5">
+                  <i class="fa-solid fa-globe text-blue-400 w-4 text-center"></i>
+                  <span>اللغة (Language)</span>
+                </div>
+                <span class="text-[10px] bg-zinc-800 px-2 py-0.5 rounded-md text-zinc-400 font-mono" id="langCurrentBadge">AR</span>
+              </button>
+
+              <!-- فاصل -->
+              <div class="border-t border-zinc-800/80 my-1"></div>
+
+              <!-- تسجيل الخروج -->
+              <button onclick="closeProfileDropdown(); handleLogout()" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-red-400 hover:text-red-300 hover:bg-red-500/10 transition">
+                <i class="fa-solid fa-right-from-bracket text-red-500 w-4 text-center"></i>
+                <span class="font-bold">تسجيل الخروج</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
       </div>
 
     </div>
@@ -300,6 +380,15 @@
           </select>
         </div>
 
+        <!-- رقم الطلب في المتجر twsaa.com -->
+        <div>
+          <label id="lblGenOrderId" class="block text-xs font-bold text-zinc-300 mb-1 flex items-center justify-between">
+            <span>رقم الطلب في المتجر (Order ID)</span>
+            <span class="text-[10px] text-indigo-400 font-normal">ربط مباشر مع twsaa.com</span>
+          </label>
+          <input type="text" id="genOrderId" placeholder="مثال: 2098095" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 font-mono text-xs sm:text-sm">
+        </div>
+
         <!-- رقم واتساب العميل -->
         <div>
           <label id="lblGenWa" class="block text-xs font-bold text-zinc-300 mb-1">رقم واتساب العميل (اختياري)</label>
@@ -355,6 +444,15 @@
         <div>
           <label class="block text-xs font-bold text-zinc-300 mb-1">الملاحظة أو اسم العميل:</label>
           <input type="text" id="editNote" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 focus:outline-none focus:border-red-500 text-xs sm:text-sm">
+        </div>
+
+        <!-- رقم الطلب في المتجر twsaa.com -->
+        <div>
+          <label class="block text-xs font-bold text-zinc-300 mb-1 flex items-center justify-between">
+            <span>رقم الطلب في المتجر (Order ID):</span>
+            <span class="text-[10px] text-indigo-400 font-normal">twsaa.com</span>
+          </label>
+          <input type="text" id="editOrderId" placeholder="مثال: 2098095" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 focus:outline-none focus:border-indigo-500 font-mono text-xs sm:text-sm">
         </div>
 
         <!-- رقم الواتساب -->
@@ -717,14 +815,21 @@
           <span>إضافة حساب موظف جديد</span>
         </h4>
         
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
           <div>
             <label class="block text-xs font-bold text-zinc-400 mb-1">اسم الموظف:</label>
-            <input type="text" id="newEmpName" placeholder="مثال: أحمد الشمري" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500">
+            <input type="text" id="newEmpName" placeholder="مثال: يحيى" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500">
           </div>
           <div>
-            <label class="block text-xs font-bold text-zinc-400 mb-1">البريد الإلكتروني للدخول:</label>
-            <input type="email" id="newEmpEmail" placeholder="ahmed@example.com" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500 font-mono">
+            <label class="block text-xs font-bold text-zinc-400 mb-1">البريد للدخول:</label>
+            <input type="email" id="newEmpEmail" placeholder="yahya@example.com" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500 font-mono">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-zinc-400 mb-1 flex items-center justify-between">
+              <span>رقم الجوال / واتساب:</span>
+              <span class="text-[10px] text-emerald-400"><i class="fa-brands fa-whatsapp"></i></span>
+            </label>
+            <input type="text" id="newEmpPhone" placeholder="966500000000" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono">
           </div>
           <div>
             <label class="block text-xs font-bold text-zinc-400 mb-1">كلمة المرور:</label>
@@ -732,9 +837,9 @@
           </div>
         </div>
 
-        <!-- الصلاحيات -->
+        <!-- الصلاحيات الموسعة -->
         <div class="mb-4">
-          <label class="block text-xs font-bold text-zinc-400 mb-1.5">صلاحيات الموظف:</label>
+          <label class="block text-xs font-bold text-zinc-400 mb-1.5">صلاحيات الموظف في النظام:</label>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
             <label class="flex items-center gap-1.5 bg-zinc-900/80 p-2 rounded-xl border border-zinc-800 cursor-pointer">
               <input type="checkbox" id="permGenerate" checked class="accent-purple-500 rounded">
@@ -750,7 +855,19 @@
             </label>
             <label class="flex items-center gap-1.5 bg-zinc-900/80 p-2 rounded-xl border border-zinc-800 cursor-pointer">
               <input type="checkbox" id="permDelete" class="accent-purple-500 rounded">
-              <span class="text-zinc-300">حذف كود نهائياً</span>
+              <span class="text-zinc-300">حذف كود</span>
+            </label>
+            <label class="flex items-center gap-1.5 bg-zinc-900/80 p-2 rounded-xl border border-zinc-800 cursor-pointer">
+              <input type="checkbox" id="permStats" checked class="accent-emerald-500 rounded">
+              <span class="text-emerald-400 font-bold">إحصائيات الشهر</span>
+            </label>
+            <label class="flex items-center gap-1.5 bg-zinc-900/80 p-2 rounded-xl border border-zinc-800 cursor-pointer">
+              <input type="checkbox" id="permGuide" checked class="accent-amber-500 rounded">
+              <span class="text-amber-400 font-bold">دليل الأجهزة</span>
+            </label>
+            <label class="flex items-center gap-1.5 bg-zinc-900/80 p-2 rounded-xl border border-zinc-800 cursor-pointer sm:col-span-2">
+              <input type="checkbox" id="permGroups" class="accent-blue-500 rounded">
+              <span class="text-blue-400 font-bold">إدارة المجموعات</span>
             </label>
           </div>
         </div>
@@ -846,6 +963,183 @@
   </div>
 
   
+
+  <!-- ========================================== -->
+  <!-- 8.3. نافذة تعديل بيانات وصلاحيات الموظف (Edit Employee Modal) -->
+  <!-- ========================================== -->
+  <div id="editEmployeeModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="glass-card bg-zinc-900 rounded-3xl w-full max-w-lg p-6 border border-zinc-700 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scroll">
+      
+      <div class="flex items-center justify-between mb-4 border-b border-zinc-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-purple-600/20 text-purple-400 flex items-center justify-center">
+            <i class="fa-solid fa-user-pen"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">تعديل بيانات وصلاحيات الموظف</h3>
+            <p class="text-xs text-zinc-400">تحديث الهاتف والصلاحيات وكلمة المرور</p>
+          </div>
+        </div>
+        <button onclick="closeEditEmployeeModal()" class="text-zinc-400 hover:text-white p-2 text-sm"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <input type="hidden" id="editEmpId">
+
+      <div class="space-y-3.5 text-sm">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-zinc-300 mb-1">اسم الموظف:</label>
+            <input type="text" id="editEmpName" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 focus:outline-none focus:border-purple-500 text-xs">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-zinc-300 mb-1">البريد الإلكتروني للدخول:</label>
+            <input type="email" id="editEmpEmail" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 focus:outline-none focus:border-purple-500 font-mono text-xs">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-zinc-300 mb-1 flex items-center justify-between">
+              <span>رقم الجوال / الواتساب:</span>
+              <span class="text-[10px] text-emerald-400"><i class="fa-brands fa-whatsapp"></i> تواصل</span>
+            </label>
+            <input type="text" id="editEmpPhone" placeholder="966500000000" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 focus:outline-none focus:border-emerald-500 font-mono text-xs">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-zinc-300 mb-1">كلمة المرور الجديدة:</label>
+            <input type="password" id="editEmpPass" placeholder="اتركها فارغة للإبقاء على الحالية" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 focus:outline-none focus:border-purple-500 text-xs font-mono">
+          </div>
+        </div>
+
+        <!-- حالة الحساب نشط / معطل -->
+        <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex items-center justify-between">
+          <span class="text-xs font-bold text-zinc-300">حالة حساب الموظف:</span>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="editEmpActive" class="accent-emerald-500 rounded">
+            <span class="text-xs font-bold text-emerald-400">حساب نشط ومصرح له بالدخول</span>
+          </label>
+        </div>
+
+        <!-- الصلاحيات الموسعة (7 صلاحيات) -->
+        <div>
+          <label class="block text-xs font-bold text-zinc-300 mb-2">صلاحيات الموظف في النظام:</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <label class="flex items-center gap-2 bg-zinc-950 p-2.5 rounded-xl border border-zinc-800 cursor-pointer">
+              <input type="checkbox" id="editPermGenerate" class="accent-purple-500 rounded">
+              <span class="text-zinc-200">توليد التراخيص والأكواد</span>
+            </label>
+            <label class="flex items-center gap-2 bg-zinc-950 p-2.5 rounded-xl border border-zinc-800 cursor-pointer">
+              <input type="checkbox" id="editPermToggle" class="accent-purple-500 rounded">
+              <span class="text-zinc-200">إيقاف وتفعيل التراخيص</span>
+            </label>
+            <label class="flex items-center gap-2 bg-zinc-950 p-2.5 rounded-xl border border-zinc-800 cursor-pointer">
+              <input type="checkbox" id="editPermReset" class="accent-purple-500 rounded">
+              <span class="text-zinc-200">فك ارتباط وتصفير الأجهزة</span>
+            </label>
+            <label class="flex items-center gap-2 bg-zinc-950 p-2.5 rounded-xl border border-zinc-800 cursor-pointer">
+              <input type="checkbox" id="editPermDelete" class="accent-purple-500 rounded">
+              <span class="text-red-300 font-bold">حذف التراخيص نهائياً</span>
+            </label>
+            <label class="flex items-center gap-2 bg-zinc-950 p-2.5 rounded-xl border border-zinc-800 cursor-pointer">
+              <input type="checkbox" id="editPermStats" class="accent-emerald-500 rounded">
+              <span class="text-emerald-300 font-bold">إحصائيات الشهر</span>
+            </label>
+            <label class="flex items-center gap-2 bg-zinc-950 p-2.5 rounded-xl border border-zinc-800 cursor-pointer">
+              <input type="checkbox" id="editPermGuide" class="accent-amber-500 rounded">
+              <span class="text-amber-300 font-bold">دليل الأجهزة والروابط</span>
+            </label>
+            <label class="flex items-center gap-2 bg-zinc-950 p-2.5 rounded-xl border border-zinc-800 cursor-pointer sm:col-span-2">
+              <input type="checkbox" id="editPermGroups" class="accent-blue-500 rounded">
+              <span class="text-blue-300 font-bold">إدارة وإنشاء المجموعات</span>
+            </label>
+          </div>
+        </div>
+
+        <div id="editEmpAlert" class="hidden p-2.5 rounded-xl text-center text-xs font-bold"></div>
+      </div>
+
+      <div class="mt-5 flex gap-3">
+        <button onclick="closeEditEmployeeModal()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 py-2.5 rounded-xl font-bold transition text-xs">إلغاء</button>
+        <button onclick="submitUpdateEmployee()" id="btnSaveEditEmp" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-xl font-bold transition text-xs shadow-lg shadow-purple-600/30">حفظ التغييرات</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 8.4. نافذة إعدادات الحساب الشخصي (Account Settings) للمدير والموظفين -->
+  <!-- ========================================== -->
+  <div id="accountSettingsModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="glass-card bg-zinc-900 rounded-3xl w-full max-w-md p-6 border border-zinc-700 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scroll">
+      
+      <div class="flex items-center justify-between mb-4 border-b border-zinc-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-purple-600/20 text-purple-400 flex items-center justify-center">
+            <i class="fa-solid fa-user-gear"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">إعدادات الحساب الشخصي</h3>
+            <p class="text-xs text-zinc-400">تعديل الاسم ورقم الجوال وكلمة المرور</p>
+          </div>
+        </div>
+        <button onclick="closeAccountSettingsModal()" class="text-zinc-400 hover:text-white p-2 text-sm"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="space-y-3.5 text-sm">
+        <!-- الاسم -->
+        <div>
+          <label class="block text-xs font-bold text-zinc-300 mb-1">الاسم الكامل:</label>
+          <input type="text" id="accName" placeholder="اسمك" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 focus:outline-none focus:border-purple-500 text-xs sm:text-sm">
+        </div>
+
+        <!-- البريد الإلكتروني (للعرض فقط) -->
+        <div>
+          <label class="block text-xs font-bold text-zinc-400 mb-1">البريد الإلكتروني المسجل:</label>
+          <input type="text" id="accEmail" readonly class="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl px-3 py-2.5 text-zinc-400 font-mono text-xs cursor-not-allowed">
+        </div>
+
+        <!-- رقم الجوال أو الواتساب -->
+        <div>
+          <label class="block text-xs font-bold text-zinc-300 mb-1 flex items-center justify-between">
+            <span>رقم الجوال / الواتساب:</span>
+            <span class="text-[10px] text-emerald-400"><i class="fa-brands fa-whatsapp"></i> تواصل سريع</span>
+          </label>
+          <input type="text" id="accPhone" placeholder="مثال: 966500000000" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-emerald-500 font-mono text-xs sm:text-sm">
+        </div>
+
+        <!-- قسم تغيير كلمة المرور -->
+        <div class="pt-2 border-t border-zinc-800">
+          <div class="text-xs font-bold text-zinc-300 mb-2 flex items-center gap-1.5">
+            <i class="fa-solid fa-lock text-amber-400 text-xs"></i>
+            <span>تغيير كلمة المرور (اختياري)</span>
+          </div>
+
+          <div class="space-y-2.5">
+            <div>
+              <label class="block text-[11px] text-zinc-400 mb-1">كلمة المرور الحالية (مطلوبة فقط عند التغيير):</label>
+              <input type="password" id="accCurrentPass" placeholder="••••••••" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500 text-xs font-mono">
+            </div>
+            <div>
+              <label class="block text-[11px] text-zinc-400 mb-1">كلمة المرور الجديدة:</label>
+              <input type="password" id="accNewPass" placeholder="••••••••" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500 text-xs font-mono">
+            </div>
+            <div>
+              <label class="block text-[11px] text-zinc-400 mb-1">تأكيد كلمة المرور الجديدة:</label>
+              <input type="password" id="accConfirmPass" placeholder="••••••••" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500 text-xs font-mono">
+            </div>
+          </div>
+        </div>
+
+        <div id="accAlert" class="hidden p-2.5 rounded-xl text-center text-xs font-bold"></div>
+      </div>
+
+      <div class="mt-5 flex gap-3">
+        <button onclick="closeAccountSettingsModal()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 py-2.5 rounded-xl font-bold transition text-xs">إلغاء</button>
+        <button onclick="submitUpdateProfile()" id="btnSaveAcc" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-xl font-bold transition text-xs shadow-lg shadow-purple-600/30">حفظ التغييرات</button>
+      </div>
+
+    </div>
+  </div>
 
   <!-- ========================================== -->
   <!-- 9. نافذة الأمان وتغيير بيانات الدخول       -->
@@ -1009,43 +1303,49 @@
     function applyLanguage(lang) {
       currentLang = lang;
       localStorage.setItem('yt_dash_lang', lang);
-      const t = I18N[lang];
+      const t = I18N[lang] || I18N['ar'];
       const isRtl = lang === 'ar';
 
-      document.getElementById('htmlRoot').setAttribute('dir', isRtl ? 'rtl' : 'ltr');
-      document.getElementById('htmlRoot').setAttribute('lang', lang);
+      const root = document.getElementById('htmlRoot');
+      if (root) {
+        root.setAttribute('dir', isRtl ? 'rtl' : 'ltr');
+        root.setAttribute('lang', lang);
+      }
 
-      document.getElementById('pageTitle').innerText = t.pageTitle;
-      document.getElementById('brandTitle').innerText = t.brandTitle;
-      document.getElementById('brandSubtitle').innerText = t.brandSubtitle;
-      document.getElementById('langBtnText').innerText = t.langBtnText;
-      document.getElementById('txtBtnGuide').innerText = t.guideBtn;
-      document.getElementById('txtBtnDrive').innerText = t.driveBtn;
-      document.getElementById('txtBtnSecurity').innerText = t.secBtn;
-      document.getElementById('txtBtnLogout').innerText = t.logoutBtn;
-      document.getElementById('txtBtnGen').innerText = t.genBtn;
-      document.getElementById('txtBtnNewGroup').innerText = t.newGroupBtn;
+      const setTxt = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = val;
+      };
 
-      document.getElementById('statTitleTotal').innerText = t.statTotal;
-      document.getElementById('statDescTotal').innerText = t.statDescTotal;
-      document.getElementById('statTitleActive').innerText = t.statActive;
-      document.getElementById('statDescActive').innerText = t.statDescActive;
-      document.getElementById('statTitlePending').innerText = t.statPending;
-      document.getElementById('statDescPending').innerText = t.statDescPending;
-      document.getElementById('statTitleExpired').innerText = t.statExpired;
-      document.getElementById('statDescExpired').innerText = t.statDescExpired;
+      setTxt('pageTitle', t.pageTitle);
+      setTxt('brandTitle', t.brandTitle);
+      setTxt('brandSubtitle', t.brandSubtitle);
+      setTxt('txtBtnGuide', t.guideBtn);
+      setTxt('txtBtnGen', t.genBtn);
+      setTxt('txtBtnNewGroup', t.newGroupBtn);
+      setTxt('langCurrentBadge', (lang || 'ar').toUpperCase());
 
-      document.getElementById('searchInput').setAttribute('placeholder', t.searchPlaceholder);
-      document.getElementById('lblFilterGroup').innerText = t.filterGroupLbl;
-      document.getElementById('txtBtnRefresh').innerText = t.refreshBtn;
+      setTxt('statTitleTotal', t.statTotal);
+      setTxt('statDescTotal', t.statDescTotal);
+      setTxt('statTitleActive', t.statActive);
+      setTxt('statDescActive', t.statDescActive);
+      setTxt('statTitlePending', t.statPending);
+      setTxt('statDescPending', t.statDescPending);
+      setTxt('statTitleExpired', t.statExpired);
+      setTxt('statDescExpired', t.statDescExpired);
 
-      document.getElementById('thSerial').innerText = t.thSerial;
-      document.getElementById('thGroup').innerText = t.thGroup;
-      document.getElementById('thDevices').innerText = t.thDevices;
-      document.getElementById('thStartDate').innerText = t.thStartDate;
-      document.getElementById('thExpiryDate').innerText = t.thExpiryDate;
-      document.getElementById('thStatus').innerText = t.thStatus;
-      document.getElementById('thActions').innerText = t.thActions;
+      const sInput = document.getElementById('searchInput');
+      if (sInput) sInput.setAttribute('placeholder', t.searchPlaceholder);
+      setTxt('lblFilterGroup', t.filterGroupLbl);
+      setTxt('txtBtnRefresh', t.refreshBtn);
+
+      setTxt('thSerial', t.thSerial);
+      setTxt('thGroup', t.thGroup);
+      setTxt('thDevices', t.thDevices);
+      setTxt('thStartDate', t.thStartDate);
+      setTxt('thExpiryDate', t.thExpiryDate);
+      setTxt('thStatus', t.thStatus);
+      setTxt('thActions', t.thActions);
 
       renderLicenses();
     }
@@ -1183,6 +1483,8 @@
           l.serial_key.toLowerCase().includes(search) ||
           (l.note && l.note.toLowerCase().includes(search)) ||
           (l.whatsapp && l.whatsapp.includes(search)) ||
+          (l.order_id && l.order_id.toString().toLowerCase().includes(search)) ||
+          (l.client_email && l.client_email.toLowerCase().includes(search)) ||
           (Array.isArray(l.device_ids) && l.device_ids.some(d => d.toLowerCase().includes(search)));
 
         // فلترة المجموعات
@@ -1246,13 +1548,19 @@
 
         return `
           <tr class="hover:bg-zinc-800/40 transition">
-            <!-- كود التفعيل والملاحظة والواتساب وسجل التدقيق -->
+            <!-- كود التفعيل ورقم الطلب والملاحظة والواتساب وسجل التدقيق -->
             <td class="px-5 py-3.5">
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 flex-wrap">
                 <button onclick="copyToClipboard('${l.serial_key}')" class="font-mono font-bold text-white hover:text-red-400 flex items-center gap-1.5 transition text-xs sm:text-sm">
                   <span>${l.serial_key}</span>
                   <i class="fa-regular fa-copy text-xs text-zinc-500"></i>
                 </button>
+                ${l.order_id ? `
+                  <a href="https://twsaa.com/admin/sales/orders/view/${encodeURIComponent((l.order_id || '').toString().trim().replace(/^#/, ''))}" target="_blank" class="inline-flex items-center gap-1 text-[11px] font-mono font-bold bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-lg transition" title="فتح الطلب في متجر twsaa.com">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                    <span>طلب #${(l.order_id || '').toString().trim().replace(/^#/, '')}</span>
+                  </a>
+                ` : ''}
               </div>
 
               <!-- الملاحظة المباشرة -->
@@ -1395,10 +1703,18 @@
             
             <div class="flex items-start justify-between gap-2 border-b border-zinc-800/80 pb-2.5">
               <div>
-                <button onclick="copyToClipboard('${l.serial_key}')" class="font-mono font-bold text-sm text-white hover:text-red-400 flex items-center gap-1.5 transition text-right">
-                  <span>${l.serial_key}</span>
-                  <i class="fa-regular fa-copy text-xs text-zinc-500"></i>
-                </button>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <button onclick="copyToClipboard('${l.serial_key}')" class="font-mono font-bold text-sm text-white hover:text-red-400 flex items-center gap-1.5 transition text-right">
+                    <span>${l.serial_key}</span>
+                    <i class="fa-regular fa-copy text-xs text-zinc-500"></i>
+                  </button>
+                  ${l.order_id ? `
+                    <a href="https://twsaa.com/admin/sales/orders/view/${encodeURIComponent((l.order_id || '').toString().trim().replace(/^#/, ''))}" target="_blank" class="inline-flex items-center gap-1 text-[10px] font-mono font-bold bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-lg transition" title="فتح الطلب في متجر twsaa.com">
+                      <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i>
+                      <span>#${(l.order_id || '').toString().trim().replace(/^#/, '')}</span>
+                    </a>
+                  ` : ''}
+                </div>
                 ${l.note ? `<div class="text-xs text-zinc-400 mt-0.5">${l.note}</div>` : ''}
                 <div class="text-[10px] text-zinc-500 mt-1">بواسطة: <span class="text-zinc-300">${l.created_by || 'المدير العام'}</span></div>
               </div>
@@ -1494,6 +1810,7 @@
       const group = document.getElementById('genGroup').value;
       const note = document.getElementById('genNote').value.trim();
       const whatsapp = document.getElementById('genWhatsapp').value.trim();
+      const order_id = (document.getElementById('genOrderId') ? document.getElementById('genOrderId').value : '').trim();
       const count = document.getElementById('genCount').value;
 
       const btn = document.getElementById('btnSubmitGen');
@@ -1503,7 +1820,7 @@
         const res = await fetch(`${API_BASE}/api/admin/generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ days, max_devices: maxDevices, group, note, whatsapp, count })
+          body: JSON.stringify({ days, max_devices: maxDevices, group, note, whatsapp, order_id, count })
         });
         const data = await res.json();
         if (data.status === 'success') {
@@ -1511,6 +1828,7 @@
           closeGenerateModal();
           document.getElementById('genNote').value = '';
           document.getElementById('genWhatsapp').value = '';
+          if (document.getElementById('genOrderId')) document.getElementById('genOrderId').value = '';
           loadLicenses();
         } else {
           showToast(data.message || 'حدث خطأ أثناء التوليد', 'error');
@@ -1530,6 +1848,7 @@
       document.getElementById('editSerialDisplay').innerText = l.serial_key;
       document.getElementById('editNote').value = l.note || '';
       document.getElementById('editWhatsapp').value = l.whatsapp || '';
+      if (document.getElementById('editOrderId')) document.getElementById('editOrderId').value = l.order_id || '';
       document.getElementById('editGroup').value = l.group || 'عام';
       document.getElementById('editMaxDevices').value = String(l.max_devices || 1);
       document.getElementById('editModal').classList.remove('hidden');
@@ -1541,6 +1860,7 @@
       const id = document.getElementById('editLicenseId').value;
       const note = document.getElementById('editNote').value.trim();
       const whatsapp = document.getElementById('editWhatsapp').value.trim();
+      const order_id = (document.getElementById('editOrderId') ? document.getElementById('editOrderId').value : '').trim();
       const group = document.getElementById('editGroup').value;
       const max_devices = parseInt(document.getElementById('editMaxDevices').value, 10);
 
@@ -1548,7 +1868,7 @@
         const res = await fetch(`${API_BASE}/api/admin/update-license`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id, note, whatsapp, group, max_devices })
+          body: JSON.stringify({ id, note, whatsapp, order_id, group, max_devices })
         });
         const data = await res.json();
         if (data.status === 'success') {
@@ -1833,21 +2153,282 @@ https://yt-license-guard.onrender.com/app
     // دوال إدارة الموظفين والصلاحيات
     // ==========================================
     let currentUserProfile = null;
+    let cachedEmployeesList = [];
 
+    // إدارة القائمة المنسدلة للملف الشخصي
+    function toggleProfileDropdown() {
+      const menu = document.getElementById('profileDropdownMenu');
+      if (menu) menu.classList.toggle('hidden');
+    }
+    function closeProfileDropdown() {
+      const menu = document.getElementById('profileDropdownMenu');
+      if (menu) menu.classList.add('hidden');
+    }
+    document.addEventListener('click', (e) => {
+      const wrapper = document.getElementById('profileDropdownWrapper');
+      if (wrapper && !wrapper.contains(e.target)) {
+        closeProfileDropdown();
+      }
+    });
+
+    // إدارة المظهر النهاري والليلي
+    function toggleTheme() {
+      const isLight = document.body.classList.toggle('light-theme');
+      localStorage.setItem('yt_dash_theme', isLight ? 'light' : 'dark');
+      updateThemeUI(isLight);
+    }
+    function updateThemeUI(isLight) {
+      const icon = document.getElementById('themeMenuIcon');
+      const label = document.getElementById('themeMenuLabel');
+      const badge = document.getElementById('themeCurrentBadge');
+      if (icon) icon.className = isLight ? 'fa-solid fa-sun text-amber-500 w-4 text-center' : 'fa-solid fa-moon text-amber-400 w-4 text-center';
+      if (label) label.innerText = isLight ? 'الوضع النهاري' : 'الوضع الليلي';
+      if (badge) badge.innerText = isLight ? 'نهاري' : 'ليلي';
+    }
+
+    // نافذة إعدادات الحساب الشخصي (Account Settings Modal)
+    function openAccountSettingsModal() {
+      const alertBox = document.getElementById('accAlert');
+      if (alertBox) alertBox.classList.add('hidden');
+      document.getElementById('accCurrentPass').value = '';
+      document.getElementById('accNewPass').value = '';
+      document.getElementById('accConfirmPass').value = '';
+
+      if (currentUserProfile) {
+        document.getElementById('accName').value = currentUserProfile.name || '';
+        document.getElementById('accEmail').value = currentUserProfile.email || '';
+        document.getElementById('accPhone').value = currentUserProfile.phone || '';
+      }
+      document.getElementById('accountSettingsModal').classList.remove('hidden');
+    }
+    function closeAccountSettingsModal() {
+      document.getElementById('accountSettingsModal').classList.add('hidden');
+    }
+    async function submitUpdateProfile() {
+      const name = document.getElementById('accName').value.trim();
+      const phone = document.getElementById('accPhone').value.trim();
+      const current_password = document.getElementById('accCurrentPass').value;
+      const new_password = document.getElementById('accNewPass').value;
+      const confirm_password = document.getElementById('accConfirmPass').value;
+      const alertBox = document.getElementById('accAlert');
+      const btn = document.getElementById('btnSaveAcc');
+
+      if (!name) {
+        alertBox.className = 'p-2.5 rounded-xl text-center font-bold text-xs bg-red-500/10 text-red-400';
+        alertBox.innerText = 'يرجى كتابة الاسم';
+        alertBox.classList.remove('hidden');
+        return;
+      }
+
+      if (new_password) {
+        if (!current_password) {
+          alertBox.className = 'p-2.5 rounded-xl text-center font-bold text-xs bg-red-500/10 text-red-400';
+          alertBox.innerText = 'يرجى إدخال كلمة المرور الحالية لتأكيد التغيير';
+          alertBox.classList.remove('hidden');
+          return;
+        }
+        if (new_password !== confirm_password) {
+          alertBox.className = 'p-2.5 rounded-xl text-center font-bold text-xs bg-red-500/10 text-red-400';
+          alertBox.innerText = 'كلمة المرور الجديدة وتأكيدها غير متطابقين';
+          alertBox.classList.remove('hidden');
+          return;
+        }
+      }
+
+      btn.disabled = true;
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/update-profile`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, phone, current_password, new_password })
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+          showToast('✓ تم تحديث بيانات الحساب بنجاح');
+          closeAccountSettingsModal();
+          checkCurrentUser();
+          if (currentUserProfile && currentUserProfile.role === 'admin') {
+            loadEmployees();
+          }
+        } else {
+          alertBox.className = 'p-2.5 rounded-xl text-center font-bold text-xs bg-red-500/10 text-red-400';
+          alertBox.innerText = data.message || 'فشل التحديث';
+          alertBox.classList.remove('hidden');
+        }
+      } catch (e) {
+        showToast('تعذر الاتصال بالخادم', 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // نافذة تعديل بيانات وصلاحيات الموظف (Manager Edit Employee Modal)
+    function openEditEmployeeModal(empId) {
+      const emp = cachedEmployeesList.find(e => e.id === empId);
+      if (!emp) return;
+
+      document.getElementById('editEmpAlert').classList.add('hidden');
+      document.getElementById('editEmpId').value = emp.id;
+      document.getElementById('editEmpName').value = emp.name || '';
+      document.getElementById('editEmpEmail').value = emp.email || '';
+      document.getElementById('editEmpPhone').value = emp.phone || '';
+      document.getElementById('editEmpPass').value = '';
+      document.getElementById('editEmpActive').checked = emp.is_active !== false;
+
+      const p = emp.permissions || {};
+      document.getElementById('editPermGenerate').checked = p.can_generate !== false;
+      document.getElementById('editPermToggle').checked = p.can_toggle !== false;
+      document.getElementById('editPermReset').checked = p.can_reset !== false;
+      document.getElementById('editPermDelete').checked = p.can_delete === true;
+      document.getElementById('editPermStats').checked = p.can_view_stats !== false;
+      document.getElementById('editPermGuide').checked = p.can_view_guide !== false;
+      document.getElementById('editPermGroups').checked = p.can_manage_groups === true;
+
+      document.getElementById('editEmployeeModal').classList.remove('hidden');
+    }
+    function closeEditEmployeeModal() {
+      document.getElementById('editEmployeeModal').classList.add('hidden');
+    }
+    async function submitUpdateEmployee() {
+      const id = document.getElementById('editEmpId').value;
+      const name = document.getElementById('editEmpName').value.trim();
+      const email = document.getElementById('editEmpEmail').value.trim();
+      const phone = document.getElementById('editEmpPhone').value.trim();
+      const password = document.getElementById('editEmpPass').value.trim();
+      const is_active = document.getElementById('editEmpActive').checked;
+      const alertBox = document.getElementById('editEmpAlert');
+      const btn = document.getElementById('btnSaveEditEmp');
+
+      if (!name || !email) {
+        alertBox.className = 'p-2.5 rounded-xl text-center font-bold text-xs bg-red-500/10 text-red-400';
+        alertBox.innerText = 'الاسم والبريد مطلوبان';
+        alertBox.classList.remove('hidden');
+        return;
+      }
+
+      const permissions = {
+        can_generate: document.getElementById('editPermGenerate').checked,
+        can_toggle: document.getElementById('editPermToggle').checked,
+        can_reset: document.getElementById('editPermReset').checked,
+        can_delete: document.getElementById('editPermDelete').checked,
+        can_view_stats: document.getElementById('editPermStats').checked,
+        can_view_guide: document.getElementById('editPermGuide').checked,
+        can_manage_groups: document.getElementById('editPermGroups').checked,
+        can_view_all: true
+      };
+
+      btn.disabled = true;
+      try {
+        const payload = { id, name, email, phone, is_active, permissions };
+        if (password) payload.password = password;
+
+        const res = await fetch(`${API_BASE}/api/admin/employees`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+          showToast('✓ تم تحديث بيانات وصلاحيات الموظف بنجاح');
+          closeEditEmployeeModal();
+          loadEmployees();
+        } else {
+          alertBox.className = 'p-2.5 rounded-xl text-center font-bold text-xs bg-red-500/10 text-red-400';
+          alertBox.innerText = data.message || 'فشل التحديث';
+          alertBox.classList.remove('hidden');
+        }
+      } catch (e) {
+        showToast('تعذر الاتصال بالخادم', 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // فحص هوية المستخدم الحالي وتطبيق الصلاحيات بدقة
     async function checkCurrentUser() {
       try {
         const res = await fetch(`${API_BASE}/api/admin/me`);
         const data = await res.json();
         if (res.ok && data.user) {
           currentUserProfile = data.user;
-          // إذا كان موظف عادي، نخفي زر إدارة الموظفين
-          if (currentUserProfile.role === 'employee') {
+          const u = currentUserProfile;
+
+          // تحديث شريط الهيدر والقائمة المنسدلة
+          const initial = (u.name || (u.role === 'admin' ? 'المدير' : 'موظف')).slice(0, 1);
+          const avatarEls = [document.getElementById('userAvatarInitials'), document.getElementById('menuUserAvatar')];
+          avatarEls.forEach(el => { if (el) el.innerText = initial; });
+
+          const navName = document.getElementById('navUserName');
+          const navRole = document.getElementById('navUserRole');
+          if (navName) navName.innerText = u.name || (u.role === 'admin' ? 'المدير العام' : 'موظف');
+          if (navRole) navRole.innerText = u.role === 'admin' ? 'مدير النظام' : 'موظف مبيعات';
+
+          const menuName = document.getElementById('menuUserName');
+          const menuEmail = document.getElementById('menuUserEmail');
+          const menuPhone = document.getElementById('menuUserPhone');
+          if (menuName) menuName.innerText = u.name || 'المستخدم';
+          if (menuEmail) menuEmail.innerText = u.email || '';
+          if (menuPhone) menuPhone.innerText = u.phone || 'لم يتم إضافة رقم';
+
+          const langBadge = document.getElementById('langCurrentBadge');
+          if (langBadge) langBadge.innerText = (currentLang || 'ar').toUpperCase();
+
+          // تطبيق الصلاحيات بدقة عالية على عناصر الواجهة
+          if (u.role === 'employee') {
+            // إخفاء زر إدارة الموظفين للموظف
             const empBtn = document.getElementById('headerBtnEmployees');
             if (empBtn) empBtn.classList.add('hidden');
+
+            const p = u.permissions || {};
+            // إحصائيات الشهر
+            const statsBtn = document.getElementById('headerBtnStats');
+            if (statsBtn) {
+              if (p.can_view_stats === false) statsBtn.classList.add('hidden');
+              else statsBtn.classList.remove('hidden');
+            }
+            // دليل الأجهزة
+            const guideBtn = document.getElementById('btnGuide');
+            if (guideBtn) {
+              if (p.can_view_guide === false) guideBtn.classList.add('hidden');
+              else guideBtn.classList.remove('hidden');
+            }
+            // إدارة المجموعات
+            const groupBtn = document.getElementById('btnNewGroup');
+            if (groupBtn) {
+              if (p.can_manage_groups !== true) groupBtn.classList.add('hidden');
+              else groupBtn.classList.remove('hidden');
+            }
+            // توليد التراخيص
+            const genBtn = document.getElementById('btnGenModal');
+            if (genBtn) {
+              if (p.can_generate === false) genBtn.classList.add('hidden');
+              else genBtn.classList.remove('hidden');
+            }
+          } else {
+            // المدير العام يملك كافة الصلاحيات
+            const empBtn = document.getElementById('headerBtnEmployees');
+            if (empBtn) empBtn.classList.remove('hidden');
+            const statsBtn = document.getElementById('headerBtnStats');
+            if (statsBtn) statsBtn.classList.remove('hidden');
+            const guideBtn = document.getElementById('btnGuide');
+            if (guideBtn) guideBtn.classList.remove('hidden');
+            const groupBtn = document.getElementById('btnNewGroup');
+            if (groupBtn) groupBtn.classList.remove('hidden');
+            const genBtn = document.getElementById('btnGenModal');
+            if (genBtn) genBtn.classList.remove('hidden');
           }
         }
       } catch (e) {}
     }
+
+    // تهيئة الثيم عند بدء التحميل
+    (() => {
+      const savedTheme = localStorage.getItem('yt_dash_theme');
+      if (savedTheme === 'light') {
+        document.body.classList.add('light-theme');
+        updateThemeUI(true);
+      }
+    })();
 
     function openEmployeesModal() {
       document.getElementById('employeesModal').classList.remove('hidden');
@@ -1870,16 +2451,40 @@ https://yt-license-guard.onrender.com/app
             return;
           }
 
-          container.innerHTML = data.employees.map(emp => `
+          cachedEmployeesList = data.employees;
+          container.innerHTML = data.employees.map(emp => {
+            const cleanPhone = (emp.phone || '').replace(/[^0-9]/g, '');
+            const p = emp.permissions || {};
+            return `
             <div class="bg-zinc-950 p-3.5 rounded-2xl border border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 flex-wrap">
                   <span class="font-bold text-white text-xs sm:text-sm">${emp.name}</span>
                   <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${emp.is_active ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}">
                     ${emp.is_active ? 'نشط' : 'موقوف'}
                   </span>
+                  ${cleanPhone ? `
+                    <a href="https://wa.me/${cleanPhone}" target="_blank" class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 px-2 py-0.5 rounded-lg border border-emerald-500/20 transition" title="محادثة الموظف عبر واتساب">
+                      <i class="fa-brands fa-whatsapp text-sm"></i>
+                      <span>${emp.phone}</span>
+                    </a>
+                  ` : `
+                    <span class="text-[10px] text-zinc-500 italic">بدون رقم</span>
+                  `}
                 </div>
                 <div class="text-[11px] font-mono text-zinc-400 mt-0.5">${emp.email}</div>
+                
+                <!-- شارات الصلاحيات -->
+                <div class="flex items-center gap-1 flex-wrap mt-1.5 text-[10px]">
+                  ${p.can_generate !== false ? '<span class="bg-purple-500/10 text-purple-300 border border-purple-500/20 px-1.5 py-0.5 rounded">توليد</span>' : ''}
+                  ${p.can_toggle !== false ? '<span class="bg-zinc-800 text-zinc-300 px-1.5 py-0.5 rounded">إيقاف/تفعيل</span>' : ''}
+                  ${p.can_reset !== false ? '<span class="bg-zinc-800 text-zinc-300 px-1.5 py-0.5 rounded">تصفير</span>' : ''}
+                  ${p.can_view_stats !== false ? '<span class="bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 px-1.5 py-0.5 rounded">إحصائيات</span>' : ''}
+                  ${p.can_view_guide !== false ? '<span class="bg-amber-500/10 text-amber-300 border border-amber-500/20 px-1.5 py-0.5 rounded">دليل الأجهزة</span>' : ''}
+                  ${p.can_manage_groups === true ? '<span class="bg-blue-500/10 text-blue-300 border border-blue-500/20 px-1.5 py-0.5 rounded">مجموعات</span>' : ''}
+                  ${p.can_delete === true ? '<span class="bg-red-500/10 text-red-400 border border-red-500/20 px-1.5 py-0.5 rounded">حذف</span>' : ''}
+                </div>
+
                 <div class="flex items-center gap-3 text-[10px] text-zinc-400 mt-1 font-mono">
                   <span>أكواد هذا الشهر: <strong class="text-emerald-400">${emp.month_keys}</strong></span>
                   <span>•</span>
@@ -1887,16 +2492,21 @@ https://yt-license-guard.onrender.com/app
                 </div>
               </div>
 
-              <div class="flex items-center gap-2 self-end sm:self-center">
-                <button onclick="toggleEmployeeStatus('${emp.id}')" class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-xs font-bold transition border border-zinc-700/80 ${emp.is_active ? 'text-amber-400' : 'text-emerald-400'}">
-                  ${emp.is_active ? 'إيقاف الحساب' : 'تنشيط الحساب'}
+              <div class="flex items-center gap-2 self-end sm:self-center flex-wrap">
+                <button onclick="openEditEmployeeModal('${emp.id}')" class="px-3 py-1.5 rounded-xl bg-purple-600/15 hover:bg-purple-600/25 text-purple-300 border border-purple-500/30 text-xs font-bold transition flex items-center gap-1">
+                  <i class="fa-solid fa-pen-to-square text-xs"></i>
+                  <span>تعديل</span>
                 </button>
-                <button onclick="deleteEmployeeAccount('${emp.id}', '${emp.name}')" class="px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-bold transition">
+                <button onclick="toggleEmployeeStatus('${emp.id}')" class="px-2.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-xs font-bold transition border border-zinc-700/80 ${emp.is_active ? 'text-amber-400' : 'text-emerald-400'}">
+                  ${emp.is_active ? 'إيقاف' : 'تنشيط'}
+                </button>
+                <button onclick="deleteEmployeeAccount('${emp.id}', '${emp.name}')" class="px-2.5 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-bold transition">
                   حذف
                 </button>
               </div>
             </div>
-          `).join('');
+          `;
+          }).join('');
         } else {
           container.innerHTML = `<div class="py-6 text-center text-red-400 text-xs">${data.message || 'فشل جلب بيانات الموظفين'}</div>`;
         }
@@ -1908,6 +2518,7 @@ https://yt-license-guard.onrender.com/app
     async function submitCreateEmployee() {
       const name = document.getElementById('newEmpName').value.trim();
       const email = document.getElementById('newEmpEmail').value.trim();
+      const phone = (document.getElementById('newEmpPhone') ? document.getElementById('newEmpPhone').value : '').trim();
       const password = document.getElementById('newEmpPass').value.trim();
       const alertBox = document.getElementById('empAlert');
 
@@ -1923,6 +2534,9 @@ https://yt-license-guard.onrender.com/app
         can_toggle: document.getElementById('permToggle').checked,
         can_reset: document.getElementById('permReset').checked,
         can_delete: document.getElementById('permDelete').checked,
+        can_view_stats: document.getElementById('permStats') ? document.getElementById('permStats').checked : true,
+        can_view_guide: document.getElementById('permGuide') ? document.getElementById('permGuide').checked : true,
+        can_manage_groups: document.getElementById('permGroups') ? document.getElementById('permGroups').checked : false,
         can_view_all: true
       };
 
@@ -1930,7 +2544,7 @@ https://yt-license-guard.onrender.com/app
         const res = await fetch(`${API_BASE}/api/admin/employees`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, password, permissions })
+          body: JSON.stringify({ name, email, phone, password, permissions })
         });
         const data = await res.json();
         if (res.ok && data.status === 'success') {

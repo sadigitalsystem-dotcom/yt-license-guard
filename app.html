@@ -2215,23 +2215,39 @@
 
     function openEditEmailModal() {
       closeUserMenu();
-      document.getElementById('editEmailModal').classList.remove('hidden');
-      document.getElementById('editEmailModalError').classList.add('hidden');
-      document.getElementById('newEmailInput').value = currentClientEmail;
+      const modal = document.getElementById('editEmailModal');
+      if (modal) modal.classList.remove('hidden');
+      const alertEl = document.getElementById('editEmailAlert') || document.getElementById('editEmailModalError');
+      if (alertEl) alertEl.classList.add('hidden');
+      const input = document.getElementById('editEmailInput') || document.getElementById('newEmailInput');
+      if (input) {
+        input.value = currentClientEmail || localStorage.getItem('yt_client_email') || '';
+        input.focus();
+      }
     }
     function closeEditEmailModal() {
       document.getElementById('editEmailModal').classList.add('hidden');
     }
 
     async function submitUpdateEmail() {
-      const input = document.getElementById('newEmailInput');
-      const err = document.getElementById('editEmailModalError');
-      const newEmail = (input.value || '').trim();
+      const input = document.getElementById('editEmailInput') || document.getElementById('newEmailInput');
+      const err = document.getElementById('editEmailAlert') || document.getElementById('editEmailModalError');
+      const btn = document.getElementById('btnSaveEmail');
+      const newEmail = (input ? input.value : '').trim().toLowerCase();
 
       if (!newEmail || !newEmail.includes('@')) {
-        err.innerText = 'يرجى إدخال بريد إلكتروني صحيح';
-        err.classList.remove('hidden');
+        if (err) {
+          err.className = 'p-2 rounded-xl text-center text-xs font-bold bg-red-500/10 border border-red-500/20 text-red-400';
+          err.innerText = 'يرجى إدخال بريد إلكتروني صحيح (Gmail)';
+          err.classList.remove('hidden');
+        }
+        showToast('يرجى إدخال بريد إلكتروني صحيح');
         return;
+      }
+
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs"></i> جاري الحفظ...';
       }
 
       try {
@@ -2239,26 +2255,41 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            serial_key: currentLicenseKey,
+            serial_key: currentLicenseKey || localStorage.getItem('yt_license_key') || '',
             new_email: newEmail,
             device_id: DEVICE_ID
           })
         });
         const data = await res.json();
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<span>حفظ البريد</span><i class="fa-solid fa-check text-xs"></i>';
+        }
+
         if (res.ok && data.status === 'success') {
           currentClientEmail = newEmail;
           localStorage.setItem('yt_client_email', newEmail);
           closeEditEmailModal();
           updateUserUI(true, { client_email: newEmail, serial_key: currentLicenseKey });
-          showToast('✓ تم تحديث البريد الإلكتروني بنجاح ومزامنته سحابياً');
+          showToast('✓ تم حفظ البريد الإلكتروني بنجاح لحسابك');
           UserDB.syncToCloud();
         } else {
-          err.innerText = data.message || 'فشل التحديث';
-          err.classList.remove('hidden');
+          if (err) {
+            err.className = 'p-2 rounded-xl text-center text-xs font-bold bg-red-500/10 border border-red-500/20 text-red-400';
+            err.innerText = data.message || 'فشل التحديث';
+            err.classList.remove('hidden');
+          }
         }
       } catch (e) {
-        err.innerText = 'فشل الاتصال بالسيرفر';
-        err.classList.remove('hidden');
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<span>حفظ البريد</span><i class="fa-solid fa-check text-xs"></i>';
+        }
+        if (err) {
+          err.className = 'p-2 rounded-xl text-center text-xs font-bold bg-red-500/10 border border-red-500/20 text-red-400';
+          err.innerText = 'فشل الاتصال بالسيرفر';
+          err.classList.remove('hidden');
+        }
       }
     }
 
