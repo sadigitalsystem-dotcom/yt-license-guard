@@ -106,7 +106,7 @@
         <div class="flex items-baseline gap-1">
           <span class="font-bold text-lg tracking-tighter text-white">YouTube</span>
           <span id="headerPremiumBadge" class="hidden text-[11px] font-semibold text-zinc-400 tracking-wider">Premium</span>
-          <span id="headerCountryBadge" class="text-[10px] text-zinc-400 font-medium">SA</span>
+          
         </div>
       </div>
     </div>
@@ -130,7 +130,7 @@
         <button onclick="executeSearch()" class="bg-[#222222] hover:bg-[#2a2a2a] border-y border-l border-[#303030] px-6 py-2 rounded-l-full text-zinc-300 hover:text-white transition flex items-center justify-center" title="بحث">
           <i class="fa-solid fa-magnifying-glass text-sm"></i>
         </button>
-        <button onclick="executeSearch()" class="mr-2 w-10 h-10 rounded-full bg-[#222222] hover:bg-[#2a2a2a] flex items-center justify-center text-white transition shrink-0" title="البحث الصوتي">
+        <button id="voiceSearchBtn" onclick="startVoiceSearch()" class="mr-2 w-10 h-10 rounded-full bg-[#222222] hover:bg-[#2a2a2a] flex items-center justify-center text-white transition shrink-0" title="البحث الصوتي">
           <i class="fa-solid fa-microphone text-sm"></i>
         </button>
 
@@ -148,10 +148,20 @@
         <i class="fa-solid fa-magnifying-glass text-base"></i>
       </button>
 
-      <!-- زر الإشعارات -->
-      <button class="p-2 rounded-full hover:bg-white/10 text-white transition hidden sm:flex" title="الإشعارات">
-        <i class="fa-regular fa-bell text-lg"></i>
-      </button>
+      <!-- زر الإشعارات وقائمته المنسدلة -->
+      <div class="relative hidden sm:block">
+        <button id="notificationsBtn" onclick="toggleNotificationsModal()" class="p-2 rounded-full hover:bg-white/10 text-white transition flex relative" title="الإشعارات">
+          <i class="fa-regular fa-bell text-lg"></i>
+          <span id="notificationsBadge" class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
+        </button>
+        <div id="notificationsDropdown" class="hidden absolute left-0 top-11 w-80 bg-[#282828] border border-white/10 rounded-2xl shadow-2xl py-3 z-50 text-right">
+          <div class="px-4 pb-2.5 border-b border-white/10 flex items-center justify-between">
+            <span class="font-bold text-sm text-white">الإشعارات</span>
+            <button onclick="clearNotifications()" class="text-[11px] text-[#3ea6ff] hover:underline">مسح الكل</button>
+          </div>
+          <div id="notificationsList" class="divide-y divide-white/5 max-h-72 overflow-y-auto custom-scroll text-xs"></div>
+        </div>
+      </div>
 
       <!-- زر تسجيل الدخول الرسمي أو أيقونة الملف الشخصي -->
       <div id="userAccountSection">
@@ -224,7 +234,7 @@
           <i class="fa-solid fa-house"></i>
           <span>الرئيسية</span>
         </div>
-        <div onclick="filterCategory('shorts')" class="sidebar-item">
+        <div onclick="showShortsSection()" class="sidebar-item" id="sideShorts">
           <i class="fa-solid fa-bolt text-[#ff0000]"></i>
           <span>Shorts</span>
         </div>
@@ -422,7 +432,7 @@
       <div id="customViewSection" class="hidden px-4 py-4 min-h-[500px]"></div>
 
       <!-- شريط التصنيفات الرسمي (Category Chips) مطابق تماماً ليوتيوب الرسمي -->
-      <div id="chipsSection" class="px-4 py-3 overflow-x-auto hide-scrollbar flex items-center gap-3 sticky top-14 bg-[#0f0f0f]/95 backdrop-blur z-30">
+      <div id="chipsSection" class="px-4 py-3 overflow-x-auto hide-scrollbar flex items-center gap-3 sticky top-0 bg-[#0f0f0f]/95 backdrop-blur z-30">
         <button onclick="filterCategory('all', this)" class="yt-chip active">الكل</button>
         <button onclick="filterCategory('gaming', this)" class="yt-chip">ألعاب الفيديو</button>
         <button onclick="filterCategory('sports', this)" class="yt-chip">أهداف ومباريات</button>
@@ -436,7 +446,7 @@
       </div>
 
       <!-- شبكة الفيديوهات الرسمية لـ YouTube -->
-      <div class="px-4 pt-2 pb-12">
+      <div class="px-4 pt-5 pb-16">
         <div id="loadingIndicator" class="hidden py-20 text-center text-zinc-400">
           <i class="fa-solid fa-spinner fa-spin text-3xl text-[#ff0000] mb-3"></i>
           <p class="text-xs">جاري التحميل...</p>
@@ -458,7 +468,7 @@
       <i class="fa-solid fa-house text-base"></i>
       <span>الرئيسية</span>
     </button>
-    <button onclick="filterCategory('shorts')" class="flex flex-col items-center gap-1 hover:text-white transition" id="navShorts">
+    <button onclick="showShortsSection()" class="flex flex-col items-center gap-1 hover:text-white transition" id="navShorts">
       <i class="fa-solid fa-bolt text-base text-[#ff0000]"></i>
       <span>Shorts</span>
     </button>
@@ -583,15 +593,51 @@
     let currentActiveCategory = 'all';
 
     // =====================================================
-    // 1. قاعدة بيانات الحساب التفاعلي المحلي (User Account DB)
+    // 1. قاعدة بيانات الحساب التفاعلي المحلي والمزامنة السحابية
     // =====================================================
     const UserDB = {
+      _syncTimer: null,
+      syncToCloud() {
+        clearTimeout(this._syncTimer);
+        this._syncTimer = setTimeout(async () => {
+          const key = currentLicenseKey || localStorage.getItem('yt_license_key');
+          const email = currentClientEmail || localStorage.getItem('yt_client_email');
+          if (!key) return;
+          try {
+            await fetch(`${API_BASE}/api/user/sync`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                serial_key: key,
+                client_email: email,
+                user_data: {
+                  subscriptions: this.getSubscriptions(),
+                  liked: this.getLikedVideos(),
+                  disliked: this.getDislikedIds(),
+                  history: this.getHistory(),
+                  playlists: this.getPlaylists()
+                }
+              })
+            });
+          } catch (e) {}
+        }, 1500);
+      },
+
+      restoreFromCloud(userData) {
+        if (!userData || typeof userData !== 'object') return;
+        if (Array.isArray(userData.subscriptions)) this.saveSubscriptions(userData.subscriptions, false);
+        if (Array.isArray(userData.liked)) this.saveLikedVideos(userData.liked, false);
+        if (Array.isArray(userData.history)) this.saveHistory(userData.history, false);
+        if (Array.isArray(userData.playlists)) this.savePlaylists(userData.playlists, false);
+      },
+
       // الاشتراكات
       getSubscriptions() {
         try { return JSON.parse(localStorage.getItem('yt_user_subscriptions') || '[]'); } catch (e) { return []; }
       },
-      saveSubscriptions(list) {
+      saveSubscriptions(list, autoSync = true) {
         localStorage.setItem('yt_user_subscriptions', JSON.stringify(list));
+        if (autoSync) this.syncToCloud();
       },
       isSubscribed(channelName) {
         return this.getSubscriptions().some(s => s.name === channelName);
@@ -614,13 +660,18 @@
         this.saveSubscriptions(list);
         return isNowSubscribed;
       },
+      removeSubscription(channelName) {
+        let list = this.getSubscriptions().filter(s => s.name !== channelName);
+        this.saveSubscriptions(list);
+      },
 
       // الفيديوهات التي أعجبتني
       getLikedVideos() {
         try { return JSON.parse(localStorage.getItem('yt_user_liked') || '[]'); } catch (e) { return []; }
       },
-      saveLikedVideos(list) {
+      saveLikedVideos(list, autoSync = true) {
         localStorage.setItem('yt_user_liked', JSON.stringify(list));
+        if (autoSync) this.syncToCloud();
       },
       isLiked(videoId) {
         return this.getLikedVideos().some(v => v.id === videoId);
@@ -666,8 +717,9 @@
       getHistory() {
         try { return JSON.parse(localStorage.getItem('yt_user_history') || '[]'); } catch (e) { return []; }
       },
-      saveHistory(list) {
+      saveHistory(list, autoSync = true) {
         localStorage.setItem('yt_user_history', JSON.stringify(list));
+        if (autoSync) this.syncToCloud();
       },
       addToHistory(video) {
         let list = this.getHistory().filter(v => v.id !== video.id);
@@ -677,6 +729,7 @@
       },
       clearHistory() {
         localStorage.removeItem('yt_user_history');
+        this.syncToCloud();
       },
 
       // قوائم التشغيل (Playlists & Watch Later)
@@ -687,15 +740,16 @@
             pls = [
               { id: 'watch_later', title: 'المشاهدة لاحقاً', isSystem: true, videos: [] }
             ];
-            this.savePlaylists(pls);
+            this.savePlaylists(pls, false);
           }
           return pls;
         } catch (e) {
           return [{ id: 'watch_later', title: 'المشاهدة لاحقاً', isSystem: true, videos: [] }];
         }
       },
-      savePlaylists(pls) {
+      savePlaylists(pls, autoSync = true) {
         localStorage.setItem('yt_user_playlists', JSON.stringify(pls));
+        if (autoSync) this.syncToCloud();
       },
       createPlaylist(title) {
         const clean = (title || '').trim();
@@ -711,6 +765,20 @@
         pls.push(newPl);
         this.savePlaylists(pls);
         return newPl;
+      },
+      renamePlaylist(playlistId, newTitle) {
+        const clean = (newTitle || '').trim();
+        if (!clean) return;
+        let pls = this.getPlaylists();
+        const pl = pls.find(p => p.id === playlistId);
+        if (pl) {
+          pl.title = clean;
+          this.savePlaylists(pls);
+        }
+      },
+      deletePlaylist(playlistId) {
+        let pls = this.getPlaylists().filter(p => p.id !== playlistId || p.isSystem);
+        this.savePlaylists(pls);
       },
       toggleVideoInPlaylist(playlistId, video) {
         let pls = this.getPlaylists();
@@ -728,6 +796,14 @@
         }
         this.savePlaylists(pls);
         return added;
+      },
+      removeVideoFromPlaylist(playlistId, videoId) {
+        let pls = this.getPlaylists();
+        const pl = pls.find(p => p.id === playlistId);
+        if (pl && Array.isArray(pl.videos)) {
+          pl.videos = pl.videos.filter(v => v.id !== videoId);
+          this.savePlaylists(pls);
+        }
       },
       isVideoInPlaylist(playlistId, videoId) {
         const pls = this.getPlaylists();
@@ -782,99 +858,170 @@
         });
         const data = await res.json();
         if (res.ok && data.status === 'valid') {
-          updateUserUI(true, key, data.expires_at, data.client_email);
-          loadYouTubeVideos('', 'all');
-          startHeartbeat(key);
+          isActivated = true;
+          currentLicenseKey = data.serial_key;
+          currentClientEmail = data.client_email || '';
+          currentExpiryDate = data.expires_at;
+
+          if (data.user_data) {
+            UserDB.restoreFromCloud(data.user_data);
+          }
+
+          updateUserUI(true, data);
+          loadYouTubeVideos('', currentActiveCategory);
         } else {
           localStorage.removeItem('yt_license_key');
           updateUserUI(false);
-          loadYouTubeVideos('', 'all');
+          loadYouTubeVideos('', currentActiveCategory);
         }
-      } catch (e) {
-        updateUserUI(true, key, null, localStorage.getItem('yt_client_email'));
-        loadYouTubeVideos('', 'all');
-      }
-    }
-
-    function updateUserUI(isLoggedIn, key = '', expiry = null, clientEmail = '') {
-      isActivated = !!isLoggedIn;
-      currentLicenseKey = key || '';
-      if (clientEmail) {
-        currentClientEmail = clientEmail;
-        localStorage.setItem('yt_client_email', clientEmail);
-      } else {
+      } catch (err) {
+        isActivated = true;
+        currentLicenseKey = key;
         currentClientEmail = localStorage.getItem('yt_client_email') || '';
+        updateUserUI(true, {
+          serial_key: key,
+          client_email: currentClientEmail,
+          days_left: 'نشط'
+        });
+        loadYouTubeVideos('', currentActiveCategory);
       }
-      if (expiry) currentExpiryDate = expiry;
+    }
 
-      const signInBtn = document.getElementById('signInBtn');
-      const userProfileBtn = document.getElementById('userProfileBtn');
-      const headerPremiumBadge = document.getElementById('headerPremiumBadge');
-      const headerCountryBadge = document.getElementById('headerCountryBadge');
-      const navUserText = document.getElementById('navUserText');
-      const pageTitle = document.getElementById('pageTitle');
+    async function activateLicense() {
+      const keyInput = document.getElementById('inputLicenseKey');
+      const emailInput = document.getElementById('inputClientEmail');
+      const errEl = document.getElementById('loginModalError');
+      const btn = document.getElementById('btnSubmitActivation');
 
-      if (isActivated) {
-        signInBtn.classList.add('hidden');
-        userProfileBtn.classList.remove('hidden');
-        headerPremiumBadge.classList.remove('hidden');
-        headerCountryBadge.classList.add('hidden');
-        if (pageTitle) pageTitle.innerText = 'YouTube Premium';
+      const key = (keyInput.value || '').trim();
+      const email = (emailInput.value || '').trim();
 
-        const email = currentClientEmail || '';
-        const initial = email ? email[0].toUpperCase() : 'P';
-        const userAvatarChar = document.getElementById('userAvatarChar');
-        if (userAvatarChar) userAvatarChar.innerText = initial;
+      errEl.classList.add('hidden');
+      if (!key) {
+        errEl.innerText = 'يرجى إدخال مفتاح الترخيص';
+        errEl.classList.remove('hidden');
+        return;
+      }
 
-        document.getElementById('dropEmailText').innerText = email || 'مشترك مفعل في YouTube PLUS+';
-        document.getElementById('dropKeyText').innerText = currentLicenseKey;
-        if (currentExpiryDate) {
-          const d = new Date(currentExpiryDate);
-          document.getElementById('dropExpiryText').innerText = 'ينتهي: ' + d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-sm"></i> جاري التفعيل...';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/activate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            serial_key: key,
+            device_id: DEVICE_ID,
+            client_email: email
+          })
+        });
+
+        const data = await res.json();
+        btn.disabled = false;
+        btn.innerHTML = '<span>تفعيل والبدء بالمشاهدة</span><i class="fa-solid fa-arrow-left text-xs"></i>';
+
+        if (res.ok && data.status === 'success') {
+          isActivated = true;
+          currentLicenseKey = data.serial_key;
+          currentClientEmail = data.client_email || email;
+          currentExpiryDate = data.expires_at;
+
+          localStorage.setItem('yt_license_key', currentLicenseKey);
+          if (currentClientEmail) localStorage.setItem('yt_client_email', currentClientEmail);
+
+          if (data.user_data) {
+            UserDB.restoreFromCloud(data.user_data);
+          } else {
+            UserDB.syncToCloud();
+          }
+
+          closeLoginModal();
+          updateUserUI(true, data);
+          showToast('✓ تم تفعيل الاشتراك بنجاح! جميع ميزات بريميوم مفعّلة');
+
+          if (currentActiveVideo) {
+            playVideo(currentActiveVideo.id);
+          } else {
+            loadYouTubeVideos('', currentActiveCategory);
+          }
         } else {
-          document.getElementById('dropExpiryText').innerText = 'الاشتراك سارٍ ونشط';
+          errEl.innerText = data.message || 'كود التفعيل غير صالح';
+          errEl.classList.remove('hidden');
         }
-        if (navUserText) navUserText.innerText = email ? email.split('@')[0] : 'أنت';
-      } else {
-        signInBtn.classList.remove('hidden');
-        userProfileBtn.classList.add('hidden');
-        headerPremiumBadge.classList.add('hidden');
-        headerCountryBadge.classList.remove('hidden');
-        if (pageTitle) pageTitle.innerText = 'YouTube';
-        if (navUserText) navUserText.innerText = 'أنت';
-      }
-
-      if (currentActiveVideo) {
-        updateWatchPlayerBadges();
+      } catch (err) {
+        btn.disabled = false;
+        btn.innerHTML = '<span>تفعيل والبدء بالمشاهدة</span><i class="fa-solid fa-arrow-left text-xs"></i>';
+        errEl.innerText = 'فشل الاتصال بالسيرفر، يرجى المحاولة مرة أخرى';
+        errEl.classList.remove('hidden');
       }
     }
 
-    function toggleUserMenu() {
-      document.getElementById('userDropdown').classList.toggle('hidden');
-    }
-
-    document.addEventListener('click', (e) => {
+    function updateUserUI(activated, data = {}) {
+      const premBadge = document.getElementById('headerPremiumBadge');
+      const signInBtn = document.getElementById('signInBtn');
       const profileBtn = document.getElementById('userProfileBtn');
-      const dropdown = document.getElementById('userDropdown');
-      if (profileBtn && dropdown && !profileBtn.contains(e.target)) {
-        dropdown.classList.add('hidden');
+      const navUserText = document.getElementById('navUserText');
+      const avatarChar = document.getElementById('userAvatarChar');
+
+      if (activated) {
+        premBadge.classList.remove('hidden');
+        signInBtn.classList.add('hidden');
+        profileBtn.classList.remove('hidden');
+
+        const email = currentClientEmail || data.client_email || 'VIP User';
+        document.getElementById('dropEmailText').innerText = email;
+        document.getElementById('dropKeyText').innerText = currentLicenseKey;
+        document.getElementById('dropExpiryText').innerText = data.days_left ? `متبقي ${data.days_left} يوم` : 'اشتراك سارٍ';
+        
+        const firstChar = email.charAt(0).toUpperCase() || 'P';
+        avatarChar.innerText = firstChar;
+        navUserText.innerText = email.split('@')[0] || 'أنت';
+      } else {
+        premBadge.classList.add('hidden');
+        signInBtn.classList.remove('hidden');
+        profileBtn.classList.add('hidden');
+        navUserText.innerText = 'أنت';
       }
-    });
+
+      updateWatchPlayerBadges();
+    }
+
+    function updateWatchPlayerBadges() {
+      const banner = document.getElementById('unactivatedWatchBanner');
+      const statusBadge = document.getElementById('watchPremiumStatusBadge');
+      if (isActivated) {
+        if (banner) banner.classList.add('hidden');
+        if (statusBadge) {
+          statusBadge.className = 'text-amber-400 font-bold flex items-center gap-1';
+          statusBadge.innerHTML = '<i class="fa-solid fa-crown text-xs"></i><span>YouTube PLUS+ بريميوم نشط</span>';
+        }
+      } else {
+        if (banner) banner.classList.remove('hidden');
+        if (statusBadge) {
+          statusBadge.className = 'text-amber-500 font-bold flex items-center gap-1';
+          statusBadge.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-xs"></i><span>يتطلب تفعيل الاشتراك للمشاهدة</span>';
+        }
+      }
+    }
 
     // =====================================================
-    // 3. تشغيل في الخلفية وحامل الصوت ونمط PiP للآيفون (Background Audio & PiP)
+    // 3. نظام تشغيل الصوت بالخلفية ونمط PiP على أنظمة iOS / Safari
     // =====================================================
     let bgAudioCarrier = null;
-
     function initBackgroundAudioCarrier() {
       bgAudioCarrier = document.getElementById('bgAudioCarrier');
       if (bgAudioCarrier) {
-        // حلقة صوتية غير مسموعة لتثبيت جلسة الصوت في iOS Lock Screen
         bgAudioCarrier.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
       }
     }
 
     function triggerPiPMode() {
+      if (!isActivated) {
+        openLoginModal();
+        showToast('⚠️ المشاهدة بالخلفية و PiP مخصصة للمشتركين');
+        return;
+      }
       if (!currentActiveVideo) {
         showToast('يرجى تشغيل فيديو أولاً لتفعيل الاستماع بالخلفية');
         return;
@@ -940,9 +1087,16 @@
     }
 
     // =====================================================
-    // 4. تشغيل الفيديو والتفاعل الحي (Watch, Subscriptions, Likes)
+    // 4. تشغيل الفيديو وقفل الحماية (Strict License Wall)
     // =====================================================
     function playVideo(videoId) {
+      // قفل المشغل 100% لغير المشتركين لحماية التراخيص
+      if (!isActivated) {
+        openLoginModal();
+        showToast('⚠️ المشاهدة بدون إعلانات والاستماع بالخلفية يتطلبان تفعيل كود الاشتراك');
+        return;
+      }
+
       const v = currentVideoList.find(item => item.id === videoId) || {
         id: videoId,
         title: 'تشغيل مباشر - YouTube',
@@ -963,25 +1117,19 @@
       document.getElementById('watchChannelAvatar').innerText = (v.channel || 'Y').charAt(0);
 
       const iframe = document.getElementById('activeIframe');
-      // استخدام enablejsapi=1 للتحكم بالصوت من شاشة القفل والـ MediaSession
       iframe.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&playsinline=1&enablejsapi=1&rel=0&modestbranding=1`;
 
-      // تحديث حالة زر الاشتراك
+      // تحديث أزرار الاشتراك والإعجاب
       updateSubscribeBtnUI(v.channel);
-
-      // تحديث حالة زر الإعجاب
       updateLikeBtnUI(v.id);
-
       updateWatchPlayerBadges();
 
       document.getElementById('watchPageSection').classList.remove('hidden');
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
-      // تفعيل الصوت بالخلفية والـ MediaSession
-      if (isActivated) {
-        if (bgAudioCarrier) bgAudioCarrier.play().catch(() => {});
-        setupMediaSession(v);
-      }
+      // تفعيل الصوت بالخلفية
+      if (bgAudioCarrier) bgAudioCarrier.play().catch(() => {});
+      setupMediaSession(v);
     }
 
     function updateSubscribeBtnUI(channelName) {
@@ -994,7 +1142,7 @@
       if (isSub) {
         btn.className = 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 font-bold text-xs sm:text-sm px-4 py-2 rounded-full transition mr-2 flex items-center gap-1.5';
         txt.innerText = 'مشترك ✓';
-        if (subStatus) subStatus.innerText = 'أنت مشترك في هذه القناة';
+        if (subStatus) subStatus.innerText = 'أنت مشترك في هذه القناة (انقر للإلغاء)';
       } else {
         btn.className = 'bg-[#f1f1f1] hover:bg-zinc-200 text-[#0f0f0f] font-bold text-xs sm:text-sm px-4 py-2 rounded-full transition mr-2 flex items-center gap-1.5 shadow';
         txt.innerText = 'اشتراك';
@@ -1012,6 +1160,15 @@
       } else {
         showToast(`تم إلغاء الاشتراك من قناة (${ch})`);
       }
+    }
+
+    function unsubscribeFromChannel(channelName) {
+      UserDB.removeSubscription(channelName);
+      if (currentActiveVideo && currentActiveVideo.channel === channelName) {
+        updateSubscribeBtnUI(channelName);
+      }
+      showSubscriptionsPage();
+      showToast(`تم إلغاء الاشتراك من قناة (${channelName})`);
     }
 
     function updateLikeBtnUI(videoId) {
@@ -1043,7 +1200,6 @@
     function toggleCurrentVideoLike() {
       if (!currentActiveVideo) return;
       const isLiked = UserDB.toggleLike(currentActiveVideo);
-      // إذا كان مسجلاً كـ dislike، نحذفه
       if (UserDB.isDisliked(currentActiveVideo.id)) {
         UserDB.toggleDislike(currentActiveVideo.id);
       }
@@ -1054,7 +1210,6 @@
     function toggleCurrentVideoDislike() {
       if (!currentActiveVideo) return;
       const isDisliked = UserDB.toggleDislike(currentActiveVideo.id);
-      // إذا كان مسجلاً كـ like، نحذفه
       if (isDisliked && UserDB.isLiked(currentActiveVideo.id)) {
         UserDB.toggleLike(currentActiveVideo);
       }
@@ -1063,7 +1218,7 @@
     }
 
     // =====================================================
-    // 5. إدارة قوائم التشغيل والمشاهدة لاحقاً (Playlists Modal)
+    // 5. إدارة قوائم التشغيل والمشاهدة لاحقاً
     // =====================================================
     function openSavePlaylistModal() {
       if (!currentActiveVideo) {
@@ -1077,12 +1232,12 @@
         const inPl = UserDB.isVideoInPlaylist(pl.id, currentActiveVideo.id);
         return `
           <label class="flex items-center justify-between p-2.5 rounded-xl hover:bg-white/5 cursor-pointer transition">
-            <span class="text-xs font-medium text-white">${pl.title}</span>
+            <span class="text-xs text-white">${pl.title}</span>
             <input 
               type="checkbox" 
               ${inPl ? 'checked' : ''} 
-              onchange="handleTogglePlaylist('${pl.id}')"
-              class="w-4 h-4 accent-[#3ea6ff] rounded cursor-pointer"
+              onchange="handleToggleVideoInPlaylist('${pl.id}')"
+              class="w-4 h-4 rounded border-zinc-600 text-[#3ea6ff] focus:ring-0 cursor-pointer bg-zinc-800"
             >
           </label>
         `;
@@ -1095,74 +1250,69 @@
       document.getElementById('savePlaylistModal').classList.add('hidden');
     }
 
-    function handleTogglePlaylist(plId) {
+    function handleToggleVideoInPlaylist(plId) {
       if (!currentActiveVideo) return;
       const added = UserDB.toggleVideoInPlaylist(plId, currentActiveVideo);
-      showToast(added ? 'تمت الإضافة إلى القائمة' : 'تمت الإزالة من القائمة');
+      const pls = UserDB.getPlaylists();
+      const pl = pls.find(p => p.id === plId);
+      const title = pl ? pl.title : 'القائمة';
+      showToast(added ? `تمت إضافة الفيديو إلى "${title}"` : `تمت إزالة الفيديو من "${title}"`);
     }
 
     function submitCreateNewPlaylist() {
       const input = document.getElementById('newPlaylistTitleInput');
-      const title = input.value.trim();
-      if (!title) return;
-      const newPl = UserDB.createPlaylist(title);
-      if (newPl && currentActiveVideo) {
-        UserDB.toggleVideoInPlaylist(newPl.id, currentActiveVideo);
-        showToast(`تم إنشاء قائمة (${title}) وإضافة الفيديو إليها`);
+      const val = (input.value || '').trim();
+      if (!val) {
+        showToast('يرجى إدخال اسم للقائمة');
+        return;
+      }
+      const pl = UserDB.createPlaylist(val);
+      if (pl && currentActiveVideo) {
+        UserDB.toggleVideoInPlaylist(pl.id, currentActiveVideo);
+        showToast(`تم إنشاء "${val}" وحفظ الفيديو بداخلها`);
       }
       input.value = '';
       openSavePlaylistModal();
     }
 
-    function updateWatchPlayerBadges() {
-      const badge = document.getElementById('watchPremiumStatusBadge');
-      const unactBanner = document.getElementById('unactivatedWatchBanner');
-      if (isActivated) {
-        if (badge) badge.innerHTML = '<span class="text-emerald-400 font-bold"><i class="fa-solid fa-shield-check"></i> تم التفعيل (Premium) بدون إعلانات وبث بالخلفية</span>';
-        if (unactBanner) unactBanner.classList.add('hidden');
-      } else {
-        if (badge) badge.innerHTML = '<span class="text-amber-400 font-medium"><i class="fa-regular fa-circle-play"></i> تشغيل عادي (يتطلب تفعيل بدون إعلانات)</span>';
-        if (unactBanner) unactBanner.classList.remove('hidden');
+    function renamePlaylistPrompt(plId) {
+      const pls = UserDB.getPlaylists();
+      const pl = pls.find(p => p.id === plId);
+      if (!pl) return;
+      const newName = prompt('أدخل الاسم الجديد لقائمة التشغيل:', pl.title);
+      if (newName && newName.trim()) {
+        UserDB.renamePlaylist(plId, newName.trim());
+        showPlaylistDetails(plId);
+        showToast('تم تعديل اسم القائمة بنجاح');
       }
     }
 
-    function copyCurrentVideoLink() {
-      if (!currentActiveVideo) return;
-      const url = `https://www.youtube.com/watch?v=${currentActiveVideo.id}`;
-      const btnText = document.getElementById('copyLinkBtnText');
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(url).then(() => {
-          if (btnText) {
-            btnText.innerText = 'تم النسخ ✓';
-            setTimeout(() => btnText.innerText = 'نسخ الرابط', 2000);
-          }
-        });
-      } else {
-        prompt('انسخ رابط الفيديو:', url);
+    function deletePlaylistConfirm(plId) {
+      if (confirm('هل أنت متأكد من رغبتك في حذف قائمة التشغيل هذه بالكامل؟')) {
+        UserDB.deletePlaylist(plId);
+        showPlaylistsPage();
+        showToast('تم حذف قائمة التشغيل');
       }
     }
 
-    function closeWatchPage() {
-      const iframe = document.getElementById('activeIframe');
-      if (iframe) iframe.src = 'about:blank';
-      if (bgAudioCarrier) bgAudioCarrier.pause();
-      document.getElementById('watchPageSection').classList.add('hidden');
-      currentActiveVideo = null;
+    function removeVideoFromPlaylistUI(plId, videoId) {
+      UserDB.removeVideoFromPlaylist(plId, videoId);
+      showPlaylistDetails(plId);
+      showToast('تمت إزالة الفيديو من القائمة');
     }
 
     // =====================================================
-    // 6. عرض الصفحات التفاعلية الحية (Custom Views Hub)
+    // 6. عرض الصفحات التفاعلية الحية (الاشتراكات، الإعجابات، السجل، القوائم، وشورتس)
     // =====================================================
-    function setCustomViewActive(title, icon) {
+    function setCustomViewActive() {
       document.getElementById('chipsSection').classList.add('hidden');
       document.getElementById('videoGrid').parentElement.classList.add('hidden');
       const view = document.getElementById('customViewSection');
       view.classList.remove('hidden');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      view.innerHTML = '';
       return view;
     }
 
-    // صفحة الاشتراكات الحية
     function showSubscriptionsPage() {
       highlightNav('navSubs', 'sideSubs');
       closeWatchPage();
@@ -1177,10 +1327,10 @@
             </div>
             <h2 class="text-base font-bold text-white mb-1">لا توجد قنوات في اشتراكاتك بعد</h2>
             <p class="text-xs text-zinc-400 mb-6 leading-relaxed">
-              اشترك في قنواتك المفضلة أثناء مشاهدة أي فيديو بضغط زر (اشتراك) لتظهر قنواتك ومقاطعها هنا مباشرة.
+              اشترك في قنواتك المفضلة أثناء مشاهدة أي فيديو بضغط زر (اشتراك) لتظهر قنواتك هنا.
             </p>
             <button onclick="goHome()" class="bg-[#f1f1f1] hover:bg-zinc-200 text-[#0f0f0f] font-bold text-xs px-5 py-2.5 rounded-full transition">
-              استكشاف الفيديوهات الرائجة
+              استكشاف الفيديوهات
             </button>
           </div>
         `;
@@ -1196,165 +1346,120 @@
             </h2>
           </div>
 
-          <!-- شريط القنوات المشترك بها الدائري مثل تطبيق يوتيوب -->
-          <div class="overflow-x-auto hide-scrollbar flex items-center gap-4 py-2">
+          <!-- قائمة بطاقات القنوات مع زر إلغاء الاشتراك المباشر -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             ${subs.map(s => `
-              <div onclick="searchChannelVideos('${s.name.replace(/'/g, "\\'")}')" class="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 group">
-                <div class="w-14 h-14 rounded-full bg-gradient-to-tr from-red-600 to-amber-600 flex items-center justify-center font-bold text-white text-base shadow group-hover:scale-105 transition">
-                  ${s.avatar || s.name.charAt(0)}
+              <div class="bg-[#1f1f1f] hover:bg-[#252525] border border-white/5 rounded-2xl p-4 flex items-center justify-between gap-3 transition group">
+                <div onclick="searchChannelVideos('${s.name.replace(/'/g, "\\'")}')" class="flex items-center gap-3 cursor-pointer min-w-0">
+                  <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-red-600 to-amber-600 flex items-center justify-center text-white font-bold text-base shrink-0 shadow">
+                    ${s.avatar || s.name.charAt(0)}
+                  </div>
+                  <div class="min-w-0">
+                    <h3 class="font-bold text-sm text-white truncate group-hover:text-[#3ea6ff] transition">${s.name}</h3>
+                    <p class="text-[11px] text-zinc-400">قناة مشترك بها</p>
+                  </div>
                 </div>
-                <span class="text-[11px] text-zinc-300 group-hover:text-white max-w-[70px] truncate text-center">${s.name}</span>
+                <button 
+                  onclick="unsubscribeFromChannel('${s.name.replace(/'/g, "\\'")}')"
+                  class="bg-zinc-800 hover:bg-red-600/20 text-zinc-300 hover:text-red-400 text-xs px-3 py-1.5 rounded-full border border-white/10 transition shrink-0 whitespace-nowrap"
+                  title="إلغاء الاشتراك"
+                >
+                  إلغاء الاشتراك
+                </button>
               </div>
             `).join('')}
           </div>
-
-          <div class="pt-4">
-            <h3 class="text-sm font-bold text-white mb-4">أحدث مقاطع قنواتك المشترك بها:</h3>
-            <div id="subsVideosGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              <div class="col-span-full text-center py-10 text-zinc-500 text-xs"><i class="fa-solid fa-spinner fa-spin text-xl text-red-500 mb-2"></i><br>جاري جلب المقاطع...</div>
-            </div>
-          </div>
         </div>
       `;
-
-      // جلب مقاطع القنوات المشترك بها
-      const firstChannel = subs[0].name;
-      fetch(`${API_BASE}/api/yt/search?q=${encodeURIComponent(firstChannel)}`)
-        .then(r => r.json())
-        .then(d => {
-          const grid = document.getElementById('subsVideosGrid');
-          if (grid && d.videos && d.videos.length > 0) {
-            grid.innerHTML = renderVideoCards(d.videos);
-          } else if (grid) {
-            grid.innerHTML = '<div class="col-span-full text-center py-8 text-zinc-500 text-xs">اضغط على أي قناة بالأعلى لتصفح محتواها مباشرة</div>';
-          }
-        }).catch(() => {});
     }
 
     function searchChannelVideos(channelName) {
-      const grid = document.getElementById('subsVideosGrid');
-      if (grid) {
-        grid.innerHTML = '<div class="col-span-full text-center py-10 text-zinc-500 text-xs"><i class="fa-solid fa-spinner fa-spin text-xl text-red-500 mb-2"></i><br>جاري جلب مقاطع ' + channelName + '...</div>';
-      }
-      fetch(`${API_BASE}/api/yt/search?q=${encodeURIComponent(channelName)}`)
-        .then(r => r.json())
-        .then(d => {
-          if (grid && d.videos && d.videos.length > 0) {
-            grid.innerHTML = renderVideoCards(d.videos);
-          }
-        }).catch(() => {});
+      document.getElementById('mainSearchInput').value = channelName;
+      executeSearch();
     }
 
-    // صفحة الفيديوهات التي أعجبتني
     function showLikedVideosPage() {
       highlightNav('', 'sideLiked');
       closeWatchPage();
       const view = setCustomViewActive();
       const liked = UserDB.getLikedVideos();
 
-      if (liked.length === 0) {
-        view.innerHTML = `
-          <div class="py-16 text-center text-zinc-400 max-w-md mx-auto">
-            <div class="w-16 h-16 rounded-full bg-zinc-800/80 mx-auto flex items-center justify-center text-2xl text-blue-400 mb-4 shadow">
-              <i class="fa-regular fa-thumbs-up"></i>
-            </div>
-            <h2 class="text-base font-bold text-white mb-1">لا توجد فيديوهات في قائمة الإعجابات</h2>
-            <p class="text-xs text-zinc-400 mb-6 leading-relaxed">
-              انقر على زر الإعجاب (👍) أثناء مشاهدة أي فيديو لحفظه في هذه القائمة والرجوع إليه في أي وقت.
-            </p>
-            <button onclick="goHome()" class="bg-[#f1f1f1] hover:bg-zinc-200 text-[#0f0f0f] font-bold text-xs px-5 py-2.5 rounded-full transition">
-              تصفح الفيديوهات
-            </button>
-          </div>
-        `;
-        return;
-      }
-
       view.innerHTML = `
         <div>
           <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
             <div>
               <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                <i class="fa-solid fa-thumbs-up text-blue-400"></i>
+                <i class="fa-solid fa-thumbs-up text-[#3ea6ff]"></i>
                 <span>الفيديوهات التي أعجبتني</span>
               </h2>
-              <p class="text-xs text-zinc-400 font-mono mt-1">${liked.length} فيديو محفوظ</p>
+              <p class="text-xs text-zinc-400 font-mono mt-1">${liked.length} فيديو</p>
             </div>
-            <button onclick="playFirstLikedVideo()" class="bg-[#3ea6ff] hover:bg-[#3ea6ff]/90 text-black font-bold text-xs px-4 py-2 rounded-full transition flex items-center gap-1.5 shadow">
-              <i class="fa-solid fa-play text-xs"></i>
-              <span>تشغيل الكل</span>
-            </button>
+            ${liked.length > 0 ? `
+              <button onclick="playVideo('${liked[0].id}')" class="bg-[#3ea6ff] hover:bg-[#3ea6ff]/90 text-black font-bold text-xs px-4 py-2 rounded-full transition flex items-center gap-1.5 shadow">
+                <i class="fa-solid fa-play text-xs"></i>
+                <span>تشغيل الكل</span>
+              </button>
+            ` : ''}
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            ${renderVideoCards(liked)}
-          </div>
+          ${liked.length === 0 ? `
+            <div class="py-16 text-center text-zinc-400">
+              <p class="text-xs">لم تسجل إعجابك بأي فيديو بعد. انقر على رمز الإعجاب أثناء المشاهدة لحفظ مقاطعك هنا.</p>
+            </div>
+          ` : `
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              ${renderVideoCards(liked)}
+            </div>
+          `}
         </div>
       `;
     }
 
-    function playFirstLikedVideo() {
-      const liked = UserDB.getLikedVideos();
-      if (liked.length > 0) playVideo(liked[0].id);
-    }
-
-    // صفحة سجل المشاهدة (Watch History)
     function showHistoryPage() {
       highlightNav('', 'sideHistory');
       closeWatchPage();
       const view = setCustomViewActive();
       const history = UserDB.getHistory();
 
-      if (history.length === 0) {
-        view.innerHTML = `
-          <div class="py-16 text-center text-zinc-400 max-w-md mx-auto">
-            <div class="w-16 h-16 rounded-full bg-zinc-800/80 mx-auto flex items-center justify-center text-2xl text-zinc-500 mb-4 shadow">
-              <i class="fa-solid fa-clock-rotate-left"></i>
-            </div>
-            <h2 class="text-base font-bold text-white mb-1">سجل المشاهدة فارغ</h2>
-            <p class="text-xs text-zinc-400 mb-6 leading-relaxed">
-              جميع الفيديوهات التي تشاهدها سيتم حفظها في هذا السجل لتتمكن من متابعتها لاحقاً.
-            </p>
-            <button onclick="goHome()" class="bg-[#f1f1f1] hover:bg-zinc-200 text-[#0f0f0f] font-bold text-xs px-5 py-2.5 rounded-full transition">
-              بدء المشاهدة
-            </button>
-          </div>
-        `;
-        return;
-      }
-
       view.innerHTML = `
         <div>
           <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
             <div>
               <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                <i class="fa-solid fa-clock-rotate-left text-zinc-400"></i>
+                <i class="fa-solid fa-clock-rotate-left text-zinc-300"></i>
                 <span>سجل المشاهدة</span>
               </h2>
-              <p class="text-xs text-zinc-400 font-mono mt-1">${history.length} فيديو تمت مشاهدته</p>
+              <p class="text-xs text-zinc-400 font-mono mt-1">${history.length} فيديو في السجل</p>
             </div>
-            <button onclick="confirmClearHistory()" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-bold text-xs px-4 py-2 rounded-full transition flex items-center gap-1.5">
-              <i class="fa-solid fa-trash text-xs"></i>
-              <span>محو السجل بالكامل</span>
-            </button>
+            ${history.length > 0 ? `
+              <button onclick="clearHistoryConfirm()" class="text-zinc-400 hover:text-red-400 text-xs px-3 py-1.5 rounded-full border border-white/10 hover:border-red-400/30 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-trash text-xs"></i>
+                <span>محو سجل المشاهدة بالكامل</span>
+              </button>
+            ` : ''}
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            ${renderVideoCards(history)}
-          </div>
+          ${history.length === 0 ? `
+            <div class="py-16 text-center text-zinc-400">
+              <p class="text-xs">سجل المشاهدة فارغ حالياً.</p>
+            </div>
+          ` : `
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              ${renderVideoCards(history)}
+            </div>
+          `}
         </div>
       `;
     }
 
-    function confirmClearHistory() {
-      if (confirm('هل ترغب حقاً في محو سجل المشاهدة بالكامل؟')) {
+    function clearHistoryConfirm() {
+      if (confirm('هل تريد بالتأكيد محو سجل المشاهدة بالكامل؟')) {
         UserDB.clearHistory();
         showHistoryPage();
         showToast('تم محو سجل المشاهدة بنجاح');
       }
     }
 
-    // صفحة قوائم التشغيل (Playlists)
     function showPlaylistsPage() {
       highlightNav('', 'sidePlaylists');
       closeWatchPage();
@@ -1382,18 +1487,27 @@
               const count = pl.videos ? pl.videos.length : 0;
               const thumb = (pl.videos && pl.videos[0]) ? pl.videos[0].thumb : 'https://i.ytimg.com/vi/kJQP7kiw5Fk/hqdefault.jpg';
               return `
-                <div onclick="showPlaylistDetails('${pl.id}')" class="cursor-pointer bg-[#1f1f1f] hover:bg-[#252525] border border-white/5 rounded-2xl overflow-hidden transition group">
-                  <div class="relative aspect-video bg-zinc-900 overflow-hidden">
-                    <img src="${thumb}" class="w-full h-full object-cover group-hover:scale-105 transition duration-200">
-                    <div class="absolute inset-y-0 left-0 w-2/5 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center text-white">
-                      <span class="font-mono text-sm font-bold">${count}</span>
-                      <i class="fa-solid fa-list text-xs mt-1 text-zinc-400"></i>
+                <div class="bg-[#1f1f1f] hover:bg-[#252525] border border-white/5 rounded-2xl overflow-hidden transition group relative">
+                  <div onclick="showPlaylistDetails('${pl.id}')" class="cursor-pointer">
+                    <div class="relative aspect-video bg-zinc-900 overflow-hidden">
+                      <img src="${thumb}" class="w-full h-full object-cover group-hover:scale-105 transition duration-200">
+                      <div class="absolute inset-y-0 left-0 w-2/5 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center text-white">
+                        <span class="font-mono text-sm font-bold">${count}</span>
+                        <i class="fa-solid fa-list text-xs mt-1 text-zinc-400"></i>
+                      </div>
+                    </div>
+                    <div class="p-3.5">
+                      <h3 class="font-bold text-sm text-white truncate">${pl.title}</h3>
+                      <p class="text-[11px] text-zinc-400 mt-1">${pl.isSystem ? 'قائمة تلقائية' : 'قائمة مخصصة'}</p>
                     </div>
                   </div>
-                  <div class="p-3.5">
-                    <h3 class="font-bold text-sm text-white truncate">${pl.title}</h3>
-                    <p class="text-[11px] text-zinc-400 mt-1 font-mono">${count} فيديو</p>
-                  </div>
+                  ${!pl.isSystem ? `
+                    <div class="px-3.5 pb-3 flex justify-end">
+                      <button onclick="deletePlaylistConfirm('${pl.id}')" class="text-zinc-500 hover:text-red-400 text-xs transition p-1" title="حذف القائمة">
+                        <i class="fa-solid fa-trash text-xs"></i>
+                      </button>
+                    </div>
+                  ` : ''}
                 </div>
               `;
             }).join('')}
@@ -1403,6 +1517,7 @@
     }
 
     function showWatchLaterPage() {
+      highlightNav('', 'sideWatchLater');
       showPlaylistDetails('watch_later');
     }
 
@@ -1415,7 +1530,7 @@
 
       view.innerHTML = `
         <div>
-          <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
+          <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-6 flex-wrap gap-3">
             <div>
               <div class="flex items-center gap-2">
                 <button onclick="showPlaylistsPage()" class="p-2 rounded-full hover:bg-white/10 text-zinc-400 hover:text-white">
@@ -1425,12 +1540,24 @@
               </div>
               <p class="text-xs text-zinc-400 font-mono mt-1 mr-8">${videos.length} فيديو في هذه القائمة</p>
             </div>
-            ${videos.length > 0 ? `
-              <button onclick="playVideo('${videos[0].id}')" class="bg-[#3ea6ff] hover:bg-[#3ea6ff]/90 text-black font-bold text-xs px-4 py-2 rounded-full transition flex items-center gap-1.5 shadow">
-                <i class="fa-solid fa-play text-xs"></i>
-                <span>تشغيل الكل</span>
-              </button>
-            ` : ''}
+            <div class="flex items-center gap-2">
+              ${!pl.isSystem ? `
+                <button onclick="renamePlaylistPrompt('${pl.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs px-3.5 py-2 rounded-full border border-white/10 transition flex items-center gap-1.5">
+                  <i class="fa-solid fa-pen text-xs"></i>
+                  <span>تعديل الاسم</span>
+                </button>
+                <button onclick="deletePlaylistConfirm('${pl.id}')" class="bg-zinc-800 hover:bg-red-600/20 text-red-400 text-xs px-3.5 py-2 rounded-full border border-red-500/20 transition flex items-center gap-1.5">
+                  <i class="fa-solid fa-trash text-xs"></i>
+                  <span>حذف القائمة</span>
+                </button>
+              ` : ''}
+              ${videos.length > 0 ? `
+                <button onclick="playVideo('${videos[0].id}')" class="bg-[#3ea6ff] hover:bg-[#3ea6ff]/90 text-black font-bold text-xs px-4 py-2 rounded-full transition flex items-center gap-1.5 shadow">
+                  <i class="fa-solid fa-play text-xs"></i>
+                  <span>تشغيل الكل</span>
+                </button>
+              ` : ''}
+            </div>
           </div>
 
           ${videos.length === 0 ? `
@@ -1439,7 +1566,30 @@
             </div>
           ` : `
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              ${renderVideoCards(videos)}
+              ${videos.map(v => `
+                <div class="bg-[#1f1f1f] border border-white/5 rounded-2xl overflow-hidden group hover:border-white/20 transition flex flex-col justify-between">
+                  <div onclick="playVideo('${v.id}')" class="cursor-pointer">
+                    <div class="relative aspect-video bg-zinc-900 overflow-hidden">
+                      <img src="${v.thumb}" class="w-full h-full object-cover group-hover:scale-105 transition duration-200">
+                      <span class="absolute bottom-2 left-2 bg-black/80 font-mono text-[10px] text-white px-1.5 py-0.5 rounded">${v.dur || 'HD'}</span>
+                    </div>
+                    <div class="p-3">
+                      <h3 class="font-bold text-xs text-white line-clamp-2 leading-snug">${v.title}</h3>
+                      <p class="text-[11px] text-zinc-400 mt-1 truncate">${v.channel}</p>
+                    </div>
+                  </div>
+                  <div class="px-3 pb-3 flex justify-end">
+                    <button 
+                      onclick="removeVideoFromPlaylistUI('${pl.id}', '${v.id}')"
+                      class="text-xs text-zinc-500 hover:text-red-400 hover:bg-red-500/10 px-2 py-1 rounded transition flex items-center gap-1"
+                      title="إزالة من هذه القائمة"
+                    >
+                      <i class="fa-solid fa-trash text-[10px]"></i>
+                      <span>إزالة</span>
+                    </button>
+                  </div>
+                </div>
+              `).join('')}
             </div>
           `}
         </div>
@@ -1455,7 +1605,70 @@
       }
     }
 
-    // صفحة "أنت" الشاملة (You Tab) المطابقة تماماً لتطبيق يوتيوب للهواتف
+    // واجهة Shorts العمودية المطابقة تماماً ليوتيوب شورتس الرسمي
+    async function showShortsSection() {
+      highlightNav('navShorts', 'sideShorts');
+      closeWatchPage();
+      const view = setCustomViewActive();
+
+      view.innerHTML = `
+        <div class="space-y-4">
+          <div class="flex items-center justify-between border-b border-white/10 pb-3">
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-bolt text-[#ff0000]"></i>
+              <span>Shorts - الفيديوهات القصيرة</span>
+            </h2>
+            <button onclick="showShortsSection()" class="text-xs text-zinc-400 hover:text-white flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-arrows-rotate"></i>
+              <span>تحديث الفيديوهات</span>
+            </button>
+          </div>
+          <div id="shortsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+            <div class="col-span-full py-20 text-center text-zinc-400">
+              <i class="fa-solid fa-spinner fa-spin text-3xl text-red-500 mb-3"></i>
+              <p class="text-xs">جاري تحميل أحدث مقاطع Shorts...</p>
+            </div>
+          </div>
+        </div>
+      `;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/yt/search?cat=shorts&fresh=1`);
+        const data = await res.json();
+        const grid = document.getElementById('shortsGrid');
+        if (!grid) return;
+        const videos = (data.status === 'success' && Array.isArray(data.videos)) ? data.videos : [];
+        if (videos.length === 0) {
+          grid.innerHTML = '<div class="col-span-full py-12 text-center text-zinc-500 text-xs">لا توجد مقاطع Shorts متاحة حالياً</div>';
+          return;
+        }
+
+        currentVideoList = videos;
+
+        grid.innerHTML = videos.map(v => `
+          <div onclick="playVideo('${v.id}')" class="cursor-pointer group relative aspect-[9/16] bg-[#1a1a1a] rounded-2xl overflow-hidden shadow-lg border border-white/5 hover:border-white/20 transition duration-300">
+            <img src="${v.thumb}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-between p-3">
+              <div class="flex justify-end">
+                <span class="bg-[#ff0000] text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow">
+                  <i class="fa-solid fa-bolt text-[9px]"></i>
+                  <span>Shorts</span>
+                </span>
+              </div>
+              <div>
+                <h3 class="font-bold text-xs text-white leading-tight line-clamp-2 mb-1 group-hover:text-[#3ea6ff] transition">${v.title}</h3>
+                <p class="text-[10px] text-zinc-300 font-mono">${v.views}</p>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {
+        const grid = document.getElementById('shortsGrid');
+        if (grid) grid.innerHTML = '<div class="col-span-full py-12 text-center text-red-400 text-xs">تعذر تحميل فيديوهات Shorts</div>';
+      }
+    }
+
+    // صفحة "أنت" الشاملة (You Tab)
     function showYouPage() {
       highlightNav('navYou', '');
       closeWatchPage();
@@ -1464,196 +1677,160 @@
       const email = currentClientEmail || localStorage.getItem('yt_client_email') || 'حسابك الشخصي';
       const history = UserDB.getHistory().slice(0, 8);
       const liked = UserDB.getLikedVideos().slice(0, 8);
+      const subs = UserDB.getSubscriptions().slice(0, 10);
       const pls = UserDB.getPlaylists();
-      const subs = UserDB.getSubscriptions();
 
       view.innerHTML = `
-        <div class="space-y-6 max-w-5xl mx-auto pb-10">
-          
-          <!-- بطاقة الحساب الشخصي الرسمية -->
-          <div class="bg-[#1f1f1f] border border-white/10 rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div class="flex items-center gap-4 text-center sm:text-right">
-              <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-red-600 via-amber-600 to-emerald-500 flex items-center justify-center font-bold text-white text-2xl shadow-lg shrink-0">
-                ${email ? email.charAt(0).toUpperCase() : 'P'}
+        <div class="space-y-8 max-w-5xl mx-auto pb-12">
+          <!-- بطاقة العضوية والملف الشخصي -->
+          <div class="bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 border border-white/10 rounded-3xl p-6 shadow-2xl flex items-center justify-between flex-wrap gap-4">
+            <div class="flex items-center gap-4">
+              <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-[#ff0000] to-amber-600 flex items-center justify-center text-white font-bold text-2xl shadow-lg border-2 border-white/20">
+                ${email.charAt(0).toUpperCase() || 'U'}
               </div>
               <div>
-                <h2 class="text-base sm:text-lg font-bold text-white">${email}</h2>
-                <div class="flex items-center gap-2 mt-1 justify-center sm:justify-start">
-                  <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                    عضوية YouTube Premium نشطة
-                  </span>
+                <div class="flex items-center gap-2">
+                  <h2 class="text-base sm:text-lg font-bold text-white truncate">${email}</h2>
+                  ${isActivated ? '<span class="bg-amber-500/20 text-amber-400 border border-amber-500/30 font-bold text-[10px] px-2.5 py-0.5 rounded-full">Premium</span>' : '<span class="bg-zinc-700 text-zinc-300 text-[10px] px-2 py-0.5 rounded-full">غير مفعّل</span>'}
                 </div>
-                <div class="text-[11px] text-zinc-400 font-mono mt-1">
-                  كود التفعيل: <span class="text-white font-bold">${currentLicenseKey || 'مفعّل'}</span>
-                </div>
+                <p class="text-xs text-zinc-400 font-mono mt-1">كود الترخيص: ${currentLicenseKey || 'غير متصل'}</p>
+                <p class="text-[11px] text-emerald-400 font-mono mt-0.5">معرف جهازك: ${DEVICE_ID}</p>
               </div>
             </div>
-
-            <div class="flex items-center gap-2 flex-wrap justify-center">
-              <button onclick="openEditEmailModal()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold px-4 py-2 rounded-xl transition border border-white/10">
-                تعديل البريد
-              </button>
-              <button onclick="openLoginModal()" class="bg-zinc-800 hover:bg-zinc-700 text-amber-400 text-xs font-bold px-4 py-2 rounded-xl transition border border-white/10">
-                تمديد الاشتراك
-              </button>
-              <button onclick="disconnectLicense()" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-bold px-4 py-2 rounded-xl transition border border-red-500/20">
-                تسجيل الخروج
-              </button>
+            <div>
+              ${isActivated ? `
+                <button onclick="disconnectLicense()" class="bg-zinc-800 hover:bg-red-600/20 text-zinc-300 hover:text-red-400 text-xs font-bold px-4 py-2.5 rounded-2xl border border-white/10 transition flex items-center gap-2">
+                  <i class="fa-solid fa-right-from-bracket"></i>
+                  <span>تسجيل الخروج</span>
+                </button>
+              ` : `
+                <button onclick="openLoginModal()" class="bg-amber-500 hover:bg-amber-400 text-black text-xs font-bold px-5 py-2.5 rounded-2xl transition shadow">
+                  تفعيل كود الاشتراك
+                </button>
+              `}
             </div>
           </div>
 
-          <!-- قسم السجل (شريط أفقي متحرك) -->
-          <div class="space-y-3">
-            <div class="flex items-center justify-between">
-              <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-                <i class="fa-solid fa-clock-rotate-left text-zinc-400"></i>
+          <!-- صف سجل المشاهدة الأخير -->
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                <i class="fa-solid fa-clock-rotate-left text-zinc-400 text-xs"></i>
                 <span>السجل</span>
               </h3>
-              ${history.length > 0 ? `
-                <button onclick="showHistoryPage()" class="text-xs text-[#3ea6ff] font-bold hover:underline">
-                  عرض الكل (${history.length})
-                </button>
-              ` : ''}
+              <button onclick="showHistoryPage()" class="text-xs text-[#3ea6ff] hover:underline font-bold">عرض الكل</button>
             </div>
-
             ${history.length === 0 ? `
-              <p class="text-xs text-zinc-500 py-3">لم تشاهد أي مقطع حتى الآن.</p>
+              <p class="text-xs text-zinc-500 py-4">لا توجد مقاطع تم مشاهدتها مؤخراً.</p>
             ` : `
-              <div class="overflow-x-auto hide-scrollbar flex items-start gap-3 py-1">
+              <div class="flex items-center gap-3 overflow-x-auto hide-scrollbar py-1">
                 ${history.map(v => `
-                  <div onclick="playVideo('${v.id}')" class="w-44 shrink-0 cursor-pointer group text-right">
-                    <div class="relative aspect-video rounded-xl overflow-hidden bg-zinc-900 mb-1.5">
+                  <div onclick="playVideo('${v.id}')" class="shrink-0 w-44 cursor-pointer group">
+                    <div class="relative aspect-video rounded-xl overflow-hidden bg-zinc-900 mb-1.5 border border-white/5">
                       <img src="${v.thumb}" class="w-full h-full object-cover group-hover:scale-105 transition duration-200">
-                      <span class="absolute bottom-1 left-1 bg-black/80 text-white text-[10px] px-1 rounded font-mono">${v.dur || 'HD'}</span>
                     </div>
-                    <h4 class="text-xs font-medium text-white line-clamp-2 leading-tight group-hover:text-zinc-200">${v.title}</h4>
-                    <span class="text-[10px] text-zinc-400 truncate block mt-0.5">${v.channel}</span>
+                    <h4 class="text-xs text-white font-bold line-clamp-2 leading-snug group-hover:text-[#3ea6ff]">${v.title}</h4>
+                    <p class="text-[10px] text-zinc-400 mt-0.5 truncate">${v.channel}</p>
                   </div>
                 `).join('')}
               </div>
             `}
           </div>
 
-          <!-- قسم قوائم التشغيل -->
-          <div class="space-y-3 pt-2">
-            <div class="flex items-center justify-between">
-              <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-                <i class="fa-solid fa-list text-amber-400"></i>
+          <!-- قوائم التشغيل -->
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                <i class="fa-solid fa-list text-zinc-400 text-xs"></i>
                 <span>قوائم التشغيل</span>
               </h3>
-              <button onclick="showPlaylistsPage()" class="text-xs text-[#3ea6ff] font-bold hover:underline">
-                عرض الكل (${pls.length})
-              </button>
+              <button onclick="showPlaylistsPage()" class="text-xs text-[#3ea6ff] hover:underline font-bold">عرض الكل</button>
             </div>
-
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              ${pls.slice(0, 3).map(pl => `
-                <div onclick="showPlaylistDetails('${pl.id}')" class="cursor-pointer bg-[#1f1f1f] p-3 rounded-2xl border border-white/5 hover:bg-[#282828] transition">
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              ${pls.map(pl => `
+                <div onclick="showPlaylistDetails('${pl.id}')" class="bg-[#1f1f1f] hover:bg-[#282828] border border-white/5 rounded-2xl p-3.5 cursor-pointer transition">
                   <div class="font-bold text-xs text-white truncate">${pl.title}</div>
-                  <div class="text-[10px] text-zinc-400 font-mono mt-1">${pl.videos ? pl.videos.length : 0} فيديو</div>
+                  <div class="text-[11px] text-zinc-400 mt-1 font-mono">${pl.videos ? pl.videos.length : 0} فيديو</div>
                 </div>
               `).join('')}
             </div>
           </div>
 
-          <!-- قسم الفيديوهات التي أعجبتني والاشتراكات -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-            <div onclick="showLikedVideosPage()" class="cursor-pointer bg-[#1f1f1f] hover:bg-[#252525] p-4 rounded-2xl border border-white/5 flex items-center justify-between transition">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-lg">
-                  <i class="fa-solid fa-thumbs-up"></i>
-                </div>
-                <div>
-                  <div class="text-xs font-bold text-white">الفيديوهات التي أعجبتني</div>
-                  <div class="text-[11px] text-zinc-400 font-mono">${UserDB.getLikedVideos().length} فيديو</div>
-                </div>
-              </div>
-              <i class="fa-solid fa-chevron-left text-zinc-500 text-xs"></i>
+          <!-- الفيديوهات التي أعجبتني -->
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                <i class="fa-solid fa-thumbs-up text-zinc-400 text-xs"></i>
+                <span>الفيديوهات التي أعجبتني</span>
+              </h3>
+              <button onclick="showLikedVideosPage()" class="text-xs text-[#3ea6ff] hover:underline font-bold">عرض الكل</button>
             </div>
-
-            <div onclick="showSubscriptionsPage()" class="cursor-pointer bg-[#1f1f1f] hover:bg-[#252525] p-4 rounded-2xl border border-white/5 flex items-center justify-between transition">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center text-lg">
-                  <i class="fa-solid fa-layer-group"></i>
-                </div>
-                <div>
-                  <div class="text-xs font-bold text-white">قنواتي المشترك بها</div>
-                  <div class="text-[11px] text-zinc-400 font-mono">${subs.length} قناة</div>
-                </div>
+            ${liked.length === 0 ? `
+              <p class="text-xs text-zinc-500 py-4">لم تسجل إعجابك بأي فيديو بعد.</p>
+            ` : `
+              <div class="flex items-center gap-3 overflow-x-auto hide-scrollbar py-1">
+                ${liked.map(v => `
+                  <div onclick="playVideo('${v.id}')" class="shrink-0 w-44 cursor-pointer group">
+                    <div class="relative aspect-video rounded-xl overflow-hidden bg-zinc-900 mb-1.5 border border-white/5">
+                      <img src="${v.thumb}" class="w-full h-full object-cover group-hover:scale-105 transition duration-200">
+                    </div>
+                    <h4 class="text-xs text-white font-bold line-clamp-2 leading-snug group-hover:text-[#3ea6ff]">${v.title}</h4>
+                  </div>
+                `).join('')}
               </div>
-              <i class="fa-solid fa-chevron-left text-zinc-500 text-xs"></i>
-            </div>
+            `}
           </div>
 
+          <!-- الاشتراكات -->
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                <i class="fa-solid fa-layer-group text-zinc-400 text-xs"></i>
+                <span>قنواتك المفضلة</span>
+              </h3>
+              <button onclick="showSubscriptionsPage()" class="text-xs text-[#3ea6ff] hover:underline font-bold">عرض الكل</button>
+            </div>
+            ${subs.length === 0 ? `
+              <p class="text-xs text-zinc-500 py-4">لم تشترك بأي قناة بعد.</p>
+            ` : `
+              <div class="flex items-center gap-4 overflow-x-auto hide-scrollbar py-2">
+                ${subs.map(s => `
+                  <div onclick="searchChannelVideos('${s.name.replace(/'/g, "\\'")}')" class="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 group">
+                    <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-red-600 to-amber-600 flex items-center justify-center text-white font-bold text-sm shadow group-hover:scale-105 transition">
+                      ${s.avatar || s.name.charAt(0)}
+                    </div>
+                    <span class="text-[11px] text-zinc-300 truncate max-w-[70px] text-center">${s.name}</span>
+                  </div>
+                `).join('')}
+              </div>
+            `}
+          </div>
         </div>
       `;
     }
 
-    function highlightNav(mobileNavId, sideNavId) {
-      document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.nav-btn').forEach(el => {
-        el.classList.remove('text-white');
-        el.classList.add('text-zinc-400');
+    function highlightNav(navId, sideId) {
+      document.querySelectorAll('#mainSidebar .sidebar-item').forEach(el => el.classList.remove('active'));
+      if (sideId) {
+        const sideEl = document.getElementById(sideId);
+        if (sideEl) sideEl.classList.add('active');
+      }
+      document.querySelectorAll('nav.md\:hidden button').forEach(el => {
+        el.className = 'flex flex-col items-center gap-1 hover:text-white transition';
       });
-
-      if (sideNavId) {
-        const el = document.getElementById(sideNavId);
-        if (el) el.classList.add('active');
-      }
-      if (mobileNavId) {
-        const el = document.getElementById(mobileNavId);
-        if (el) {
-          el.classList.add('text-white');
-          el.classList.remove('text-zinc-400');
-        }
+      if (navId) {
+        const navEl = document.getElementById(navId);
+        if (navEl) navEl.className = 'flex flex-col items-center gap-1 text-white';
       }
     }
 
     // =====================================================
-    // 7. دوال جلب وبناء كروت الفيديوهات
+    // 7. محرك جلب وعرض الفيديوهات الحية المتجددة
     // =====================================================
-    function renderVideoCards(videos) {
-      return videos.map(v => `
-        <div onclick="playVideo('${v.id}')" class="cursor-pointer flex flex-col group text-right">
-          <div class="relative aspect-video w-full rounded-xl overflow-hidden bg-[#202020]">
-            <img 
-              src="${v.thumb || ('https://i.ytimg.com/vi/' + v.id + '/hqdefault.jpg')}" 
-              class="w-full h-full object-cover group-hover:scale-105 transition duration-200" 
-              loading="lazy" 
-              onerror="this.src='https://i.ytimg.com/vi/${v.id}/hqdefault.jpg'"
-            >
-            <span class="absolute bottom-1.5 left-1.5 bg-black/80 text-white text-[11px] font-medium px-1.5 py-0.5 rounded font-mono">
-              ${v.dur || 'HD'}
-            </span>
-          </div>
-
-          <div class="flex gap-3 mt-3 px-0.5">
-            <div class="w-9 h-9 rounded-full bg-[#272727] flex items-center justify-center text-white text-xs font-bold shrink-0 mt-0.5">
-              ${(v.channel || 'Y').charAt(0)}
-            </div>
-            <div class="flex-1 min-w-0">
-              <h3 class="font-medium text-sm text-white line-clamp-2 leading-tight group-hover:text-zinc-200">
-                ${v.title}
-              </h3>
-              <div class="text-xs text-zinc-400 mt-1 flex items-center gap-1">
-                <span class="truncate">${v.channel}</span>
-                <i class="fa-solid fa-circle-check text-[10px] text-zinc-400"></i>
-              </div>
-              <div class="text-xs text-zinc-400 font-mono">
-                ${v.views || ''} ${v.time ? '• ' + v.time : ''}
-              </div>
-            </div>
-          </div>
-        </div>
-      `).join('');
-    }
-
     async function loadYouTubeVideos(query = '', category = 'all') {
       const loading = document.getElementById('loadingIndicator');
       const grid = document.getElementById('videoGrid');
       
-      // إخفاء العرض المخصص وإظهار شبكة الفيديوهات الرئيسية
       document.getElementById('customViewSection').classList.add('hidden');
       document.getElementById('chipsSection').classList.remove('hidden');
       grid.parentElement.classList.remove('hidden');
@@ -1662,24 +1839,76 @@
       grid.innerHTML = '';
 
       try {
-        const url = `${API_BASE}/api/yt/search?q=${encodeURIComponent(query)}&cat=${encodeURIComponent(category)}`;
+        const url = `${API_BASE}/api/yt/search?q=${encodeURIComponent(query)}&cat=${encodeURIComponent(category)}&fresh=1`;
         const res = await fetch(url);
         const data = await res.json();
         loading.classList.add('hidden');
 
         if (data.status === 'success' && Array.isArray(data.videos) && data.videos.length > 0) {
           currentVideoList = data.videos;
-          grid.innerHTML = renderVideoCards(data.videos);
+          grid.innerHTML = renderVideoCards(currentVideoList);
         } else {
-          renderFallback();
+          grid.innerHTML = `
+            <div class="col-span-full py-16 text-center text-zinc-400">
+              <i class="fa-solid fa-circle-exclamation text-3xl text-zinc-600 mb-2"></i>
+              <p class="text-xs">لم يتم العثور على فيديوهات. حاول البحث بكلمات أخرى.</p>
+            </div>
+          `;
         }
-      } catch (e) {
+      } catch (err) {
         loading.classList.add('hidden');
-        renderFallback();
+        grid.innerHTML = `
+          <div class="col-span-full py-16 text-center text-red-400">
+            <p class="text-xs">تعذر الاتصال بخدمة YouTube الحية. يرجى المحاولة بعد قليل.</p>
+          </div>
+        `;
       }
     }
 
+    function renderVideoCards(videos) {
+      return videos.map(v => `
+        <div onclick="playVideo('${v.id}')" class="cursor-pointer group select-none flex flex-col justify-between">
+          <div>
+            <div class="relative aspect-video rounded-2xl overflow-hidden bg-[#202020] mb-3 shadow-md">
+              <img 
+                src="${v.thumb}" 
+                alt="${v.title}" 
+                class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                loading="lazy"
+              >
+              <span class="absolute bottom-2 left-2 bg-black/80 backdrop-blur font-mono text-[11px] text-white px-2 py-0.5 rounded-md font-semibold">
+                ${v.dur || 'HD'}
+              </span>
+            </div>
+            <div class="flex gap-3 text-right">
+              <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-zinc-700 to-zinc-900 border border-white/10 shrink-0 flex items-center justify-center text-white text-xs font-bold">
+                ${(v.channel || 'Y').charAt(0)}
+              </div>
+              <div class="flex-1 min-w-0">
+                <h3 class="font-bold text-sm text-white line-clamp-2 leading-snug group-hover:text-[#3ea6ff] transition">
+                  ${v.title}
+                </h3>
+                <div class="text-xs text-zinc-400 mt-1 flex items-center gap-1.5">
+                  <span class="truncate hover:text-white transition">${v.channel || 'YouTube'}</span>
+                  <i class="fa-solid fa-circle-check text-[10px]"></i>
+                </div>
+                <div class="text-xs text-zinc-400 flex items-center gap-1 mt-0.5">
+                  <span>${v.views || 'مشاهدات'}</span>
+                  <span>•</span>
+                  <span>${v.time || 'حديثاً'}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
     function filterCategory(cat, btnEl) {
+      if (cat === 'shorts') {
+        showShortsSection();
+        return;
+      }
       document.querySelectorAll('.yt-chip').forEach(btn => btn.classList.remove('active'));
       if (btnEl) {
         btnEl.classList.add('active');
@@ -1702,32 +1931,27 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    function closeWatchPage() {
+      const section = document.getElementById('watchPageSection');
+      section.classList.add('hidden');
+      const iframe = document.getElementById('activeIframe');
+      iframe.src = 'about:blank';
+      if (bgAudioCarrier) bgAudioCarrier.pause();
+    }
+
+    // =====================================================
+    // 8. محرك البحث الذكي الصوتي واقتراحات البحث التلقائية
+    // =====================================================
     function executeSearch() {
-      const q = document.getElementById('mainSearchInput').value.trim();
-      if (!q) return;
+      const input = document.getElementById('mainSearchInput');
+      const q = (input.value || '').trim();
       hideSuggestions();
-      handleDirectOrQuery(q);
-    }
-
-    function executeMobileSearch() {
-      const q = document.getElementById('mobileSearchInput').value.trim();
       if (!q) return;
-      closeMobileSearch();
-      handleDirectOrQuery(q);
-    }
-
-    function handleDirectOrQuery(q) {
-      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-      const match = q.match(regExp);
-      if (match && match[2].length === 11) {
-        playVideo(match[2]);
-        return;
-      }
+      closeWatchPage();
       document.querySelectorAll('.yt-chip').forEach(btn => btn.classList.remove('active'));
       loadYouTubeVideos(q, '');
     }
 
-    // اقتراحات البحث
     let suggestTimer = null;
     function handleSearchInput(val) {
       const clearBtn = document.getElementById('clearSearchBtn');
@@ -1742,25 +1966,26 @@
       clearTimeout(suggestTimer);
       suggestTimer = setTimeout(async () => {
         try {
-          const res = await fetch(`https://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=${encodeURIComponent(val)}`);
+          const res = await fetch(`${API_BASE}/api/yt/suggestions?q=${encodeURIComponent(val)}`);
           if (res.ok) {
             const data = await res.json();
-            showSuggestions(data[1] || []);
+            showSuggestions(data.suggestions || []);
           }
         } catch (e) {}
-      }, 250);
+      }, 200);
     }
 
     function showSuggestions(list) {
       const box = document.getElementById('suggestBox');
       const container = document.getElementById('suggestItems');
       if (!list || list.length === 0) {
-        box.classList.add('hidden');
+        hideSuggestions();
         return;
       }
-      container.innerHTML = list.slice(0, 8).map(item => `
-        <div onclick="selectSuggestion('${item.replace(/'/g, "\\'")}')" class="px-4 py-2 hover:bg-white/10 cursor-pointer flex items-center gap-3 text-white text-right">
-          <i class="fa-solid fa-magnifying-glass text-zinc-500 text-xs"></i>
+
+      container.innerHTML = list.map(item => `
+        <div onclick="selectSuggestion('${item.replace(/'/g, "\\'")}')" class="px-4 py-2 hover:bg-white/10 cursor-pointer flex items-center gap-3 text-zinc-200">
+          <i class="fa-solid fa-magnifying-glass text-xs text-zinc-500"></i>
           <span>${item}</span>
         </div>
       `).join('');
@@ -1768,7 +1993,8 @@
     }
 
     function hideSuggestions() {
-      document.getElementById('suggestBox').classList.add('hidden');
+      const box = document.getElementById('suggestBox');
+      if (box) box.classList.add('hidden');
     }
 
     function selectSuggestion(text) {
@@ -1784,10 +2010,67 @@
       goHome();
     }
 
-    function toggleSidebar() {
-      document.getElementById('mainSidebar').classList.toggle('hidden');
+    // البحث الصوتي (Web Speech API)
+    let voiceRecognition = null;
+    function startVoiceSearch() {
+      const SpeechClass = window.webkitSpeechRecognition || window.SpeechRecognition;
+      if (!SpeechClass) {
+        showToast('عذراً، متصفحك لا يدعم البحث الصوتي المباشر. يمكنك استخدام لوحة المفاتيح.');
+        return;
+      }
+
+      const modal = document.getElementById('voiceSearchModal');
+      const statusText = document.getElementById('voiceStatusText');
+      const recText = document.getElementById('voiceRecognizedText');
+      modal.classList.remove('hidden');
+      statusText.innerText = 'جاري الاستماع...';
+      recText.innerText = 'تحدث الآن للبحث في YouTube PLUS+';
+
+      try {
+        if (voiceRecognition) {
+          voiceRecognition.abort();
+        }
+        voiceRecognition = new SpeechClass();
+        voiceRecognition.lang = 'ar-SA';
+        voiceRecognition.continuous = false;
+        voiceRecognition.interimResults = true;
+
+        voiceRecognition.onresult = (event) => {
+          const transcript = Array.from(event.results).map(r => r[0].transcript).join('');
+          recText.innerText = transcript;
+          if (event.results[0].isFinal) {
+            stopVoiceSearch();
+            document.getElementById('mainSearchInput').value = transcript;
+            executeSearch();
+          }
+        };
+
+        voiceRecognition.onerror = () => {
+          statusText.innerText = 'تعذر التقاط الصوت';
+          recText.innerText = 'يرجى المحاولة والتأكد من تفعيل إذن الميكروفون';
+          setTimeout(stopVoiceSearch, 2000);
+        };
+
+        voiceRecognition.onend = () => {
+          setTimeout(stopVoiceSearch, 500);
+        };
+
+        voiceRecognition.start();
+      } catch (err) {
+        showToast('يرجى منح إذن الميكروفون لبدء البحث الصوتي');
+        stopVoiceSearch();
+      }
     }
 
+    function stopVoiceSearch() {
+      const modal = document.getElementById('voiceSearchModal');
+      if (modal) modal.classList.add('hidden');
+      if (voiceRecognition) {
+        try { voiceRecognition.stop(); } catch (e) {}
+      }
+    }
+
+    // بحث الهاتف المحمول
     function openMobileSearch() {
       document.getElementById('mobileSearchBar').classList.remove('hidden');
       document.getElementById('mobileSearchInput').focus();
@@ -1795,184 +2078,210 @@
     function closeMobileSearch() {
       document.getElementById('mobileSearchBar').classList.add('hidden');
     }
+    function executeMobileSearch() {
+      const val = document.getElementById('mobileSearchInput').value;
+      closeMobileSearch();
+      document.getElementById('mainSearchInput').value = val;
+      executeSearch();
+    }
 
-    function shareCurrentVideo() {
-      if (!currentActiveVideo) return;
-      const url = `https://www.youtube.com/watch?v=${currentActiveVideo.id}`;
-      if (navigator.share) {
-        navigator.share({ title: currentActiveVideo.title, url: url });
+    // =====================================================
+    // 9. التنبيهات والإشعارات الرسمية
+    // =====================================================
+    const SYSTEM_NOTIFICATIONS = [
+      { id: 1, title: 'عضوية بريميوم نشطة', desc: 'تم تفعيل حسابك للاستمتاع بجميع ميزات YouTube PLUS+ بدون أي إعلانات.', time: 'الآن', icon: 'fa-crown text-amber-400' },
+      { id: 2, title: 'الاستماع بالخلفية ونمط PiP', desc: 'يمكنك الآن تشغيل المقاطع وقفل شاشة هاتفك أو استخدام النافذة العائمة بسهولة.', time: 'مفعّل', icon: 'fa-headphones text-[#3ea6ff]' },
+      { id: 3, title: 'المزامنة السحابية للسجلات', desc: 'سجلاتك وقوائمك واشتراكاتك يتم حفظها تلقائياً على السيرفر لتبقى معك دائماً.', time: 'سحابي', icon: 'fa-cloud text-emerald-400' }
+    ];
+
+    function toggleNotificationsModal() {
+      const drop = document.getElementById('notificationsDropdown');
+      const badge = document.getElementById('notificationsBadge');
+      if (!drop) return;
+      const isHidden = drop.classList.contains('hidden');
+      if (isHidden) {
+        renderNotifications();
+        drop.classList.remove('hidden');
+        if (badge) badge.classList.add('hidden');
       } else {
-        copyCurrentVideoLink();
+        drop.classList.add('hidden');
       }
     }
 
-    function showToast(msg) {
-      const toast = document.getElementById('toastNotification');
-      const txt = document.getElementById('toastNotificationText');
-      if (!toast || !txt) return;
-      txt.innerText = msg;
-      toast.classList.remove('opacity-0');
-      setTimeout(() => toast.classList.add('opacity-0'), 2800);
+    function renderNotifications() {
+      const listEl = document.getElementById('notificationsList');
+      if (!listEl) return;
+      listEl.innerHTML = SYSTEM_NOTIFICATIONS.map(n => `
+        <div class="p-3.5 hover:bg-white/5 transition flex items-start gap-3">
+          <div class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center shrink-0 mt-0.5">
+            <i class="fa-solid ${n.icon} text-sm"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-bold text-white text-xs truncate">${n.title}</span>
+              <span class="text-[10px] text-zinc-500 shrink-0 font-mono">${n.time}</span>
+            </div>
+            <p class="text-zinc-400 text-[11px] mt-0.5 leading-relaxed">${n.desc}</p>
+          </div>
+        </div>
+      `).join('');
     }
 
-    // نوافذ الدخول وتعديل البريد
+    function clearNotifications() {
+      const listEl = document.getElementById('notificationsList');
+      if (listEl) {
+        listEl.innerHTML = '<div class="py-8 text-center text-zinc-500 text-xs">لا توجد إشعارات جديدة</div>';
+      }
+      showToast('تم مسح جميع الإشعارات');
+    }
+
+    // =====================================================
+    // 10. النوافذ المنبثقة والإشعارات السريعة (Modals & Toast)
+    // =====================================================
     function openLoginModal() {
-      document.getElementById('loginAlert').classList.add('hidden');
       document.getElementById('loginModal').classList.remove('hidden');
-      document.getElementById('userDropdown')?.classList.add('hidden');
+      document.getElementById('loginModalError').classList.add('hidden');
+      const savedKey = localStorage.getItem('yt_license_key');
+      if (savedKey) document.getElementById('inputLicenseKey').value = savedKey;
+      const savedEmail = localStorage.getItem('yt_client_email');
+      if (savedEmail) document.getElementById('inputClientEmail').value = savedEmail;
     }
     function closeLoginModal() {
       document.getElementById('loginModal').classList.add('hidden');
     }
 
     function openEditEmailModal() {
-      document.getElementById('userDropdown')?.classList.add('hidden');
-      const input = document.getElementById('editEmailInput');
-      const alertBox = document.getElementById('editEmailAlert');
-      alertBox.classList.add('hidden');
-      input.value = currentClientEmail || '';
+      closeUserMenu();
       document.getElementById('editEmailModal').classList.remove('hidden');
+      document.getElementById('editEmailModalError').classList.add('hidden');
+      document.getElementById('newEmailInput').value = currentClientEmail;
     }
     function closeEditEmailModal() {
       document.getElementById('editEmailModal').classList.add('hidden');
     }
 
     async function submitUpdateEmail() {
-      const email = document.getElementById('editEmailInput').value.trim().toLowerCase();
-      const alertBox = document.getElementById('editEmailAlert');
-      const btn = document.getElementById('btnSaveEmail');
+      const input = document.getElementById('newEmailInput');
+      const err = document.getElementById('editEmailModalError');
+      const newEmail = (input.value || '').trim();
 
-      alertBox.classList.add('hidden');
-      if (!email || !email.includes('@') || !email.includes('.')) {
-        alertBox.className = 'p-2 rounded-xl text-center text-xs font-bold bg-red-500/10 border border-red-500/20 text-red-400';
-        alertBox.innerText = 'يرجى إدخال بريد إلكتروني صحيح';
-        alertBox.classList.remove('hidden');
+      if (!newEmail || !newEmail.includes('@')) {
+        err.innerText = 'يرجى إدخال بريد إلكتروني صحيح';
+        err.classList.remove('hidden');
         return;
       }
-
-      btn.disabled = true;
-      btn.innerText = 'جاري الحفظ...';
 
       try {
         const res = await fetch(`${API_BASE}/api/license/update-email`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ serial_key: currentLicenseKey, client_email: email })
+          body: JSON.stringify({
+            serial_key: currentLicenseKey,
+            new_email: newEmail
+          })
         });
         const data = await res.json();
         if (res.ok && data.status === 'success') {
-          currentClientEmail = email;
-          localStorage.setItem('yt_client_email', email);
-          updateUserUI(true, currentLicenseKey, currentExpiryDate, email);
-          alertBox.className = 'p-2 rounded-xl text-center text-xs font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400';
-          alertBox.innerText = 'تم حفظ وتحديث البريد الإلكتروني بنجاح!';
-          alertBox.classList.remove('hidden');
-          setTimeout(() => closeEditEmailModal(), 1200);
+          currentClientEmail = newEmail;
+          localStorage.setItem('yt_client_email', newEmail);
+          closeEditEmailModal();
+          updateUserUI(true, { client_email: newEmail, serial_key: currentLicenseKey });
+          showToast('✓ تم تحديث البريد الإلكتروني بنجاح ومزامنته سحابياً');
+          UserDB.syncToCloud();
         } else {
-          alertBox.className = 'p-2 rounded-xl text-center text-xs font-bold bg-red-500/10 border border-red-500/20 text-red-400';
-          alertBox.innerText = data.message || 'فشل حفظ البريد';
-          alertBox.classList.remove('hidden');
+          err.innerText = data.message || 'فشل التحديث';
+          err.classList.remove('hidden');
         }
-      } catch (err) {
-        alertBox.className = 'p-2 rounded-xl text-center text-xs font-bold bg-red-500/10 border border-red-500/20 text-red-400';
-        alertBox.innerText = 'تعذر الاتصال بالخادم';
-        alertBox.classList.remove('hidden');
-      } finally {
-        btn.disabled = false;
-        btn.innerText = 'حفظ البريد';
+      } catch (e) {
+        err.innerText = 'فشل الاتصال بالسيرفر';
+        err.classList.remove('hidden');
       }
     }
 
-    async function submitActivation() {
-      const key = document.getElementById('keyInput').value.trim().toUpperCase();
-      const alertBox = document.getElementById('loginAlert');
-      const btn = document.getElementById('btnActivate');
-
-      alertBox.classList.add('hidden');
-      if (!key || key.length < 8) {
-        alertBox.innerText = 'يرجى إدخال كود تفعيل صحيح';
-        alertBox.classList.remove('hidden');
-        return;
-      }
-
-      btn.disabled = true;
-      btn.innerText = 'جاري التحقق...';
-
-      const clientEmail = (document.getElementById('clientEmailInput')?.value || '').trim();
-
-      try {
-        const res = await fetch(`${API_BASE}/api/activate`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ serial_key: key, device_id: DEVICE_ID, client_email: clientEmail })
-        });
-        const data = await res.json();
-
-        if (res.ok && data.status === 'success') {
-          localStorage.setItem('yt_license_key', key);
-          if (data.client_email) localStorage.setItem('yt_client_email', data.client_email);
-          closeLoginModal();
-          updateUserUI(true, key, data.expires_at, data.client_email);
-          startHeartbeat(key);
-          showToast('تم تفعيل اشتراكك بنجاح!');
-        } else {
-          alertBox.innerText = data.message || 'كود التفعيل غير صالح';
-          alertBox.classList.remove('hidden');
-        }
-      } catch (e) {
-        alertBox.innerText = 'تعذر الاتصال بالخادم، تأكد من الإنترنت';
-        alertBox.classList.remove('hidden');
-      } finally {
-        btn.disabled = false;
-        btn.innerText = 'تفعيل وتشغيل';
-      }
+    function toggleUserMenu() {
+      const drop = document.getElementById('userDropdown');
+      drop.classList.toggle('hidden');
+    }
+    function closeUserMenu() {
+      const drop = document.getElementById('userDropdown');
+      if (drop) drop.classList.add('hidden');
     }
 
     function disconnectLicense() {
-      if (confirm('هل ترغب بتسجيل الخروج من هذا الجهاز؟')) {
+      closeUserMenu();
+      if (confirm('هل تريد تسجيل الخروج؟ ستتم استعادة جميع سجلاتك وقوائمك سحابياً عند تسجيل الدخول مجدداً.')) {
         localStorage.removeItem('yt_license_key');
-        localStorage.removeItem('yt_client_email');
+        isActivated = false;
+        currentLicenseKey = '';
+        currentClientEmail = '';
         updateUserUI(false);
-        document.getElementById('userDropdown').classList.add('hidden');
         closeWatchPage();
-        showToast('تم تسجيل الخروج');
+        loadYouTubeVideos('', currentActiveCategory);
+        showToast('تم تسجيل الخروج بنجاح');
       }
     }
 
-    let heartbeatTimer = null;
-    function startHeartbeat(key) {
-      if (heartbeatTimer) clearInterval(heartbeatTimer);
-      heartbeatTimer = setInterval(async () => {
-        try {
-          const res = await fetch(`${API_BASE}/api/verify`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ serial_key: key, device_id: DEVICE_ID })
-          });
-          const data = await res.json();
-          if (!res.ok || data.status !== 'valid') {
-            clearInterval(heartbeatTimer);
-            localStorage.removeItem('yt_license_key');
-            updateUserUI(false);
-            closeWatchPage();
-            openLoginModal();
-            document.getElementById('loginAlert').innerText = 'تم إيقاف أو انتهاء صلاحية هذا الكود من قبل الإدارة فوراً';
-            document.getElementById('loginAlert').classList.remove('hidden');
-          }
-        } catch (e) {}
-      }, 10000);
+    function toggleSidebar() {
+      const side = document.getElementById('mainSidebar');
+      side.classList.toggle('hidden');
     }
 
-    function renderFallback() {
-      const fallback = [
-        { id: "2h0B1G8Y9uE", title: "سورة البقرة كاملة بصوت الشيخ ماهر المعيقلي - تلاوة خاشعة بدقة 4K", channel: "إذاعة القرآن الكريم", views: "18.4M", time: "قبل 5 أشهر", dur: "2:04:15", thumb: "https://i.ytimg.com/vi/2h0B1G8Y9uE/hqdefault.jpg" },
-        { id: "lK8iP9r7mQo", title: "بودكاست فنجان: كيف تنجح في بناء ثروتك وتطوير ذاتك من الصفر؟", channel: "ثمانية / Thmanyah", views: "2.8M", time: "قبل 3 أسابيع", dur: "1:48:22", thumb: "https://i.ytimg.com/vi/lK8iP9r7mQo/hqdefault.jpg" },
-        { id: "kJQP7kiw5Fk", title: "جولة ساحرة في أعماق الغابات والأنهار السويسرية بدقة 4K 60FPS", channel: "Nature Relaxation Films", views: "7.9M", time: "قبل 8 أشهر", dur: "3:20:15", thumb: "https://i.ytimg.com/vi/kJQP7kiw5Fk/hqdefault.jpg" },
-        { id: "fJ9rUzIMcZQ", title: "المراجعة الشاملة لأحدث هواتف هذا العام - كل ما تحتاج معرفته قبل الشراء", channel: "فيصل السيف / Tech", views: "1.1M", time: "قبل أسبوعين", dur: "18:40", thumb: "https://i.ytimg.com/vi/fJ9rUzIMcZQ/hqdefault.jpg" }
-      ];
-      currentVideoList = fallback;
-      document.getElementById('videoGrid').innerHTML = renderVideoCards(fallback);
+    function shareCurrentVideo() {
+      if (!currentActiveVideo) return;
+      if (navigator.share) {
+        navigator.share({
+          title: currentActiveVideo.title,
+          url: `https://youtu.be/${currentActiveVideo.id}`
+        }).catch(() => {});
+      } else {
+        copyCurrentVideoLink();
+      }
     }
+
+    function copyCurrentVideoLink() {
+      if (!currentActiveVideo) return;
+      const url = `https://youtu.be/${currentActiveVideo.id}`;
+      navigator.clipboard.writeText(url).then(() => {
+        const txt = document.getElementById('copyLinkBtnText');
+        txt.innerText = 'تم النسخ ✓';
+        showToast('تم نسخ رابط الفيديو');
+        setTimeout(() => txt.innerText = 'نسخ الرابط', 2000);
+      });
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const el = document.getElementById('toastNotification');
+      const txt = document.getElementById('toastNotificationText');
+      if (!el || !txt) return;
+      txt.innerText = msg;
+      el.classList.remove('opacity-0');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        el.classList.add('opacity-0');
+      }, 2500);
+    }
+
+    // إغلاق القوائم عند النقر بالخارج
+    document.addEventListener('click', (e) => {
+      const userDrop = document.getElementById('userDropdown');
+      const profileBtn = document.getElementById('userProfileBtn');
+      if (userDrop && profileBtn && !profileBtn.contains(e.target)) {
+        userDrop.classList.add('hidden');
+      }
+
+      const notifDrop = document.getElementById('notificationsDropdown');
+      const notifBtn = document.getElementById('notificationsBtn');
+      if (notifDrop && notifBtn && !notifBtn.parentElement.contains(e.target)) {
+        notifDrop.classList.add('hidden');
+      }
+
+      const suggestBox = document.getElementById('suggestBox');
+      const searchInput = document.getElementById('mainSearchInput');
+      if (suggestBox && searchInput && !suggestBox.contains(e.target) && e.target !== searchInput) {
+        suggestBox.classList.add('hidden');
+      }
+    });
 </script>
 
   <!-- نافذة حفظ الفيديو في قائمة تشغيل حية -->
@@ -2024,6 +2333,21 @@
   <!-- عناصر داعمة للصوت بالخلفية ونمط PiP على iOS -->
   <audio id="bgAudioCarrier" loop playsinline preload="auto" class="hidden"></audio>
   <video id="pipCarrierVideo" loop playsinline webkit-playsinline muted class="hidden"></video>
+
+
+  <!-- نافذة البحث الصوتي المنبثقة التفاعلية -->
+  <div id="voiceSearchModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-[#1f1f1f] border border-white/10 rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center relative">
+      <button onclick="stopVoiceSearch()" class="absolute left-4 top-4 text-zinc-400 hover:text-white p-2">
+        <i class="fa-solid fa-xmark text-base"></i>
+      </button>
+      <div id="voicePulseCircle" class="w-20 h-20 mx-auto mb-6 rounded-full bg-red-600/20 border-2 border-red-500 flex items-center justify-center animate-pulse">
+        <i class="fa-solid fa-microphone text-3xl text-red-500"></i>
+      </div>
+      <h3 id="voiceStatusText" class="text-base font-bold text-white mb-2">جاري الاستماع...</h3>
+      <p id="voiceRecognizedText" class="text-xs text-zinc-400 min-h-[24px]">تحدث الآن للبحث في YouTube PLUS+</p>
+    </div>
+  </div>
 
 </body>
 </html>

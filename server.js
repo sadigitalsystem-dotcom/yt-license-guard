@@ -398,10 +398,18 @@ function sendJson(res, statusCode, data) {
 
 // ذاكرة تخزين مؤقت للبحث والتصنيفات لسرعة فائقة وتقليل الحمل
 const ytCache = new Map();
-const CACHE_TTL_MS = 10 * 60 * 1000; // 10 دقائق
+const CACHE_TTL_MS = 2 * 60 * 1000; // تقليل الكاش لدقيقتين لتجدد مستمر
+
+const ALL_ROTATING_QUERIES = [
+  ['ملخص مباريات اليوم اهداف', 'جديد اليوم ترند يوتيوب', 'سورة البقرة تلاوة خاشعة', 'بودكاست جديد حلقات'],
+  ['اهداف دوري ابطال ملخص', 'ترند مقاطع جديدة مميزة', 'قرآن كريم بصوت جميل', 'بودكاست ثمانية فنجان'],
+  ['اخبار اليوم عاجل ترند', 'افضل مقاطع الاسبوع يوتيوب', 'تلاوات خاشعة نادرة', 'وثائقي جديد روعة'],
+  ['اهداف مباريات كاملة اليوم', 'مقاطع ترفيهية ترند', 'قرآن راحة نفسية وطمأنينة', 'تجارب علمية واختراعات']
+];
 
 const CATEGORY_MAP = {
   'all': ['ملخص مباريات اليوم اهداف', 'جديد اليوم ترند', 'سورة البقرة تلاوة خاشعة', 'بودكاست جديد حلقات'],
+  'shorts': ['#shorts فيديو قصير ريلز ترند', 'shorts ريلز تيك توك ترند', 'shorts مقاطع مضحكة قصيرة', 'shorts تقنية وابداع'],
   'gaming': ['العاب قيمنق ترند', 'العاب فيديو ترند'],
   'sports': ['ملخص مباريات اليوم اهداف', 'اهداف مباريات اليوم دوري ابطال'],
   'music': ['اغاني عربية جديدة 2026 ترند'],
@@ -459,21 +467,22 @@ async function executeSingleSearch(q) {
   }
 }
 
-async function searchYouTube(query = '', category = '') {
+async function searchYouTube(query = '', category = '', forceFresh = false) {
   const cat = (category || '').toLowerCase().trim();
   const rawQuery = (query || '').trim();
 
   const cacheKey = cat ? `cat:${cat}` : (rawQuery || 'cat:all');
   const cached = ytCache.get(cacheKey);
-  if (cached && (Date.now() - cached.time < CACHE_TTL_MS)) {
+  if (!forceFresh && cached && (Date.now() - cached.time < CACHE_TTL_MS)) {
     return cached.videos;
   }
 
   let finalVideos = [];
 
-  // إذا تم اختيار قسم "الكل" أو لم يتم تحديد استعلام محدد
+  // إذا تم اختيار قسم "الكل" أو لم يتم تحديد استعلام محدد، نختار من مجموعات متجددة عشوائية
   if ((cat === 'all' || !cat) && (!rawQuery || rawQuery === 'شائع اليوم' || rawQuery === 'الكل')) {
-    const queries = CATEGORY_MAP['all'];
+    const randIdx = Math.floor(Math.random() * ALL_ROTATING_QUERIES.length);
+    const queries = ALL_ROTATING_QUERIES[randIdx];
     const results = await Promise.all(queries.map(q => executeSingleSearch(q)));
     
     // دمج النتائج بالتناوب لضمان التنوع التام كما في يوتيوب الرسمي 100%
@@ -750,12 +759,60 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
-    // 10. API البحث المباشر في فيديوهات يوتيوب الرسمية مع دعم التصنيفات المباشرة
+    // 10. API البحث المباشر في فيديوهات يوتيوب الرسمية مع دعم التصنيفات المباشرة والتجدد الحي
     if (req.method === 'GET' && pathname === '/api/yt/search') {
       const query = parsedUrl.searchParams.get('q') || '';
       const category = parsedUrl.searchParams.get('cat') || parsedUrl.searchParams.get('category') || '';
-      const videos = await searchYouTube(query, category);
+      const forceFresh = parsedUrl.searchParams.get('fresh') === '1' || parsedUrl.searchParams.get('t') !== null;
+      const videos = await searchYouTube(query, category, forceFresh);
       return sendJson(res, 200, { status: 'success', query, category, videos });
+    }
+
+    // 10.1 API اقتراحات البحث التلقائية (Auto-Suggestions) من يوتيوب بدون قيود CORS
+    if (req.method === 'GET' && pathname === '/api/yt/suggestions') {
+      const q = parsedUrl.searchParams.get('q') || '';
+      if (!q.trim()) {
+        return sendJson(res, 200, { status: 'success', suggestions: [] });
+      }
+      try {
+        const fetchRes = await fetch(`https://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=${encodeURIComponent(q)}`, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          }
+        });
+        if (fetchRes.ok) {
+          const json = await fetchRes.json();
+          return sendJson(res, 200, { status: 'success', suggestions: json[1] || [] });
+        }
+        return sendJson(res, 200, { status: 'success', suggestions: [] });
+      } catch (err) {
+        return sendJson(res, 200, { status: 'success', suggestions: [] });
+      }
+    }
+
+    // 10.2 API المزامنة السحابية للعميل (حفظ واسترجاع السجلات والقوائم والاشتراكات)
+    if (pathname === '/api/user/sync') {
+      if (req.method === 'POST') {
+        const body = await parseJsonBody(req);
+        const { serial_key, client_email, user_data } = body;
+        const license = db.find(serial_key || '') || (client_email ? db.getAll().find(l => (l.client_email || '').toLowerCase() === client_email.toLowerCase()) : null);
+        if (!license) {
+          return sendJson(res, 404, { status: 'error', message: 'لم يتم العثور على الترخيص' });
+        }
+        if (user_data && typeof user_data === 'object') {
+          license.user_data = user_data;
+          db.update(license);
+        }
+        return sendJson(res, 200, { status: 'success', message: 'تمت المزامنة السحابية بنجاح' });
+      } else if (req.method === 'GET') {
+        const key = parsedUrl.searchParams.get('key') || '';
+        const email = parsedUrl.searchParams.get('email') || '';
+        const license = db.find(key) || (email ? db.getAll().find(l => (l.client_email || '').toLowerCase() === email.toLowerCase()) : null);
+        if (!license) {
+          return sendJson(res, 404, { status: 'error', message: 'لم يتم العثور على الترخيص' });
+        }
+        return sendJson(res, 200, { status: 'success', user_data: license.user_data || null });
+      }
     }
 
     // 11. إعدادات وروابط التحميل العامة (Google Drive links)
@@ -880,7 +937,8 @@ const server = http.createServer(async (req, res) => {
         max_devices: maxDev,
         activated_at: license.activated_at,
         expires_at: license.expiry_date,
-        days_left: daysLeft
+        days_left: daysLeft,
+        user_data: license.user_data || null
       });
     }
 
@@ -923,7 +981,8 @@ const server = http.createServer(async (req, res) => {
         client_email: license.client_email || '',
         activated_at: license.activated_at,
         expires_at: license.expiry_date,
-        days_left: daysLeft
+        days_left: daysLeft,
+        user_data: license.user_data || null
       });
     }
     // API تحديث البريد الإلكتروني للعميل مباشرة من التطبيق

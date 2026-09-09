@@ -52,7 +52,22 @@
           "at": "2026-09-09T07:02:25.099Z",
           "detail": "تحديث البريد الإلكتروني إلى: dssupply0392@gmail.com"
         }
-      ]
+      ],
+      "user_data": {
+        "subscriptions": [
+          {
+            "name": "قناة تجريبية"
+          }
+        ],
+        "playlists": [
+          {
+            "id": "pl_1",
+            "title": "قائمتي السحابية"
+          }
+        ],
+        "liked": [],
+        "history": []
+      }
     },
     {
       "id": "4fc9890a-b592-4413-ade9-4f5863a9e4ad",
