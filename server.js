@@ -328,62 +328,7 @@ class LicenseDB {
     return this.data.employees.length < prevLen;
   }
 
-  // دوال إدارة مجموعات Google Family
-  getFamilyGroups() {
-    return this.data.family_groups || [];
-  }
-
-  createFamilyGroup(name, inviteLink = '') {
-    const group = {
-      id: crypto.randomUUID(),
-      name: (name || '').trim() || `مجموعة عائلية ${(this.data.family_groups || []).length + 1}`,
-      max_slots: 5,
-      invite_link: (inviteLink || '').trim() || 'https://families.google.com/familylink/',
-      created_at: new Date().toISOString(),
-      members: []
-    };
-    this.data.family_groups.push(group);
-    this.save();
-    return group;
-  }
-
-  addFamilyMember(groupId, { email, note = '', whatsapp = '', duration_months = 12 }) {
-    const group = (this.data.family_groups || []).find(g => g.id === groupId);
-    if (!group) throw new Error('المجموعة العائلية غير موجودة');
-    if (group.members.length >= (group.max_slots || 5)) {
-      throw new Error('تم اكتمال عدد الأعضاء في هذه المجموعة (الحد الأقصى 5 أعضاء)');
-    }
-    const cleanEmail = (email || '').trim().toLowerCase();
-    if (group.members.some(m => m.email.toLowerCase() === cleanEmail)) {
-      throw new Error('هذا البريد مضاف بالفعل في هذه المجموعة');
-    }
-
-    const now = new Date();
-    const expiry = new Date();
-    expiry.setMonth(expiry.getMonth() + (parseInt(duration_months, 10) || 12));
-
-    const member = {
-      id: crypto.randomUUID(),
-      email: cleanEmail,
-      note: (note || '').trim(),
-      whatsapp: (whatsapp || '').trim(),
-      joined_at: now.toISOString(),
-      expiry_date: expiry.toISOString(),
-      status: 'active'
-    };
-    group.members.push(member);
-    this.save();
-    return member;
-  }
-
-  removeFamilyMember(groupId, memberId) {
-    const group = (this.data.family_groups || []).find(g => g.id === groupId);
-    if (!group) return false;
-    const prev = group.members.length;
-    group.members = group.members.filter(m => m.id !== memberId && m.email !== memberId);
-    this.save();
-    return group.members.length < prev;
-  }
+  
 }
 
 const db = new LicenseDB(DB_PATH);
@@ -451,8 +396,25 @@ function sendJson(res, statusCode, data) {
   res.end(JSON.stringify(data));
 }
 
-// دالة البحث المباشر في فيديوهات يوتيوب الرسمية (Innertube API)
-async function searchYouTube(query) {
+// ذاكرة تخزين مؤقت للبحث والتصنيفات لسرعة فائقة وتقليل الحمل
+const ytCache = new Map();
+const CACHE_TTL_MS = 10 * 60 * 1000; // 10 دقائق
+
+const CATEGORY_MAP = {
+  'all': ['ملخص مباريات اليوم اهداف', 'جديد اليوم ترند', 'سورة البقرة تلاوة خاشعة', 'بودكاست جديد حلقات'],
+  'gaming': ['العاب قيمنق ترند', 'العاب فيديو ترند'],
+  'sports': ['ملخص مباريات اليوم اهداف', 'اهداف مباريات اليوم دوري ابطال'],
+  'music': ['اغاني عربية جديدة 2026 ترند'],
+  'live': ['بث مباشر الان اخبار كورة'],
+  'podcasts': ['بودكاست فنجان ثمانية جديد', 'بودكاست جديد حلقات'],
+  'quran': ['قران كريم تلاوة خاشعة ياسر الدوسري والمعيقلي'],
+  'series': ['مسلسلات عربية جديدة كاملة حلقات'],
+  'news': ['اخبار عاجل اليوم العربية الجزيرة'],
+  'nature': ['طبيعة خلابة 4K استرخاء روعة'],
+  'tech': ['مراجعة هواتف وتقنية 2026']
+};
+
+async function executeSingleSearch(q) {
   try {
     const res = await fetch('https://www.youtube.com/youtubei/v1/search?prettyPrint=false', {
       method: 'POST',
@@ -469,35 +431,86 @@ async function searchYouTube(query) {
             clientVersion: '2.20240101.00.00'
           }
         },
-        query: query || 'شائع اليوم'
+        query: q
       })
     });
-
     if (!res.ok) return [];
     const data = await res.json();
     const contents = data?.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents?.[0]?.itemSectionRenderer?.contents || [];
-
-    const videos = [];
+    const list = [];
     for (const item of contents) {
       const v = item.videoRenderer;
       if (v && v.videoId) {
-        videos.push({
+        list.push({
           id: v.videoId,
           title: v.title?.runs?.[0]?.text || 'فيديو بدون عنوان',
-          thumbnail: v.thumbnail?.thumbnails?.[v.thumbnail.thumbnails.length - 1]?.url || `https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg`,
-          channel: v.ownerText?.runs?.[0]?.text || 'قناة يوتيوب',
+          channel: v.ownerText?.runs?.[0]?.text || 'YouTube',
           views: v.viewCountText?.simpleText || v.shortViewCountText?.simpleText || 'مشاهدات عالية',
-          published: v.publishedTimeText?.simpleText || 'حديثاً',
-          duration: v.lengthText?.simpleText || ''
+          time: v.publishedTimeText?.simpleText || 'حديثاً',
+          dur: v.lengthText?.simpleText || 'HD',
+          thumb: v.thumbnail?.thumbnails?.[v.thumbnail.thumbnails.length - 1]?.url || `https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg`
         });
       }
-      if (videos.length >= 24) break;
     }
-    return videos;
-  } catch (err) {
-    console.error('YouTube search error:', err.message);
+    return list;
+  } catch (e) {
+    console.error(`Search error for [${q}]:`, e.message);
     return [];
   }
+}
+
+async function searchYouTube(query = '', category = '') {
+  const cat = (category || '').toLowerCase().trim();
+  const rawQuery = (query || '').trim();
+
+  const cacheKey = cat ? `cat:${cat}` : (rawQuery || 'cat:all');
+  const cached = ytCache.get(cacheKey);
+  if (cached && (Date.now() - cached.time < CACHE_TTL_MS)) {
+    return cached.videos;
+  }
+
+  let finalVideos = [];
+
+  // إذا تم اختيار قسم "الكل" أو لم يتم تحديد استعلام محدد
+  if ((cat === 'all' || !cat) && (!rawQuery || rawQuery === 'شائع اليوم' || rawQuery === 'الكل')) {
+    const queries = CATEGORY_MAP['all'];
+    const results = await Promise.all(queries.map(q => executeSingleSearch(q)));
+    
+    // دمج النتائج بالتناوب لضمان التنوع التام كما في يوتيوب الرسمي 100%
+    const maxLen = Math.max(...results.map(r => r.length));
+    const seenIds = new Set();
+    for (let i = 0; i < maxLen; i++) {
+      for (const list of results) {
+        if (list[i] && !seenIds.has(list[i].id)) {
+          seenIds.add(list[i].id);
+          finalVideos.push(list[i]);
+        }
+      }
+      if (finalVideos.length >= 28) break;
+    }
+  } else if (cat && CATEGORY_MAP[cat]) {
+    const queries = CATEGORY_MAP[cat];
+    const results = await Promise.all(queries.map(q => executeSingleSearch(q)));
+    const seenIds = new Set();
+    for (const list of results) {
+      for (const item of list) {
+        if (!seenIds.has(item.id)) {
+          seenIds.add(item.id);
+          finalVideos.push(item);
+        }
+      }
+    }
+  } else {
+    finalVideos = await executeSingleSearch(rawQuery);
+  }
+
+  if (finalVideos.length === 0) {
+    finalVideos = await executeSingleSearch('ملخص مباريات اليوم اهداف');
+  }
+
+  finalVideos = finalVideos.slice(0, 32);
+  ytCache.set(cacheKey, { time: Date.now(), videos: finalVideos });
+  return finalVideos;
 }
 
 // خادم HTTP الموحد
@@ -737,11 +750,12 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
-    // 10. API البحث المباشر في فيديوهات يوتيوب الرسمية
+    // 10. API البحث المباشر في فيديوهات يوتيوب الرسمية مع دعم التصنيفات المباشرة
     if (req.method === 'GET' && pathname === '/api/yt/search') {
-      const query = parsedUrl.searchParams.get('q') || 'شائع اليوم';
-      const videos = await searchYouTube(query);
-      return sendJson(res, 200, { status: 'success', query, videos });
+      const query = parsedUrl.searchParams.get('q') || '';
+      const category = parsedUrl.searchParams.get('cat') || parsedUrl.searchParams.get('category') || '';
+      const videos = await searchYouTube(query, category);
+      return sendJson(res, 200, { status: 'success', query, category, videos });
     }
 
     // 11. إعدادات وروابط التحميل العامة (Google Drive links)
@@ -912,6 +926,42 @@ const server = http.createServer(async (req, res) => {
         days_left: daysLeft
       });
     }
+    // API تحديث البريد الإلكتروني للعميل مباشرة من التطبيق
+    if (req.method === 'POST' && pathname === '/api/license/update-email') {
+      const body = await parseJsonBody(req);
+      const { serial_key, client_email } = body;
+
+      if (!serial_key || !client_email) {
+        return sendJson(res, 400, { status: 'error', message: 'كود التفعيل والبريد الإلكتروني مطلوبان' });
+      }
+
+      const cleanEmail = client_email.trim().toLowerCase();
+      if (!cleanEmail.includes('@') || !cleanEmail.includes('.')) {
+        return sendJson(res, 400, { status: 'error', message: 'يرجى إدخال بريد إلكتروني صحيح' });
+      }
+
+      const license = db.find(serial_key);
+      if (!license) {
+        return sendJson(res, 404, { status: 'error', message: 'كود التفعيل غير موجود' });
+      }
+
+      license.client_email = cleanEmail;
+      if (!Array.isArray(license.audit_log)) license.audit_log = [];
+      license.audit_log.push({
+        action: 'update_email',
+        by: cleanEmail,
+        at: new Date().toISOString(),
+        detail: `تحديث البريد الإلكتروني إلى: ${cleanEmail}`
+      });
+      db.update(license);
+
+      return sendJson(res, 200, {
+        status: 'success',
+        message: 'تم تحديث البريد الإلكتروني بنجاح',
+        client_email: cleanEmail
+      });
+    }
+
 
     // 14. لوحة الإدارة: جلب كافة السجلات مع المجموعات وإعدادات الروابط (محمي)
     if (req.method === 'GET' && pathname === '/api/admin/licenses') {
@@ -1291,54 +1341,8 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
-    // ========================================================
-    // 24. مسارات إدارة مجموعات Google Family ودعوات الإيميل
-    // ========================================================
-    if (req.method === 'GET' && pathname === '/api/admin/family-groups') {
-      if (!isAuthenticated(req)) {
-        return sendJson(res, 401, { status: 'error', message: 'غير مصرح' });
-      }
-      return sendJson(res, 200, { 
-        status: 'success', 
-        groups: db.getFamilyGroups() 
-      });
-    }
+    
 
-    if (req.method === 'POST' && pathname === '/api/admin/family-group/create') {
-      if (!isAuthenticated(req)) {
-        return sendJson(res, 401, { status: 'error', message: 'غير مصرح' });
-      }
-      const body = await parseJsonBody(req);
-      const group = db.createFamilyGroup(body.name, body.invite_link);
-      return sendJson(res, 200, { status: 'success', message: 'تم إنشاء المجموعة العائلية بنجاح', group });
-    }
-
-    if (req.method === 'POST' && pathname === '/api/admin/family-group/add-member') {
-      if (!isAuthenticated(req)) {
-        return sendJson(res, 401, { status: 'error', message: 'غير مصرح' });
-      }
-      const body = await parseJsonBody(req);
-      try {
-        const member = db.addFamilyMember(body.group_id, {
-          email: body.email,
-          note: body.note,
-          whatsapp: body.whatsapp,
-          duration_months: body.duration_months
-        });
-        return sendJson(res, 200, { status: 'success', message: 'تمت إضافة العضو بنجاح', member });
-      } catch (err) {
-        return sendJson(res, 400, { status: 'error', message: err.message });
-      }
-    }
-
-    if (req.method === 'POST' && pathname === '/api/admin/family-group/remove-member') {
-      if (!isAuthenticated(req)) {
-        return sendJson(res, 401, { status: 'error', message: 'غير مصرح' });
-      }
-      const body = await parseJsonBody(req);
-      const ok = db.removeFamilyMember(body.group_id, body.member_id);
-      return sendJson(res, 200, { status: ok ? 'success' : 'error', message: ok ? 'تم حذف العضو من المجموعة' : 'العضو غير موجود' });
-    }
 
     // 404
     sendJson(res, 404, { status: 'error', message: 'Endpoint not found' });

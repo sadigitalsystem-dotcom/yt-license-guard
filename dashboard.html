@@ -87,12 +87,6 @@
           <span id="txtBtnStats" class="hidden sm:inline">إحصائيات الشهر</span>
         </button>
 
-        <!-- زر دعوات الإيميل الشخصي ومجموعات العائلة (Google Family) -->
-        <button id="headerBtnFamily" onclick="openFamilyModal()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 border border-zinc-700 shadow-sm" title="دعوات الإيميل الشخصي (Google Family)">
-          <i class="fa-solid fa-envelope-open-text text-pink-400 text-sm"></i>
-          <span id="txtBtnFamily" class="hidden sm:inline">دعوات الإيميل</span>
-        </button>
-
         <!-- زر أمان الحساب -->
         <button onclick="openSecurityModal()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 border border-zinc-700 shadow-sm" title="إعدادات الأمان">
           <i class="fa-solid fa-lock text-sky-400 text-sm"></i>
@@ -165,7 +159,7 @@
 
     </div>
 
-    <!-- بطاقة السجلات وإدارة التراخيص -->
+    <!-- بطاقة السجلات وإدارة التراخيص واشتراكات الإيميل -->
     <div class="glass-card rounded-2xl overflow-hidden shadow-2xl">
       
       <!-- شريط البحث والتحكم وإدارة المجموعات -->
@@ -851,56 +845,7 @@
     </div>
   </div>
 
-  <!-- ========================================== -->
-  <!-- 8.3. نافذة دعوات الإيميل الشخصي (Google Family) -->
-  <!-- ========================================== -->
-  <div id="familyModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-    <div class="glass-card bg-zinc-900 rounded-3xl w-full max-w-3xl p-6 border border-zinc-700 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scroll">
-      
-      <div class="flex items-center justify-between mb-4 border-b border-zinc-800 pb-3">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-pink-500/20 text-pink-400 flex items-center justify-center text-lg">
-            <i class="fa-solid fa-people-roof"></i>
-          </div>
-          <div>
-            <h3 class="text-base sm:text-lg font-bold text-white">دعوات الإيميل الشخصي (Google Family)</h3>
-            <p class="text-xs text-zinc-400">إضافة إيميل Gmail للعميل مباشرة في باقة العائلة الرسمية (5 مقاعد لكل مجموعة)</p>
-          </div>
-        </div>
-        <button onclick="closeFamilyModal()" class="text-zinc-400 hover:text-white p-2"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-
-      <!-- نبذة وتوضيح لطريقة العمل -->
-      <div class="bg-pink-500/10 border border-pink-500/20 p-3.5 rounded-2xl text-xs text-zinc-300 mb-4 space-y-1 leading-relaxed">
-        <p><strong>💡 كيف يعمل التفعيل بالإيميل الشخصي؟</strong></p>
-        <p>مجموعات Google Family الرسمية تتيح لك إضافة 5 حسابات Gmail كأعضاء عائلة. يقوم النظام بتتبع المقاعد وتوليد روابط الدعوات وإرسالها لواتساب العميل مباشرة دون الحاجة لطلب كلمة مرور العميل.</p>
-      </div>
-
-      <!-- محدد المجموعات وزر إضافة مجموعة جديدة -->
-      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 mb-4">
-        <div class="flex items-center gap-2 w-full sm:w-auto">
-          <label class="text-xs font-bold text-zinc-400 shrink-0">المجموعة العائلية:</label>
-          <select id="familyGroupSelect" onchange="renderFamilyGroupDetails()" class="bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-pink-500 flex-1 sm:flex-initial">
-            <!-- يتم التعبئة تلقائياً -->
-          </select>
-        </div>
-        <button onclick="promptCreateFamilyGroup()" class="bg-zinc-800 hover:bg-zinc-700 text-pink-400 border border-pink-500/30 text-xs font-bold px-3 py-2 rounded-xl transition flex items-center gap-1 shrink-0">
-          <i class="fa-solid fa-plus"></i>
-          <span>إنشاء مجموعة عائلية جديدة</span>
-        </button>
-      </div>
-
-      <!-- تفاصيل مقاعد المجموعة المختارة -->
-      <div id="familyGroupSlotsContainer" class="space-y-4">
-        <!-- يتم التعبئة تلقائياً -->
-      </div>
-
-      <div class="mt-6 flex gap-3">
-        <button onclick="closeFamilyModal()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 py-2.5 rounded-xl font-bold transition text-xs">إغلاق</button>
-      </div>
-
-    </div>
-  </div>
+  
 
   <!-- ========================================== -->
   <!-- 9. نافذة الأمان وتغيير بيانات الدخول       -->
@@ -1207,6 +1152,8 @@
       });
 
       document.getElementById('statTotal').innerText = total;
+      const bLic = document.getElementById('badgeLicensesCount');
+      if (bLic) bLic.innerText = total;
       document.getElementById('statActive').innerText = active;
       document.getElementById('statPending').innerText = pending;
       document.getElementById('statExpired').innerText = expired;
@@ -1875,6 +1822,11 @@ https://yt-license-guard.onrender.com/app
     }
 
     // ==========================================
+     catch (e) {
+        showToast('فشل الحذف', 'error');
+      }
+    }
+
     // دوال سجل التدقيق وتفاصيل المفتاح
     // ==========================================
     function toggleAuditBox(id) {
@@ -2118,174 +2070,7 @@ https://yt-license-guard.onrender.com/app
       }
     }
 
-    // ==========================================
-    // دوال مجموعات Google Family ودعوات الإيميل
-    // ==========================================
-    let cachedFamilyGroups = [];
-
-    function openFamilyModal() {
-      document.getElementById('familyModal').classList.remove('hidden');
-      loadFamilyGroups();
-    }
-
-    function closeFamilyModal() {
-      document.getElementById('familyModal').classList.add('hidden');
-    }
-
-    async function loadFamilyGroups() {
-      try {
-        const res = await fetch(`${API_BASE}/api/admin/family-groups`);
-        const data = await res.json();
-        if (res.ok && Array.isArray(data.groups)) {
-          cachedFamilyGroups = data.groups;
-          const select = document.getElementById('familyGroupSelect');
-          select.innerHTML = cachedFamilyGroups.map((g, i) => `
-            <option value="${g.id}">${g.name} (${g.members ? g.members.length : 0}/${g.max_slots || 5} مقاعد)</option>
-          `).join('');
-          renderFamilyGroupDetails();
-        }
-      } catch (e) {
-        showToast('فشل تحميل المجموعات العائلية', 'error');
-      }
-    }
-
-    function renderFamilyGroupDetails() {
-      const select = document.getElementById('familyGroupSelect');
-      const container = document.getElementById('familyGroupSlotsContainer');
-      const selectedId = select.value;
-      const group = cachedFamilyGroups.find(g => g.id === selectedId);
-
-      if (!group) {
-        container.innerHTML = '<div class="py-8 text-center text-zinc-500 text-xs">لم يتم العثور على مجموعة</div>';
-        return;
-      }
-
-      const members = Array.isArray(group.members) ? group.members : [];
-      const maxSlots = group.max_slots || 5;
-
-      let slotsHtml = '';
-      for (let i = 0; i < maxSlots; i++) {
-        const mem = members[i];
-        if (mem) {
-          slotsHtml += `
-            <div class="bg-zinc-950 p-4 rounded-2xl border border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center font-bold text-xs font-mono">
-                  #${i + 1}
-                </div>
-                <div>
-                  <div class="font-bold text-white text-xs sm:text-sm font-mono flex items-center gap-2">
-                    <span>${mem.email}</span>
-                    <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">نشط</span>
-                  </div>
-                  <div class="text-[11px] text-zinc-400 mt-0.5">
-                    ${mem.note ? mem.note + ' • ' : ''} ينتهي: <span class="font-mono text-zinc-300">${formatEnDate(mem.expiry_date, false)}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="flex items-center gap-2 self-end sm:self-center">
-                ${mem.whatsapp ? `
-                  <a href="https://wa.me/${mem.whatsapp.replace(/[^0-9]/g, '')}" target="_blank" class="px-2.5 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 text-xs flex items-center gap-1 font-bold">
-                    <i class="fa-brands fa-whatsapp"></i> <span>واتساب</span>
-                  </a>
-                ` : ''}
-                <button onclick="removeFamilyMember('${group.id}', '${mem.id}')" class="px-2.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-red-500/20 text-zinc-400 hover:text-red-400 border border-zinc-800 text-xs font-bold transition">
-                  <i class="fa-solid fa-user-xmark"></i> <span>إزالة</span>
-                </button>
-              </div>
-            </div>
-          `;
-        } else {
-          // مقعد شاغر يمكن إضافة عميل إليه
-          slotsHtml += `
-            <div class="bg-zinc-950/50 p-3.5 rounded-2xl border border-dashed border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-3">
-              <div class="flex items-center gap-2.5 w-full sm:w-auto">
-                <div class="w-8 h-8 rounded-full bg-zinc-900 text-zinc-500 flex items-center justify-center font-bold text-xs font-mono shrink-0">
-                  #${i + 1}
-                </div>
-                <span class="text-xs text-zinc-400 font-bold">مقعد عائلي شاغر</span>
-              </div>
-              <button onclick="promptAddFamilyMember('${group.id}')" class="w-full sm:w-auto bg-pink-600/20 hover:bg-pink-600/30 text-pink-400 border border-pink-500/30 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5">
-                <i class="fa-solid fa-plus"></i>
-                <span>إضافة إيميل عميل للمقعد</span>
-              </button>
-            </div>
-          `;
-        }
-      }
-
-      container.innerHTML = `
-        <div class="space-y-3">
-          <div class="flex items-center justify-between text-xs text-zinc-400 mb-1 px-1">
-            <span>مقاعد المجموعة العائلية (الحد الأقصى 5 أعضاء):</span>
-            <span class="font-mono font-bold text-pink-400">${members.length}/5 ممتلئ</span>
-          </div>
-          ${slotsHtml}
-        </div>
-      `;
-    }
-
-    async function promptCreateFamilyGroup() {
-      const name = prompt('أدخل اسم المجموعة العائلية الجديدة:', 'مجموعة العائلة ' + (cachedFamilyGroups.length + 1));
-      if (!name) return;
-      try {
-        const res = await fetch(`${API_BASE}/api/admin/family-group/create`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name })
-        });
-        const data = await res.json();
-        if (res.ok && data.status === 'success') {
-          showToast('تم إنشاء المجموعة بنجاح');
-          loadFamilyGroups();
-        }
-      } catch (e) {
-        showToast('فشل إنشاء المجموعة', 'error');
-      }
-    }
-
-    async function promptAddFamilyMember(groupId) {
-      const email = prompt('أدخل بريد العميل في قوقل (Gmail):');
-      if (!email || !email.includes('@')) {
-        if (email) alert('يرجى إدخال بريد Gmail صحيح');
-        return;
-      }
-      const note = prompt('ملاحظة أو اسم العميل (اختياري):', '');
-      const whatsapp = prompt('رقم واتساب العميل (اختياري):', '');
-
-      try {
-        const res = await fetch(`${API_BASE}/api/admin/family-group/add-member`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ group_id: groupId, email, note, whatsapp, duration_months: 12 })
-        });
-        const data = await res.json();
-        if (res.ok && data.status === 'success') {
-          showToast('تمت إضافة العميل للمجموعة بنجاح');
-          loadFamilyGroups();
-        } else {
-          alert(data.message || 'فشلت إضافة العميل');
-        }
-      } catch (e) {
-        showToast('تعذر الاتصال بالخادم', 'error');
-      }
-    }
-
-    async function removeFamilyMember(groupId, memberId) {
-      if (!confirm('هل ترغب بإزالة هذا العميل من المجموعة العائلية؟')) return;
-      try {
-        const res = await fetch(`${API_BASE}/api/admin/family-group/remove-member`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ group_id: groupId, member_id: memberId })
-        });
-        const data = await res.json();
-        if (res.ok && data.status === 'success') {
-          showToast('تمت إزالة العميل بنجاح');
-          loadFamilyGroups();
-        }
-      } catch (e) {
+     catch (e) {
         showToast('فشلت الإزالة', 'error');
       }
     }
