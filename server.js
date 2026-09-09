@@ -216,7 +216,12 @@ class LicenseDB {
   }
 
   find(serialKey) {
-    return this.data.licenses.find(l => l.serial_key.toUpperCase() === serialKey.trim().toUpperCase());
+    if (!serialKey || typeof serialKey !== 'string') return null;
+    const clean = serialKey.trim().toUpperCase().replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212\uFE58\uFE63\uFF0D]/g, '-').replace(/\s+/g, '');
+    return this.data.licenses.find(l => {
+      const lClean = (l.serial_key || '').trim().toUpperCase().replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212\uFE58\uFE63\uFF0D]/g, '-').replace(/\s+/g, '');
+      return lClean === clean;
+    });
   }
 
   create(durationDays, note = '', maxDevices = 1, group = 'عام', whatsapp = '', createdBy = 'المدير العام', createdById = 'admin') {

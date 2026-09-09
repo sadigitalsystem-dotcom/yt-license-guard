@@ -887,24 +887,36 @@
       }
     }
 
-    async function activateLicense() {
-      const keyInput = document.getElementById('inputLicenseKey');
-      const emailInput = document.getElementById('inputClientEmail');
-      const errEl = document.getElementById('loginModalError');
-      const btn = document.getElementById('btnSubmitActivation');
+    async function submitActivation() {
+      const keyInput = document.getElementById('keyInput') || document.getElementById('inputLicenseKey');
+      const emailInput = document.getElementById('clientEmailInput') || document.getElementById('inputClientEmail');
+      const alertEl = document.getElementById('loginAlert') || document.getElementById('loginModalError');
+      const btn = document.getElementById('btnActivate') || document.getElementById('btnSubmitActivation');
 
-      const key = (keyInput.value || '').trim();
-      const email = (emailInput.value || '').trim();
+      if (alertEl) {
+        alertEl.classList.add('hidden');
+        alertEl.innerText = '';
+      }
 
-      errEl.classList.add('hidden');
+      const rawKey = keyInput ? keyInput.value : '';
+      const email = emailInput ? (emailInput.value || '').trim() : '';
+
+      // تطبيع المفتاح وإزالة أي مسافات أو شرطات يونيكود مائلة أو خاصة
+      const key = (rawKey || '').trim().toUpperCase().replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212\uFE58\uFE63\uFF0D]/g, '-').replace(/\s+/g, '');
+
       if (!key) {
-        errEl.innerText = 'يرجى إدخال مفتاح الترخيص';
-        errEl.classList.remove('hidden');
+        if (alertEl) {
+          alertEl.innerText = 'يرجى إدخال كود التفعيل (Serial Key)';
+          alertEl.classList.remove('hidden');
+        }
+        showToast('يرجى إدخال كود التفعيل');
         return;
       }
 
-      btn.disabled = true;
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-sm"></i> جاري التفعيل...';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-sm"></i> جاري التفعيل...';
+      }
 
       try {
         const res = await fetch(`${API_BASE}/api/activate`, {
@@ -918,12 +930,14 @@
         });
 
         const data = await res.json();
-        btn.disabled = false;
-        btn.innerHTML = '<span>تفعيل والبدء بالمشاهدة</span><i class="fa-solid fa-arrow-left text-xs"></i>';
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<span>تفعيل وتشغيل</span><i class="fa-solid fa-arrow-left text-xs"></i>';
+        }
 
         if (res.ok && data.status === 'success') {
           isActivated = true;
-          currentLicenseKey = data.serial_key;
+          currentLicenseKey = data.serial_key || key;
           currentClientEmail = data.client_email || email;
           currentExpiryDate = data.expires_at;
 
@@ -946,16 +960,25 @@
             loadYouTubeVideos('', currentActiveCategory);
           }
         } else {
-          errEl.innerText = data.message || 'كود التفعيل غير صالح';
-          errEl.classList.remove('hidden');
+          if (alertEl) {
+            alertEl.innerText = data.message || 'كود التفعيل غير صالح أو منتهي الصلاحية';
+            alertEl.classList.remove('hidden');
+          }
+          showToast(data.message || 'كود التفعيل غير صالح');
         }
       } catch (err) {
-        btn.disabled = false;
-        btn.innerHTML = '<span>تفعيل والبدء بالمشاهدة</span><i class="fa-solid fa-arrow-left text-xs"></i>';
-        errEl.innerText = 'فشل الاتصال بالسيرفر، يرجى المحاولة مرة أخرى';
-        errEl.classList.remove('hidden');
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<span>تفعيل وتشغيل</span><i class="fa-solid fa-arrow-left text-xs"></i>';
+        }
+        if (alertEl) {
+          alertEl.innerText = 'فشل الاتصال بالسيرفر، يرجى المحاولة مرة أخرى';
+          alertEl.classList.remove('hidden');
+        }
+        showToast('فشل الاتصال بالسيرفر');
       }
     }
+    const activateLicense = submitActivation;
 
     function updateUserUI(activated, data = {}) {
       const premBadge = document.getElementById('headerPremiumBadge');
@@ -2139,12 +2162,16 @@
     // 10. النوافذ المنبثقة والإشعارات السريعة (Modals & Toast)
     // =====================================================
     function openLoginModal() {
-      document.getElementById('loginModal').classList.remove('hidden');
-      document.getElementById('loginModalError').classList.add('hidden');
+      const modal = document.getElementById('loginModal');
+      if (modal) modal.classList.remove('hidden');
+      const alertEl = document.getElementById('loginAlert') || document.getElementById('loginModalError');
+      if (alertEl) alertEl.classList.add('hidden');
+      const keyInput = document.getElementById('keyInput') || document.getElementById('inputLicenseKey');
+      const emailInput = document.getElementById('clientEmailInput') || document.getElementById('inputClientEmail');
       const savedKey = localStorage.getItem('yt_license_key');
-      if (savedKey) document.getElementById('inputLicenseKey').value = savedKey;
+      if (savedKey && keyInput) keyInput.value = savedKey;
       const savedEmail = localStorage.getItem('yt_client_email');
-      if (savedEmail) document.getElementById('inputClientEmail').value = savedEmail;
+      if (savedEmail && emailInput) emailInput.value = savedEmail;
     }
     function closeLoginModal() {
       document.getElementById('loginModal').classList.add('hidden');
