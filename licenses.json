@@ -23,6 +23,23 @@
           "activated_at": "2026-09-07T11:11:24.032Z",
           "last_seen": "2026-09-07T11:11:24.032Z"
         }
+      ],
+      "created_by": "المدير العام",
+      "created_by_id": "admin",
+      "client_email": "",
+      "audit_log": [
+        {
+          "action": "create",
+          "by": "المدير العام",
+          "at": "2026-09-06T22:50:01.966Z",
+          "detail": "توليد المفتاح"
+        },
+        {
+          "action": "activate",
+          "by": "العميل",
+          "at": "2026-09-07T11:11:24.032Z",
+          "detail": "أول تفعيل على الجهاز"
+        }
       ]
     },
     {
@@ -48,6 +65,23 @@
           "activated_at": "2026-09-06T22:48:43.001Z",
           "last_seen": "2026-09-06T22:48:43.001Z"
         }
+      ],
+      "created_by": "المدير العام",
+      "created_by_id": "admin",
+      "client_email": "",
+      "audit_log": [
+        {
+          "action": "create",
+          "by": "المدير العام",
+          "at": "2026-09-06T22:48:42.726Z",
+          "detail": "توليد المفتاح"
+        },
+        {
+          "action": "activate",
+          "by": "العميل",
+          "at": "2026-09-06T22:48:43.001Z",
+          "detail": "أول تفعيل على الجهاز"
+        }
       ]
     }
   ],
@@ -63,5 +97,16 @@
     ],
     "apk_drive_link": "",
     "windows_drive_link": ""
-  }
+  },
+  "employees": [],
+  "family_groups": [
+    {
+      "id": "fam-group-1",
+      "name": "مجموعة العائلة الأولى (Google Family 1)",
+      "max_slots": 5,
+      "created_at": "2026-09-09T05:15:44.318Z",
+      "invite_link": "https://families.google.com/familylink/",
+      "members": []
+    }
+  ]
 }
