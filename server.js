@@ -535,6 +535,242 @@ async function searchYouTube(query = '', category = '', forceFresh = false) {
   return finalVideos;
 }
 
+// دالة جلب بيانات وتفاصيل القناة الرسمية وأقسامها الحية
+async function getChannelDetails(channelQuery, targetTab = 'videos') {
+  const q = (channelQuery || '').trim();
+  if (!q) return { status: 'error', message: 'اسم أو معرف القناة مطلوب' };
+
+  const cacheKey = `channel:${q.toLowerCase()}:${targetTab}`;
+  const cached = ytCache.get(cacheKey);
+  if (cached && (Date.now() - cached.time < 5 * 60 * 1000)) {
+    return cached.data;
+  }
+
+  let channelId = '';
+  let initialAvatar = '';
+  let initialTitle = q;
+  let initialSubs = '';
+  let initialHandle = '';
+
+  if (q.startsWith('UC') && q.length >= 20) {
+    channelId = q;
+  } else {
+    try {
+      const sRes = await fetch('https://www.youtube.com/youtubei/v1/search?prettyPrint=false', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+        body: JSON.stringify({
+          context: { client: { hl: 'ar', gl: 'SA', clientName: 'WEB', clientVersion: '2.20240101.00.00' } },
+          query: q
+        })
+      });
+      const sData = await sRes.json();
+      const sContents = sData?.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents?.[0]?.itemSectionRenderer?.contents || [];
+      
+      const cr = sContents.find(c => c.channelRenderer)?.channelRenderer;
+      if (cr) {
+        channelId = cr.channelId;
+        initialTitle = cr.title?.simpleText || q;
+        initialSubs = cr.videoCountText?.simpleText || cr.subscriberCountText?.simpleText || '';
+        initialHandle = cr.subscriberCountText?.simpleText || '';
+        initialAvatar = cr.thumbnail?.thumbnails?.slice(-1)[0]?.url || '';
+      } else {
+        const vr = sContents.find(c => c.videoRenderer?.ownerText?.runs?.[0]?.text?.toLowerCase()?.includes(q.toLowerCase()))?.videoRenderer;
+        if (vr?.ownerText?.runs?.[0]?.navigationEndpoint?.browseEndpoint?.browseId) {
+          channelId = vr.ownerText.runs[0].navigationEndpoint.browseEndpoint.browseId;
+          initialTitle = vr.ownerText.runs[0].text;
+        } else {
+          const firstVr = sContents.find(c => c.videoRenderer)?.videoRenderer;
+          if (firstVr?.ownerText?.runs?.[0]?.navigationEndpoint?.browseEndpoint?.browseId) {
+            channelId = firstVr.ownerText.runs[0].navigationEndpoint.browseEndpoint.browseId;
+            initialTitle = firstVr.ownerText.runs[0].text;
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Channel search error:', e.message);
+    }
+  }
+
+  if (!channelId) {
+    return { status: 'error', message: 'لم يتم العثور على القناة' };
+  }
+
+  let title = initialTitle;
+  let avatar = initialAvatar;
+  let banner = '';
+  let subscribers = initialSubs;
+  let handle = initialHandle;
+  let description = '';
+  let tabsList = [];
+  let selectedTabParams = '';
+
+  try {
+    const bRes = await fetch('https://www.youtube.com/youtubei/v1/browse?prettyPrint=false', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+      body: JSON.stringify({
+        context: { client: { hl: 'ar', gl: 'SA', clientName: 'WEB', clientVersion: '2.20240101.00.00' } },
+        browseId: channelId
+      })
+    });
+    const bData = await bRes.json();
+
+    if (bData?.header?.c4TabbedHeaderRenderer) {
+      const c4 = bData.header.c4TabbedHeaderRenderer;
+      title = c4.title || title;
+      avatar = c4.avatar?.thumbnails?.slice(-1)[0]?.url || avatar;
+      banner = c4.banner?.thumbnails?.slice(-1)[0]?.url || '';
+      subscribers = c4.subscriberCountText?.simpleText || subscribers;
+    } else if (bData?.header?.pageHeaderRenderer) {
+      const ph = bData.header.pageHeaderRenderer;
+      title = ph.pageTitle || title;
+      const phImg = ph.content?.pageHeaderViewModel?.image?.decoratedAvatarViewModel?.avatar?.avatarViewModel?.image?.sources?.slice(-1)[0]?.url;
+      if (phImg) avatar = phImg;
+      const bannerSources = ph.content?.pageHeaderViewModel?.banner?.imageBannerViewModel?.image?.sources;
+      if (bannerSources) banner = bannerSources.slice(-1)[0]?.url;
+      const metaRows = ph.content?.pageHeaderViewModel?.metadata?.contentMetadataViewModel?.metadataRows || [];
+      if (metaRows[0]?.parts?.[0]?.text?.content) handle = metaRows[0].parts[0].text.content;
+      if (metaRows[0]?.parts?.[1]?.text?.content) subscribers = metaRows[0].parts[1].text.content;
+      description = ph.content?.pageHeaderViewModel?.description?.descriptionPreviewViewModel?.description?.content || '';
+    }
+
+    if (avatar && avatar.startsWith('//')) avatar = 'https:' + avatar;
+    if (banner && banner.startsWith('//')) banner = 'https:' + banner;
+
+    const rawTabs = bData?.contents?.twoColumnBrowseResultsRenderer?.tabs || [];
+    rawTabs.forEach(t => {
+      const tr = t.tabRenderer;
+      if (tr && tr.title) {
+        const tabTitle = tr.title.trim();
+        const tabParams = tr.endpoint?.browseEndpoint?.params || '';
+        let tabKey = 'home';
+        if (tabTitle.includes('فيديو') || tabTitle.toLowerCase().includes('video')) tabKey = 'videos';
+        else if (tabTitle.toLowerCase().includes('short')) tabKey = 'shorts';
+        else if (tabTitle.includes('قوائم') || tabTitle.toLowerCase().includes('playlist')) tabKey = 'playlists';
+        else if (tabTitle.includes('لمحة') || tabTitle.toLowerCase().includes('about')) tabKey = 'about';
+
+        tabsList.push({ key: tabKey, title: tabTitle, params: tabParams });
+        if (targetTab === tabKey || (!selectedTabParams && (tabKey === 'videos' || tabKey === 'home'))) {
+          selectedTabParams = tabParams;
+        }
+      }
+    });
+  } catch (e) {
+    console.error('Channel browse error:', e.message);
+  }
+
+  let videos = [];
+  if (selectedTabParams) {
+    try {
+      const vRes = await fetch('https://www.youtube.com/youtubei/v1/browse?prettyPrint=false', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+        body: JSON.stringify({
+          context: { client: { hl: 'ar', gl: 'SA', clientName: 'WEB', clientVersion: '2.20240101.00.00' } },
+          browseId: channelId,
+          params: selectedTabParams
+        })
+      });
+      const vData = await vRes.json();
+      const tabContent = vData?.contents?.twoColumnBrowseResultsRenderer?.tabs?.find(t => t.tabRenderer?.selected)?.tabRenderer?.content;
+      const items = tabContent?.richGridRenderer?.contents || tabContent?.sectionListRenderer?.contents || [];
+
+      items.forEach(it => {
+        const lockup = it.richItemRenderer?.content?.lockupViewModel;
+        const shortsLockup = it.richItemRenderer?.content?.shortsLockupViewModel;
+        const v = it.videoRenderer || it.gridVideoRenderer || it.compactVideoRenderer;
+
+        if (lockup) {
+          const vidId = lockup.contentId || lockup.rendererContext?.commandContext?.onTap?.innertubeCommand?.watchEndpoint?.videoId;
+          const vTitle = lockup.metadata?.lockupMetadataViewModel?.title?.content;
+          const thumb = lockup.contentImage?.thumbnailViewModel?.image?.sources?.slice(-1)[0]?.url || `https://i.ytimg.com/vi/${vidId}/hqdefault.jpg`;
+          const metaRows = lockup.metadata?.lockupMetadataViewModel?.metadata?.contentMetadataViewModel?.metadataRows || [];
+          let views = metaRows[0]?.parts?.[0]?.text?.content || 'مشاهدات عالية';
+          let time = metaRows[0]?.parts?.[1]?.text?.content || 'حديثاً';
+          const badges = lockup.contentImage?.thumbnailViewModel?.overlays?.[0]?.thumbnailBottomOverlayViewModel?.badges || [];
+          const dur = badges[0]?.thumbnailBadgeViewModel?.text || 'HD';
+
+          if (vidId && vTitle) {
+            videos.push({ id: vidId, title: vTitle, channel: title, channelId, thumb, views, time, dur });
+          }
+        } else if (shortsLockup) {
+          const rawId = shortsLockup.entityId || '';
+          const vidId = rawId.replace('shorts-shelf-item-', '');
+          const vTitle = shortsLockup.overlayMetadata?.primaryText?.content || 'Shorts';
+          const views = shortsLockup.overlayMetadata?.secondaryText?.content || '';
+          const thumb = `https://i.ytimg.com/vi/${vidId}/hqdefault.jpg`;
+          if (vidId) {
+            videos.push({ id: vidId, title: vTitle, channel: title, channelId, thumb, views, time: 'Shorts', dur: 'Shorts', isShort: true });
+          }
+        } else if (v && v.videoId) {
+          videos.push({
+            id: v.videoId,
+            title: v.title?.runs?.[0]?.text || v.title?.simpleText || 'فيديو',
+            channel: title,
+            channelId,
+            views: v.viewCountText?.simpleText || 'مشاهدات عالية',
+            time: v.publishedTimeText?.simpleText || 'حديثاً',
+            dur: v.lengthText?.simpleText || 'HD',
+            thumb: v.thumbnail?.thumbnails?.slice(-1)[0]?.url || `https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg`
+          });
+        }
+      });
+    } catch (e) {
+      console.error('Error fetching tab videos:', e.message);
+    }
+  }
+
+  if (videos.length === 0) {
+    try {
+      const searchFallback = await fetch('https://www.youtube.com/youtubei/v1/search?prettyPrint=false', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+        body: JSON.stringify({
+          context: { client: { hl: 'ar', gl: 'SA', clientName: 'WEB', clientVersion: '2.20240101.00.00' } },
+          query: `${title} فيديوهات`
+        })
+      });
+      const fbData = await searchFallback.json();
+      const fbContents = fbData?.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents?.[0]?.itemSectionRenderer?.contents || [];
+      fbContents.forEach(item => {
+        const v = item.videoRenderer;
+        if (v && v.videoId) {
+          videos.push({
+            id: v.videoId,
+            title: v.title?.runs?.[0]?.text || 'فيديو',
+            channel: v.ownerText?.runs?.[0]?.text || title,
+            channelId,
+            views: v.viewCountText?.simpleText || 'مشاهدات عالية',
+            time: v.publishedTimeText?.simpleText || 'حديثاً',
+            dur: v.lengthText?.simpleText || 'HD',
+            thumb: v.thumbnail?.thumbnails?.slice(-1)[0]?.url || `https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg`
+          });
+        }
+      });
+    } catch (e) {}
+  }
+
+  const result = {
+    status: 'success',
+    channel: {
+      id: channelId,
+      title,
+      avatar,
+      banner,
+      subscribers,
+      handle,
+      description,
+      current_tab: targetTab,
+      tabs: tabsList,
+      videos
+    }
+  };
+
+  ytCache.set(cacheKey, { time: Date.now(), data: result });
+  return result;
+}
+
 // خادم HTTP الموحد
 const server = http.createServer(async (req, res) => {
   const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
@@ -861,6 +1097,22 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 200, { status: 'success', suggestions: [] });
       } catch (err) {
         return sendJson(res, 200, { status: 'success', suggestions: [] });
+      }
+    }
+
+    // 10.1b API تصفح القنوات الرسمية وأقسامها الحية (YouTube Channel Page & Tabs)
+    if (req.method === 'GET' && pathname === '/api/yt/channel') {
+      const channelQuery = parsedUrl.searchParams.get('name') || parsedUrl.searchParams.get('id') || parsedUrl.searchParams.get('q') || '';
+      const tab = parsedUrl.searchParams.get('tab') || 'videos';
+      if (!channelQuery.trim()) {
+        return sendJson(res, 400, { status: 'error', message: 'اسم أو معرف القناة مطلوب' });
+      }
+      try {
+        const data = await getChannelDetails(channelQuery, tab);
+        return sendJson(res, 200, data);
+      } catch (err) {
+        console.error('Channel endpoint error:', err.message);
+        return sendJson(res, 500, { status: 'error', message: 'تعذر جلب تفاصيل القناة' });
       }
     }
 

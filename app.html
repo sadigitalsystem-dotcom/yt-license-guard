@@ -309,7 +309,7 @@
       <div id="watchPageSection" class="hidden w-full bg-[#0f0f0f] border-b border-white/10 pb-6">
         <div class="max-w-6xl mx-auto px-2 sm:px-4 pt-2">
           <!-- المشغل -->
-          <div class="w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl relative">
+          <div id="iframeContainer" class="w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl relative">
             <iframe 
               id="activeIframe" 
               class="w-full h-full" 
@@ -332,15 +332,15 @@
             <div class="mt-3 flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-white/10">
               <!-- معلومات القناة وزر الاشتراك الحي والتفاعلي -->
               <div class="flex items-center gap-3">
-                <div id="watchChannelAvatar" class="w-10 h-10 rounded-full bg-gradient-to-tr from-red-600 to-amber-600 flex items-center justify-center font-bold text-white text-sm shadow">
+                <div id="watchChannelAvatar" onclick="openChannelPageFromCurrentVideo()" class="w-10 h-10 rounded-full bg-gradient-to-tr from-red-600 to-amber-600 flex items-center justify-center font-bold text-white text-sm shadow cursor-pointer hover:opacity-80 transition overflow-hidden" title="عرض صفحة القناة">
                   Y
                 </div>
                 <div>
-                  <div class="flex items-center gap-1.5">
-                    <span id="watchChannelName" class="font-bold text-sm text-white">اسم القناة</span>
+                  <div onclick="openChannelPageFromCurrentVideo()" class="flex items-center gap-1.5 cursor-pointer group" title="عرض صفحة القناة">
+                    <span id="watchChannelName" class="font-bold text-sm text-white group-hover:underline">اسم القناة</span>
                     <i class="fa-solid fa-circle-check text-xs text-zinc-400"></i>
                   </div>
-                  <span id="watchSubStatusText" class="text-xs text-zinc-400">قناة موثقة</span>
+                  <span onclick="openChannelPageFromCurrentVideo()" id="watchSubStatusText" class="text-xs text-zinc-400 cursor-pointer hover:text-zinc-200">قناة موثقة • عرض القناة</span>
                 </div>
                 <!-- زر الاشتراك الحي -->
                 <button id="watchSubscribeBtn" onclick="toggleChannelSubscription()" class="bg-[#f1f1f1] hover:bg-zinc-200 text-[#0f0f0f] font-bold text-xs sm:text-sm px-4 py-2 rounded-full transition mr-2 flex items-center gap-1.5 shadow">
@@ -430,6 +430,87 @@
 
       <!-- حاوية الصفحات التفاعلية الحية (الاشتراكات، السجل، قوائم التشغيل، الإعجابات، وصفحة أنت) -->
       <div id="customViewSection" class="hidden px-4 py-4 min-h-[500px]"></div>
+
+      <!-- قسم صفحة القناة الرسمية وتصفح أقسامها (YouTube Channel Page View) مطابق 100% ليوتيوب الرسمي -->
+      <div id="channelViewSection" class="hidden px-4 py-4 pb-20 min-h-[600px]">
+        <!-- زر الرجوع -->
+        <div class="mb-4">
+          <button onclick="closeChannelPage()" class="inline-flex items-center gap-2 text-xs font-bold text-zinc-300 hover:text-white bg-zinc-800/90 hover:bg-zinc-700 px-3.5 py-2 rounded-full border border-zinc-700 shadow transition active:scale-95">
+            <i class="fa-solid fa-arrow-right"></i>
+            <span>الرجوع</span>
+          </button>
+        </div>
+
+        <!-- غلاف القناة (Banner) -->
+        <div id="channelBannerContainer" class="w-full h-32 sm:h-48 md:h-60 rounded-3xl overflow-hidden bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 border border-white/10 relative shadow-2xl mb-5">
+          <img id="channelBannerImg" src="" class="w-full h-full object-cover hidden" alt="Channel Banner">
+          <div id="channelBannerPlaceholder" class="w-full h-full flex items-center justify-center opacity-30">
+            <i class="fa-brands fa-youtube text-6xl sm:text-7xl text-white"></i>
+          </div>
+        </div>
+
+        <!-- بطاقة معلومات القناة -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-5 border-b border-white/10">
+          <div class="flex items-center gap-4">
+            <img id="channelAvatarImg" src="" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-zinc-700 shadow-xl object-cover shrink-0" alt="Avatar">
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <h1 id="channelPageTitle" class="text-lg sm:text-2xl font-black text-white">اسم القناة</h1>
+                <i class="fa-solid fa-circle-check text-xs text-zinc-400" title="قناة موثقة"></i>
+              </div>
+              <div class="flex items-center gap-2 text-xs text-zinc-400 mt-1 flex-wrap font-sans">
+                <span id="channelPageHandle" class="font-bold text-zinc-300 font-mono">@handle</span>
+                <span>•</span>
+                <span id="channelPageSubs">مشتركون</span>
+              </div>
+              <p id="channelPageDesc" class="text-xs text-zinc-400 mt-1.5 max-w-2xl line-clamp-2 font-sans"></p>
+            </div>
+          </div>
+
+          <!-- زر الاشتراك التفاعلي بالقناة -->
+          <div class="self-stretch sm:self-center">
+            <button id="channelPageSubBtn" onclick="toggleChannelPageSubscription()" class="w-full sm:w-auto bg-[#f1f1f1] hover:bg-zinc-200 text-[#0f0f0f] font-bold text-xs sm:text-sm px-6 py-2.5 rounded-full transition flex items-center justify-center gap-2 shadow-lg active:scale-95">
+              <i class="fa-regular fa-bell"></i>
+              <span id="channelPageSubText">اشتراك</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- شريط أقسام وتبويبات القناة (Channel Tabs) -->
+        <div class="flex items-center gap-1 sm:gap-2 border-b border-white/10 overflow-x-auto hide-scrollbar mt-3 text-xs sm:text-sm">
+          <button onclick="switchChannelTab('videos')" id="chTab_videos" class="channel-tab-btn active px-4 py-3 border-b-2 border-red-500 font-bold text-white transition flex items-center gap-1.5 shrink-0">
+            <i class="fa-solid fa-video text-xs"></i>
+            <span>الفيديوهات</span>
+          </button>
+          <button onclick="switchChannelTab('shorts')" id="chTab_shorts" class="channel-tab-btn px-4 py-3 border-b-2 border-transparent text-zinc-400 hover:text-white transition flex items-center gap-1.5 shrink-0">
+            <i class="fa-solid fa-bolt text-xs"></i>
+            <span>Shorts</span>
+          </button>
+          <button onclick="switchChannelTab('home')" id="chTab_home" class="channel-tab-btn px-4 py-3 border-b-2 border-transparent text-zinc-400 hover:text-white transition flex items-center gap-1.5 shrink-0">
+            <i class="fa-solid fa-house text-xs"></i>
+            <span>الصفحة الرئيسية</span>
+          </button>
+          <button onclick="switchChannelTab('playlists')" id="chTab_playlists" class="channel-tab-btn px-4 py-3 border-b-2 border-transparent text-zinc-400 hover:text-white transition flex items-center gap-1.5 shrink-0">
+            <i class="fa-solid fa-list text-xs"></i>
+            <span>قوائم التشغيل</span>
+          </button>
+          <button onclick="switchChannelTab('about')" id="chTab_about" class="channel-tab-btn px-4 py-3 border-b-2 border-transparent text-zinc-400 hover:text-white transition flex items-center gap-1.5 shrink-0">
+            <i class="fa-solid fa-circle-info text-xs"></i>
+            <span>لمحة</span>
+          </button>
+        </div>
+
+        <!-- محتوى تبويب القناة -->
+        <div id="channelTabContent" class="mt-6">
+          <div id="channelLoading" class="hidden py-16 text-center text-zinc-400">
+            <i class="fa-solid fa-spinner fa-spin text-3xl mb-2 text-red-500"></i>
+            <p class="text-xs">جاري جلب فيديوهات وأقسام القناة الحية...</p>
+          </div>
+          <div id="channelVideosGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <!-- يتم الملء ديناميكياً -->
+          </div>
+        </div>
+      </div>
 
       <!-- شريط التصنيفات الرسمي (Category Chips) مطابق تماماً ليوتيوب الرسمي -->
       <div id="chipsSection" class="px-4 py-3 overflow-x-auto hide-scrollbar flex items-center gap-3 sticky top-0 bg-[#0f0f0f]/95 backdrop-blur z-30">
@@ -1039,17 +1120,82 @@
     }
 
     // =====================================================
-    // 3. نظام تشغيل الصوت بالخلفية ونمط PiP على أنظمة iOS / Safari
+    // 3. محرك الصوت بالخلفية المستمر ونمط PiP الشامل (iOS / Safari / Android / PC)
     // =====================================================
     let bgAudioCarrier = null;
+    let bgAudioBlobUrl = null;
+    let wakeLockInstance = null;
+    let audioCtx = null;
+    let silentOsc = null;
+
+    function createContinuousSilentWav() {
+      // توليد ملف صوتي صامت 10 ثوانٍ متصل ومكرر لمنع إيقاف النظام للصوت في الخلفية
+      const sampleRate = 8000;
+      const numSeconds = 10;
+      const numFrames = sampleRate * numSeconds;
+      const buffer = new ArrayBuffer(44 + numFrames);
+      const view = new DataView(buffer);
+
+      view.setUint32(0, 0x52494646, false); // "RIFF"
+      view.setUint32(4, 36 + numFrames, true);
+      view.setUint32(8, 0x57415645, false); // "WAVE"
+      view.setUint32(12, 0x666d7420, false); // "fmt "
+      view.setUint32(16, 16, true);
+      view.setUint16(20, 1, true); // PCM
+      view.setUint16(22, 1, true); // Mono
+      view.setUint32(24, sampleRate, true);
+      view.setUint32(28, sampleRate, true);
+      view.setUint16(32, 1, true);
+      view.setUint16(34, 8, true);
+      view.setUint32(36, 0x64617461, false); // "data"
+      view.setUint32(40, numFrames, true);
+      for (let i = 0; i < numFrames; i++) {
+        view.setUint8(44 + i, 128); // 128 = Silence
+      }
+      const blob = new Blob([buffer], { type: 'audio/wav' });
+      return URL.createObjectURL(blob);
+    }
+
     function initBackgroundAudioCarrier() {
       bgAudioCarrier = document.getElementById('bgAudioCarrier');
       if (bgAudioCarrier) {
-        bgAudioCarrier.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+        if (!bgAudioBlobUrl) {
+          bgAudioBlobUrl = createContinuousSilentWav();
+        }
+        bgAudioCarrier.src = bgAudioBlobUrl;
+        bgAudioCarrier.load();
       }
     }
 
-    function triggerPiPMode() {
+    function ensureAudioContextActive() {
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!audioCtx && AudioContextClass) {
+          audioCtx = new AudioContextClass();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        if (audioCtx && !silentOsc) {
+          silentOsc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          gain.gain.value = 0.0001; // غير مسموع تماماً ولكنه يبقي خط الصوت فعالاً لنظام iOS
+          silentOsc.connect(gain);
+          gain.connect(audioCtx.destination);
+          silentOsc.start();
+        }
+      } catch (e) {}
+    }
+
+    async function requestScreenWakeLock() {
+      if ('wakeLock' in navigator) {
+        try {
+          wakeLockInstance = await navigator.wakeLock.request('screen');
+        } catch (e) {}
+      }
+    }
+
+    async function triggerPiPMode() {
       if (!isActivated) {
         openLoginModal();
         showToast('⚠️ المشاهدة بالخلفية و PiP مخصصة للمشتركين');
@@ -1059,20 +1205,69 @@
         showToast('يرجى تشغيل فيديو أولاً لتفعيل الاستماع بالخلفية');
         return;
       }
+
+      ensureAudioContextActive();
       if (bgAudioCarrier) {
         bgAudioCarrier.play().catch(() => {});
       }
+
+      // 1. دعم نافذة PiP المستقلة للكمبيوتر (Document Picture-in-Picture)
+      if ('documentPictureInPicture' in window) {
+        try {
+          const pipWin = await window.documentPictureInPicture.requestWindow({ width: 640, height: 360 });
+          const iframe = document.getElementById('activeIframe');
+          const container = document.getElementById('iframeContainer');
+          if (iframe && pipWin && container) {
+            pipWin.document.body.style.margin = '0';
+            pipWin.document.body.style.backgroundColor = '#000';
+            pipWin.document.body.style.display = 'flex';
+            pipWin.document.body.style.alignItems = 'center';
+            pipWin.document.body.style.justifyContent = 'center';
+            pipWin.document.body.appendChild(iframe);
+            pipWin.addEventListener('pagehide', () => {
+              container.appendChild(iframe);
+            });
+            showToast('✓ تم تفعيل النافذة العائمة المستقلة للمتصفح');
+            return;
+          }
+        } catch (e) {}
+      }
+
+      // 2. دعم النافذة العائمة على آيفون وآيباد وأندرويد (Video PiP)
       const pipVid = document.getElementById('pipCarrierVideo');
       if (pipVid) {
-        pipVid.play().then(() => {
+        try {
+          if (!pipVid.srcObject) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 640;
+            canvas.height = 360;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#09090b';
+            ctx.fillRect(0, 0, 640, 360);
+            ctx.fillStyle = '#dc2626';
+            ctx.beginPath();
+            ctx.arc(320, 150, 45, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 24px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('YouTube PLUS+', 320, 240);
+            ctx.font = '16px sans-serif';
+            ctx.fillStyle = '#a1a1aa';
+            ctx.fillText('الاستماع بالخلفية نشط', 320, 275);
+            pipVid.srcObject = canvas.captureStream(15);
+          }
+          await pipVid.play();
           if (pipVid.requestPictureInPicture) {
-            pipVid.requestPictureInPicture().catch(() => {});
+            await pipVid.requestPictureInPicture();
           } else if (pipVid.webkitSetPresentationMode) {
             pipVid.webkitSetPresentationMode('picture-in-picture');
           }
-        }).catch(() => {});
+          showToast('✓ نمط الاستماع بالخلفية والنافذة العائمة نشط بنجاح');
+        } catch (err) {
+          showToast('✓ استمرار الاستماع بالخلفية نشط عبر مركز التحكم وقفل الشاشة');
+        }
       }
-      showToast('✓ نمط الاستماع بالخلفية نشط: يمكنك قفل الشاشة أو استخدام تطبيقات أخرى');
     }
 
     function setupMediaSession(video) {
@@ -1091,6 +1286,7 @@
 
         navigator.mediaSession.setActionHandler('play', () => {
           sendIframeMsg('playVideo');
+          ensureAudioContextActive();
           if (bgAudioCarrier) bgAudioCarrier.play().catch(() => {});
           navigator.mediaSession.playbackState = 'playing';
         });
@@ -1114,9 +1310,224 @@
         iframe.contentWindow.postMessage(JSON.stringify({
           event: 'command',
           func: func,
-          args: arg ? [arg] : []
+          args: arg !== '' ? [arg] : []
         }), '*');
       }
+    }
+
+    // متابعة حالة قفل الشاشة وتصغير التطبيق (Visibility Change)
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        // الشاشة أغلقت أو تم الانتقال لتطبيق آخر
+        if (currentActiveVideo && bgAudioCarrier) {
+          bgAudioCarrier.play().catch(() => {});
+        }
+      } else {
+        // العودة للتطبيق
+        if (currentActiveVideo && ('mediaSession' in navigator)) {
+          navigator.mediaSession.playbackState = 'playing';
+        }
+      }
+    });
+
+    // =====================================================
+    // 3.1 محرك تصفح القنوات الرسمية وأقسامها الحية (Channel Page Engine)
+    // =====================================================
+    let currentChannelData = null;
+    let currentChannelTab = 'videos';
+
+    function openChannelPageFromCurrentVideo() {
+      if (currentActiveVideo && currentActiveVideo.channel) {
+        openChannelPage(currentActiveVideo.channel);
+      }
+    }
+
+    async function openChannelPage(channelQuery, tab = 'videos') {
+      if (!channelQuery) return;
+
+      currentChannelTab = tab;
+
+      // إخفاء الأقسام الأخرى
+      document.getElementById('watchPageSection').classList.add('hidden');
+      document.getElementById('chipsSection').classList.add('hidden');
+      document.getElementById('videoGrid').parentElement.classList.add('hidden');
+      document.getElementById('customViewSection').classList.add('hidden');
+
+      const chSection = document.getElementById('channelViewSection');
+      chSection.classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      const loading = document.getElementById('channelLoading');
+      const grid = document.getElementById('channelVideosGrid');
+      loading.classList.remove('hidden');
+      grid.innerHTML = '';
+
+      // تمييز التبويب النشط
+      document.querySelectorAll('.channel-tab-btn').forEach(b => {
+        b.className = 'channel-tab-btn px-4 py-3 border-b-2 border-transparent text-zinc-400 hover:text-white transition flex items-center gap-1.5 shrink-0';
+      });
+      const activeBtn = document.getElementById(`chTab_${tab}`);
+      if (activeBtn) {
+        activeBtn.className = 'channel-tab-btn active px-4 py-3 border-b-2 border-red-500 font-bold text-white transition flex items-center gap-1.5 shrink-0';
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/yt/channel?name=${encodeURIComponent(channelQuery)}&tab=${encodeURIComponent(tab)}`);
+        const data = await res.json();
+        loading.classList.add('hidden');
+
+        if (data.status === 'success' && data.channel) {
+          currentChannelData = data.channel;
+          renderChannelHeader(data.channel);
+          renderChannelTabContent(data.channel, tab);
+        } else {
+          grid.innerHTML = `
+            <div class="col-span-full py-16 text-center text-zinc-400">
+              <i class="fa-solid fa-circle-exclamation text-3xl text-zinc-600 mb-2"></i>
+              <p class="text-xs">تعذر جلب محتويات القناة. يرجى المحاولة مرة أخرى.</p>
+            </div>
+          `;
+        }
+      } catch (e) {
+        loading.classList.add('hidden');
+        grid.innerHTML = `
+          <div class="col-span-full py-16 text-center text-red-400">
+            <p class="text-xs">حدث خطأ أثناء الاتصال بالقناة. يرجى المحاولة بعد قليل.</p>
+          </div>
+        `;
+      }
+    }
+
+    function renderChannelHeader(channel) {
+      document.getElementById('channelPageTitle').innerText = channel.title;
+      document.getElementById('channelPageHandle').innerText = channel.handle || `@${channel.title.replace(/\s+/g, '')}`;
+      document.getElementById('channelPageSubs').innerText = channel.subscribers || 'مشتركون متفاعلون';
+      document.getElementById('channelPageDesc').innerText = channel.description || `القناة الرسمية لـ ${channel.title} على YouTube`;
+
+      const bannerImg = document.getElementById('channelBannerImg');
+      const bannerPlaceholder = document.getElementById('channelBannerPlaceholder');
+      if (channel.banner) {
+        bannerImg.src = channel.banner;
+        bannerImg.classList.remove('hidden');
+        bannerPlaceholder.classList.add('hidden');
+      } else {
+        bannerImg.classList.add('hidden');
+        bannerPlaceholder.classList.remove('hidden');
+      }
+
+      const avatarImg = document.getElementById('channelAvatarImg');
+      if (channel.avatar) {
+        avatarImg.src = channel.avatar;
+      } else {
+        avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(channel.title)}&background=e11d48&color=fff`;
+      }
+
+      updateChannelPageSubButton();
+    }
+
+    function renderChannelTabContent(channel, tab) {
+      const grid = document.getElementById('channelVideosGrid');
+
+      if (tab === 'about') {
+        grid.className = 'block max-w-2xl bg-zinc-900/60 p-6 rounded-2xl border border-white/10 space-y-4 text-xs';
+        grid.innerHTML = `
+          <div>
+            <h3 class="text-sm font-bold text-white mb-2">الوصف الرسمي</h3>
+            <p class="text-zinc-300 leading-relaxed font-sans whitespace-pre-line">${channel.description || 'لا يوجد وصف إضافي متوفر لهذه القناة.'}</p>
+          </div>
+          <div class="border-t border-white/10 pt-4 space-y-2">
+            <h3 class="text-sm font-bold text-white mb-2">إحصائيات القناة</h3>
+            <div class="text-zinc-400 font-sans">• عدد المشتركين: <strong class="text-white">${channel.subscribers || '--'}</strong></div>
+            <div class="text-zinc-400 font-sans">• المعرف الرسمي: <strong class="text-zinc-200">${channel.handle || '--'}</strong></div>
+            <div class="text-zinc-400 font-sans">• معرف القناة: <code class="text-zinc-300 font-mono">${channel.id}</code></div>
+          </div>
+        `;
+        return;
+      }
+
+      grid.className = tab === 'shorts'
+        ? 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3'
+        : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4';
+
+      if (!channel.videos || channel.videos.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full py-16 text-center text-zinc-400">
+            <i class="fa-solid fa-film text-3xl text-zinc-600 mb-2"></i>
+            <p class="text-xs">لا توجد عناصر في هذا القسم حالياً.</p>
+          </div>
+        `;
+        return;
+      }
+
+      if (tab === 'shorts') {
+        grid.innerHTML = channel.videos.map(v => `
+          <div onclick="playVideo('${v.id}')" class="cursor-pointer group relative aspect-[9/16] bg-[#1a1a1a] rounded-2xl overflow-hidden shadow-lg border border-white/5 hover:border-red-500/50 transition">
+            <img src="${v.thumb}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-2.5">
+              <h4 class="text-xs font-bold text-white line-clamp-2 drop-shadow leading-snug">${v.title}</h4>
+              <span class="text-[10px] text-zinc-300 mt-1 font-mono">${v.views || 'Shorts'}</span>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        grid.innerHTML = channel.videos.map(v => `
+          <div onclick="playVideo('${v.id}')" class="cursor-pointer group select-none flex flex-col justify-between">
+            <div class="relative aspect-video bg-[#1a1a1a] rounded-2xl overflow-hidden shadow">
+              <img src="${v.thumb}" alt="${v.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy">
+              <span class="absolute bottom-2 left-2 bg-black/80 text-white text-[11px] font-mono px-2 py-0.5 rounded-md font-bold">${v.dur || 'HD'}</span>
+              <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                <span class="w-10 h-10 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg"><i class="fa-solid fa-play text-sm"></i></span>
+              </div>
+            </div>
+            <div class="mt-2.5">
+              <h3 class="text-xs sm:text-sm font-bold text-white line-clamp-2 group-hover:text-red-400 transition leading-snug">${v.title}</h3>
+              <div class="text-xs text-[#aaaaaa] mt-1 font-sans flex items-center gap-1.5">
+                <span>${v.views || 'مشاهدات عالية'}</span> • <span>${v.time || 'حديثاً'}</span>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    function switchChannelTab(tab) {
+      if (currentChannelData) {
+        openChannelPage(currentChannelData.id || currentChannelData.title, tab);
+      }
+    }
+
+    function closeChannelPage() {
+      document.getElementById('channelViewSection').classList.add('hidden');
+      if (currentActiveVideo) {
+        document.getElementById('watchPageSection').classList.remove('hidden');
+      } else {
+        document.getElementById('chipsSection').classList.remove('hidden');
+        document.getElementById('videoGrid').parentElement.classList.remove('hidden');
+      }
+    }
+
+    function updateChannelPageSubButton() {
+      if (!currentChannelData) return;
+      const isSub = UserDB.isSubscribed(currentChannelData.title);
+      const btn = document.getElementById('channelPageSubBtn');
+      const txt = document.getElementById('channelPageSubText');
+      if (isSub) {
+        btn.className = 'w-full sm:w-auto bg-[#272727] hover:bg-[#333333] text-white font-bold text-xs sm:text-sm px-6 py-2.5 rounded-full transition flex items-center justify-center gap-2 border border-white/10 shadow active:scale-95';
+        txt.innerText = 'مشترك ✓';
+      } else {
+        btn.className = 'w-full sm:w-auto bg-[#f1f1f1] hover:bg-zinc-200 text-[#0f0f0f] font-bold text-xs sm:text-sm px-6 py-2.5 rounded-full transition flex items-center justify-center gap-2 shadow-lg active:scale-95';
+        txt.innerText = 'اشتراك';
+      }
+    }
+
+    function toggleChannelPageSubscription() {
+      if (!currentChannelData) return;
+      const wasSub = UserDB.isSubscribed(currentChannelData.title);
+      UserDB.toggleSubscription(currentChannelData.title, currentChannelData.avatar);
+      updateChannelPageSubButton();
+      updateSubscribeBtnUI(currentChannelData.title);
+      renderSubscriptionsSidebar();
+      showToast(wasSub ? `تم إلغاء الاشتراك من قناة (${currentChannelData.title})` : `✓ تم الاشتراك بقناة (${currentChannelData.title}) بنجاح`);
     }
 
     // =====================================================
@@ -1160,9 +1571,13 @@
       document.getElementById('watchPageSection').classList.remove('hidden');
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
-      // تفعيل الصوت بالخلفية
-      if (bgAudioCarrier) bgAudioCarrier.play().catch(() => {});
+      // تفعيل الصوت بالخلفية ومحرك الاستمرار لـ iOS و Android
+      ensureAudioContextActive();
+      if (bgAudioCarrier) {
+        bgAudioCarrier.play().catch(() => {});
+      }
       setupMediaSession(v);
+      requestScreenWakeLock();
     }
 
     function updateSubscribeBtnUI(channelName) {
