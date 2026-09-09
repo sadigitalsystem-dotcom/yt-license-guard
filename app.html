@@ -228,7 +228,7 @@
           <i class="fa-solid fa-bolt text-[#ff0000]"></i>
           <span>Shorts</span>
         </div>
-        <div onclick="filterCategory('subscriptions')" class="sidebar-item">
+        <div onclick="showSubscriptionsPage()" class="sidebar-item" id="sideSubs">
           <i class="fa-solid fa-layer-group"></i>
           <span>الاشتراكات</span>
         </div>
@@ -239,19 +239,19 @@
       <!-- قسم أنت (المكتبة) -->
       <div class="px-3 py-1 text-xs font-bold text-zinc-400">أنت</div>
       <div class="space-y-1 mt-1">
-        <div onclick="filterCategory('history')" class="sidebar-item">
+        <div onclick="showHistoryPage()" class="sidebar-item" id="sideHistory">
           <i class="fa-solid fa-clock-rotate-left"></i>
           <span>السجل</span>
         </div>
-        <div onclick="filterCategory('playlists')" class="sidebar-item">
+        <div onclick="showPlaylistsPage()" class="sidebar-item" id="sidePlaylists">
           <i class="fa-solid fa-list"></i>
           <span>قوائم التشغيل</span>
         </div>
-        <div onclick="filterCategory('watch_later')" class="sidebar-item">
+        <div onclick="showWatchLaterPage()" class="sidebar-item" id="sideWatchLater">
           <i class="fa-regular fa-clock"></i>
           <span>المشاهدة لاحقاً</span>
         </div>
-        <div onclick="filterCategory('liked')" class="sidebar-item">
+        <div onclick="showLikedVideosPage()" class="sidebar-item" id="sideLiked">
           <i class="fa-regular fa-thumbs-up"></i>
           <span>الفيديوهات التي أعجبتني</span>
         </div>
@@ -318,11 +318,11 @@
               عنوان الفيديو
             </h1>
 
-            <!-- شريط القناة والتفاعل -->
+            <!-- شريط القناة والتفاعل الحي 100% -->
             <div class="mt-3 flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-white/10">
-              <!-- معلومات القناة وزر الاشتراك الرسمي -->
+              <!-- معلومات القناة وزر الاشتراك الحي والتفاعلي -->
               <div class="flex items-center gap-3">
-                <div id="watchChannelAvatar" class="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-white text-sm">
+                <div id="watchChannelAvatar" class="w-10 h-10 rounded-full bg-gradient-to-tr from-red-600 to-amber-600 flex items-center justify-center font-bold text-white text-sm shadow">
                   Y
                 </div>
                 <div>
@@ -330,36 +330,53 @@
                     <span id="watchChannelName" class="font-bold text-sm text-white">اسم القناة</span>
                     <i class="fa-solid fa-circle-check text-xs text-zinc-400"></i>
                   </div>
-                  <span class="text-xs text-zinc-400">مشترك في YouTube</span>
+                  <span id="watchSubStatusText" class="text-xs text-zinc-400">قناة موثقة</span>
                 </div>
-                <!-- زر الاشتراك الرسمي (أبيض بنص أسود) -->
-                <button class="bg-[#f1f1f1] hover:bg-zinc-200 text-[#0f0f0f] font-bold text-xs sm:text-sm px-4 py-2 rounded-full transition mr-2">
-                  اشتراك
+                <!-- زر الاشتراك الحي -->
+                <button id="watchSubscribeBtn" onclick="toggleChannelSubscription()" class="bg-[#f1f1f1] hover:bg-zinc-200 text-[#0f0f0f] font-bold text-xs sm:text-sm px-4 py-2 rounded-full transition mr-2 flex items-center gap-1.5 shadow">
+                  <i class="fa-regular fa-bell text-xs"></i>
+                  <span id="watchSubscribeText">اشتراك</span>
                 </button>
               </div>
 
-              <!-- أزرار الإعجاب والمشاركة الرسمية (Pill Buttons) -->
+              <!-- أزرار الإعجاب، الحفظ، الـ PiP والمشاركة -->
               <div class="flex items-center gap-2 overflow-x-auto hide-scrollbar text-xs">
-                <div class="flex items-center bg-[#272727] hover:bg-[#3f3f3f] rounded-full overflow-hidden transition">
-                  <button class="flex items-center gap-2 px-4 py-2 text-white border-l border-white/10">
-                    <i class="fa-regular fa-thumbs-up"></i>
-                    <span id="watchLikeCount">25K</span>
+                <!-- زر الإعجاب وعدم الإعجاب الحي المتصل بالحساب -->
+                <div class="flex items-center bg-[#272727] hover:bg-[#333333] rounded-full overflow-hidden transition">
+                  <button id="watchLikeBtn" onclick="toggleCurrentVideoLike()" class="flex items-center gap-1.5 px-3.5 py-2 text-white border-l border-white/10 transition hover:text-[#3ea6ff]">
+                    <i id="watchLikeIcon" class="fa-regular fa-thumbs-up text-sm"></i>
+                    <span id="watchLikeCount" class="font-mono">إعجاب</span>
                   </button>
-                  <button class="px-3 py-2 text-white hover:bg-white/10">
-                    <i class="fa-regular fa-thumbs-down"></i>
+                  <button id="watchDislikeBtn" onclick="toggleCurrentVideoDislike()" class="px-3 py-2 text-white hover:text-red-400 transition">
+                    <i id="watchDislikeIcon" class="fa-regular fa-thumbs-down text-sm"></i>
                   </button>
                 </div>
 
-                <button onclick="shareCurrentVideo()" class="flex items-center gap-2 bg-[#272727] hover:bg-[#3f3f3f] px-4 py-2 rounded-full text-white transition">
+                <!-- زر حفظ الفيديو في قائمة التشغيل / المشاهدة لاحقاً -->
+                <button onclick="openSavePlaylistModal()" class="flex items-center gap-1.5 bg-[#272727] hover:bg-[#3f3f3f] px-3.5 py-2 rounded-full text-white transition" title="حفظ في قائمة">
+                  <i id="watchSaveIcon" class="fa-regular fa-bookmark text-amber-400"></i>
+                  <span>حفظ</span>
+                </button>
+
+                <!-- زر نافذة عائمة والاستماع بالخلفية للآيفون (PiP) -->
+                <button id="btnPiP" onclick="triggerPiPMode()" class="flex items-center gap-1.5 bg-[#272727] hover:bg-[#3f3f3f] px-3.5 py-2 rounded-full text-white transition shadow" title="تشغيل في الخلفية ونافذة عائمة">
+                  <i class="fa-solid fa-up-right-from-square text-[#3ea6ff]"></i>
+                  <span>نافذة عائمة (PiP)</span>
+                </button>
+
+                <!-- زر المشاركة -->
+                <button onclick="shareCurrentVideo()" class="flex items-center gap-1.5 bg-[#272727] hover:bg-[#3f3f3f] px-3 py-2 rounded-full text-white transition">
                   <i class="fa-solid fa-share"></i>
                   <span>مشاركة</span>
                 </button>
 
-                <button onclick="copyCurrentVideoLink()" class="flex items-center gap-2 bg-[#272727] hover:bg-[#3f3f3f] px-4 py-2 rounded-full text-white transition text-xs">
-                  <i class="fa-regular fa-copy text-xs text-[#3ea6ff]"></i>
+                <!-- زر نسخ الرابط -->
+                <button onclick="copyCurrentVideoLink()" class="flex items-center gap-1.5 bg-[#272727] hover:bg-[#3f3f3f] px-3 py-2 rounded-full text-white transition">
+                  <i class="fa-regular fa-copy text-[#3ea6ff]"></i>
                   <span id="copyLinkBtnText">نسخ الرابط</span>
                 </button>
 
+                <!-- زر إغلاق المشغل -->
                 <button onclick="closeWatchPage()" class="p-2 rounded-full bg-[#272727] hover:bg-white/10 text-zinc-300" title="إغلاق المشغل">
                   <i class="fa-solid fa-xmark"></i>
                 </button>
@@ -376,6 +393,17 @@
               </p>
             </div>
 
+            <!-- إشعار تفعيل ميزات الاستماع في الخلفية للآيفون -->
+            <div class="mt-2.5 bg-zinc-900/90 border border-white/10 rounded-2xl p-3 flex items-center justify-between gap-2 text-xs">
+              <div class="flex items-center gap-2.5 text-zinc-300">
+                <i class="fa-solid fa-headphones text-emerald-400 text-sm"></i>
+                <span class="text-[11px] sm:text-xs">للاستماع وشاشة الهاتف مقفلة: اضغط زر (نافذة عائمة PiP) أو استمر بالاستماع عبر مركز التحكم وشاشة القفل.</span>
+              </div>
+              <button onclick="triggerPiPMode()" class="bg-[#3ea6ff]/10 hover:bg-[#3ea6ff]/20 text-[#3ea6ff] font-bold text-[11px] px-3 py-1.5 rounded-xl border border-[#3ea6ff]/20 transition shrink-0">
+                تفعيل PiP
+              </button>
+            </div>
+
             <!-- تنبيه يظهر عند المشاهدة بدون تفعيل الكود -->
             <div id="unactivatedWatchBanner" class="hidden mt-3 bg-gradient-to-r from-amber-500/20 to-red-500/10 border border-amber-500/30 rounded-xl p-3 flex items-center justify-between gap-3 text-xs">
               <div class="flex items-center gap-2 text-amber-300">
@@ -389,6 +417,9 @@
           </div>
         </div>
       </div>
+
+      <!-- حاوية الصفحات التفاعلية الحية (الاشتراكات، السجل، قوائم التشغيل، الإعجابات، وصفحة أنت) -->
+      <div id="customViewSection" class="hidden px-4 py-4 min-h-[500px]"></div>
 
       <!-- شريط التصنيفات الرسمي (Category Chips) مطابق تماماً ليوتيوب الرسمي -->
       <div id="chipsSection" class="px-4 py-3 overflow-x-auto hide-scrollbar flex items-center gap-3 sticky top-14 bg-[#0f0f0f]/95 backdrop-blur z-30">
@@ -423,19 +454,19 @@
   <!-- 3. شريط التنقل السفلي للهواتف (Mobile Bottom Bar) -->
   <!-- ========================================== -->
   <nav class="md:hidden fixed bottom-0 left-0 right-0 h-14 bg-[#0f0f0f] border-t border-white/10 z-50 flex items-center justify-around text-[10px] text-zinc-400">
-    <button onclick="goHome()" class="flex flex-col items-center gap-1 text-white">
+    <button onclick="goHome()" class="flex flex-col items-center gap-1 text-white" id="navHome">
       <i class="fa-solid fa-house text-base"></i>
       <span>الرئيسية</span>
     </button>
-    <button onclick="filterCategory('shorts')" class="flex flex-col items-center gap-1 hover:text-white transition">
+    <button onclick="filterCategory('shorts')" class="flex flex-col items-center gap-1 hover:text-white transition" id="navShorts">
       <i class="fa-solid fa-bolt text-base text-[#ff0000]"></i>
       <span>Shorts</span>
     </button>
-    <button onclick="filterCategory('subscriptions')" class="flex flex-col items-center gap-1 hover:text-white transition">
+    <button onclick="showSubscriptionsPage()" class="flex flex-col items-center gap-1 hover:text-white transition" id="navSubs">
       <i class="fa-solid fa-layer-group text-base"></i>
       <span>الاشتراكات</span>
     </button>
-    <button onclick="openLoginModal()" class="flex flex-col items-center gap-1 hover:text-white transition">
+    <button onclick="showYouPage()" class="flex flex-col items-center gap-1 hover:text-white transition" id="navYou">
       <i class="fa-solid fa-circle-user text-base text-[#3ea6ff]"></i>
       <span id="navUserText">أنت</span>
     </button>
@@ -544,14 +575,170 @@
   <script>
     const API_BASE = window.location.origin;
     let currentVideoList = [];
-    let currentActiveVideoId = null;
+    let currentActiveVideo = null;
     let isActivated = false;
     let currentLicenseKey = '';
     let currentClientEmail = '';
     let currentExpiryDate = null;
     let currentActiveCategory = 'all';
 
-    // توليد وتحديد معرف الجهاز
+    // =====================================================
+    // 1. قاعدة بيانات الحساب التفاعلي المحلي (User Account DB)
+    // =====================================================
+    const UserDB = {
+      // الاشتراكات
+      getSubscriptions() {
+        try { return JSON.parse(localStorage.getItem('yt_user_subscriptions') || '[]'); } catch (e) { return []; }
+      },
+      saveSubscriptions(list) {
+        localStorage.setItem('yt_user_subscriptions', JSON.stringify(list));
+      },
+      isSubscribed(channelName) {
+        return this.getSubscriptions().some(s => s.name === channelName);
+      },
+      toggleSubscription(channelName, avatar = '') {
+        let list = this.getSubscriptions();
+        const idx = list.findIndex(s => s.name === channelName);
+        let isNowSubscribed = false;
+        if (idx !== -1) {
+          list.splice(idx, 1);
+          isNowSubscribed = false;
+        } else {
+          list.unshift({
+            name: channelName,
+            avatar: avatar || channelName.charAt(0),
+            subscribedAt: new Date().toISOString()
+          });
+          isNowSubscribed = true;
+        }
+        this.saveSubscriptions(list);
+        return isNowSubscribed;
+      },
+
+      // الفيديوهات التي أعجبتني
+      getLikedVideos() {
+        try { return JSON.parse(localStorage.getItem('yt_user_liked') || '[]'); } catch (e) { return []; }
+      },
+      saveLikedVideos(list) {
+        localStorage.setItem('yt_user_liked', JSON.stringify(list));
+      },
+      isLiked(videoId) {
+        return this.getLikedVideos().some(v => v.id === videoId);
+      },
+      toggleLike(video) {
+        let list = this.getLikedVideos();
+        const idx = list.findIndex(v => v.id === video.id);
+        let liked = false;
+        if (idx !== -1) {
+          list.splice(idx, 1);
+          liked = false;
+        } else {
+          list.unshift({ ...video, likedAt: new Date().toISOString() });
+          liked = true;
+        }
+        this.saveLikedVideos(list);
+        return liked;
+      },
+
+      // عدم الإعجاب
+      getDislikedIds() {
+        try { return JSON.parse(localStorage.getItem('yt_user_disliked') || '[]'); } catch (e) { return []; }
+      },
+      isDisliked(videoId) {
+        return this.getDislikedIds().includes(videoId);
+      },
+      toggleDislike(videoId) {
+        let list = this.getDislikedIds();
+        const idx = list.indexOf(videoId);
+        let disliked = false;
+        if (idx !== -1) {
+          list.splice(idx, 1);
+          disliked = false;
+        } else {
+          list.push(videoId);
+          disliked = true;
+        }
+        localStorage.setItem('yt_user_disliked', JSON.stringify(list));
+        return disliked;
+      },
+
+      // سجل المشاهدة (Watch History)
+      getHistory() {
+        try { return JSON.parse(localStorage.getItem('yt_user_history') || '[]'); } catch (e) { return []; }
+      },
+      saveHistory(list) {
+        localStorage.setItem('yt_user_history', JSON.stringify(list));
+      },
+      addToHistory(video) {
+        let list = this.getHistory().filter(v => v.id !== video.id);
+        list.unshift({ ...video, watchedAt: new Date().toISOString() });
+        if (list.length > 150) list = list.slice(0, 150);
+        this.saveHistory(list);
+      },
+      clearHistory() {
+        localStorage.removeItem('yt_user_history');
+      },
+
+      // قوائم التشغيل (Playlists & Watch Later)
+      getPlaylists() {
+        try {
+          let pls = JSON.parse(localStorage.getItem('yt_user_playlists') || '[]');
+          if (!Array.isArray(pls) || pls.length === 0) {
+            pls = [
+              { id: 'watch_later', title: 'المشاهدة لاحقاً', isSystem: true, videos: [] }
+            ];
+            this.savePlaylists(pls);
+          }
+          return pls;
+        } catch (e) {
+          return [{ id: 'watch_later', title: 'المشاهدة لاحقاً', isSystem: true, videos: [] }];
+        }
+      },
+      savePlaylists(pls) {
+        localStorage.setItem('yt_user_playlists', JSON.stringify(pls));
+      },
+      createPlaylist(title) {
+        const clean = (title || '').trim();
+        if (!clean) return null;
+        let pls = this.getPlaylists();
+        const newPl = {
+          id: 'pl_' + Date.now(),
+          title: clean,
+          isSystem: false,
+          createdAt: new Date().toISOString(),
+          videos: []
+        };
+        pls.push(newPl);
+        this.savePlaylists(pls);
+        return newPl;
+      },
+      toggleVideoInPlaylist(playlistId, video) {
+        let pls = this.getPlaylists();
+        const pl = pls.find(p => p.id === playlistId);
+        if (!pl) return false;
+        if (!Array.isArray(pl.videos)) pl.videos = [];
+        const vIdx = pl.videos.findIndex(v => v.id === video.id);
+        let added = false;
+        if (vIdx !== -1) {
+          pl.videos.splice(vIdx, 1);
+          added = false;
+        } else {
+          pl.videos.unshift(video);
+          added = true;
+        }
+        this.savePlaylists(pls);
+        return added;
+      },
+      isVideoInPlaylist(playlistId, videoId) {
+        const pls = this.getPlaylists();
+        const pl = pls.find(p => p.id === playlistId);
+        return pl && Array.isArray(pl.videos) ? pl.videos.some(v => v.id === videoId) : false;
+      }
+    };
+
+    // =====================================================
+    // 2. إدارة الجلسة والتهيئة
+    // =====================================================
     function getDeviceIdentifier() {
       let id = localStorage.getItem('yt_device_id');
       if (!id) {
@@ -571,9 +758,9 @@
     const DEVICE_ID = getDeviceIdentifier();
     document.getElementById('dispDeviceId').innerText = DEVICE_ID;
 
-    // بدء التشغيل
     window.addEventListener('DOMContentLoaded', () => {
       initAppSession();
+      initBackgroundAudioCarrier();
     });
 
     async function initAppSession() {
@@ -647,7 +834,7 @@
         } else {
           document.getElementById('dropExpiryText').innerText = 'الاشتراك سارٍ ونشط';
         }
-        if (navUserText) navUserText.innerText = email ? email.split('@')[0] : 'بريميوم';
+        if (navUserText) navUserText.innerText = email ? email.split('@')[0] : 'أنت';
       } else {
         signInBtn.classList.remove('hidden');
         userProfileBtn.classList.add('hidden');
@@ -655,11 +842,9 @@
         headerCountryBadge.classList.remove('hidden');
         if (pageTitle) pageTitle.innerText = 'YouTube';
         if (navUserText) navUserText.innerText = 'أنت';
-        localStorage.removeItem('yt_client_email');
       }
 
-      // تحديث شارة الفيديو إذا كان مفتوحاً
-      if (currentActiveVideoId) {
+      if (currentActiveVideo) {
         updateWatchPlayerBadges();
       }
     }
@@ -668,7 +853,6 @@
       document.getElementById('userDropdown').classList.toggle('hidden');
     }
 
-    // إغلاق القوائم عند النقر خارجها
     document.addEventListener('click', (e) => {
       const profileBtn = document.getElementById('userProfileBtn');
       const dropdown = document.getElementById('userDropdown');
@@ -677,193 +861,769 @@
       }
     });
 
-    function openLoginModal() {
-      document.getElementById('loginAlert').classList.add('hidden');
-      document.getElementById('loginModal').classList.remove('hidden');
-      document.getElementById('userDropdown')?.classList.add('hidden');
+    // =====================================================
+    // 3. تشغيل في الخلفية وحامل الصوت ونمط PiP للآيفون (Background Audio & PiP)
+    // =====================================================
+    let bgAudioCarrier = null;
+
+    function initBackgroundAudioCarrier() {
+      bgAudioCarrier = document.getElementById('bgAudioCarrier');
+      if (bgAudioCarrier) {
+        // حلقة صوتية غير مسموعة لتثبيت جلسة الصوت في iOS Lock Screen
+        bgAudioCarrier.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+      }
     }
 
-    function closeLoginModal() {
-      document.getElementById('loginModal').classList.add('hidden');
-    }
-
-    // نافذة تعديل الإيميل
-    function openEditEmailModal() {
-      document.getElementById('userDropdown')?.classList.add('hidden');
-      const input = document.getElementById('editEmailInput');
-      const alertBox = document.getElementById('editEmailAlert');
-      alertBox.classList.add('hidden');
-      input.value = currentClientEmail || '';
-      document.getElementById('editEmailModal').classList.remove('hidden');
-    }
-
-    function closeEditEmailModal() {
-      document.getElementById('editEmailModal').classList.add('hidden');
-    }
-
-    async function submitUpdateEmail() {
-      const email = document.getElementById('editEmailInput').value.trim().toLowerCase();
-      const alertBox = document.getElementById('editEmailAlert');
-      const btn = document.getElementById('btnSaveEmail');
-
-      alertBox.classList.add('hidden');
-      if (!email || !email.includes('@') || !email.includes('.')) {
-        alertBox.className = 'p-2 rounded-xl text-center text-xs font-bold bg-red-500/10 border border-red-500/20 text-red-400';
-        alertBox.innerText = 'يرجى إدخال بريد إلكتروني صحيح';
-        alertBox.classList.remove('hidden');
+    function triggerPiPMode() {
+      if (!currentActiveVideo) {
+        showToast('يرجى تشغيل فيديو أولاً لتفعيل الاستماع بالخلفية');
         return;
       }
-
-      btn.disabled = true;
-      btn.innerText = 'جاري الحفظ...';
-
-      try {
-        const res = await fetch(`${API_BASE}/api/license/update-email`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ serial_key: currentLicenseKey, client_email: email })
-        });
-        const data = await res.json();
-        if (res.ok && data.status === 'success') {
-          currentClientEmail = email;
-          localStorage.setItem('yt_client_email', email);
-          updateUserUI(true, currentLicenseKey, currentExpiryDate, email);
-          alertBox.className = 'p-2 rounded-xl text-center text-xs font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400';
-          alertBox.innerText = 'تم حفظ وتحديث البريد الإلكتروني بنجاح!';
-          alertBox.classList.remove('hidden');
-          setTimeout(() => closeEditEmailModal(), 1200);
-        } else {
-          alertBox.className = 'p-2 rounded-xl text-center text-xs font-bold bg-red-500/10 border border-red-500/20 text-red-400';
-          alertBox.innerText = data.message || 'فشل حفظ البريد';
-          alertBox.classList.remove('hidden');
-        }
-      } catch (err) {
-        alertBox.className = 'p-2 rounded-xl text-center text-xs font-bold bg-red-500/10 border border-red-500/20 text-red-400';
-        alertBox.innerText = 'تعذر الاتصال بالخادم';
-        alertBox.classList.remove('hidden');
-      } finally {
-        btn.disabled = false;
-        btn.innerText = 'حفظ البريد';
+      if (bgAudioCarrier) {
+        bgAudioCarrier.play().catch(() => {});
       }
-    }
-
-    async function submitActivation() {
-      const key = document.getElementById('keyInput').value.trim().toUpperCase();
-      const alertBox = document.getElementById('loginAlert');
-      const btn = document.getElementById('btnActivate');
-
-      alertBox.classList.add('hidden');
-      if (!key || key.length < 8) {
-        alertBox.innerText = 'يرجى إدخال كود تفعيل صحيح';
-        alertBox.classList.remove('hidden');
-        return;
-      }
-
-      btn.disabled = true;
-      btn.innerText = 'جاري التحقق...';
-
-      const clientEmail = (document.getElementById('clientEmailInput')?.value || '').trim();
-
-      try {
-        const res = await fetch(`${API_BASE}/api/activate`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ serial_key: key, device_id: DEVICE_ID, client_email: clientEmail })
-        });
-        const data = await res.json();
-
-        if (res.ok && data.status === 'success') {
-          localStorage.setItem('yt_license_key', key);
-          if (data.client_email) localStorage.setItem('yt_client_email', data.client_email);
-          closeLoginModal();
-          updateUserUI(true, key, data.expires_at, data.client_email);
-          startHeartbeat(key);
-        } else {
-          alertBox.innerText = data.message || 'كود التفعيل غير صالح';
-          alertBox.classList.remove('hidden');
-        }
-      } catch (e) {
-        alertBox.innerText = 'تعذر الاتصال بالخادم، تأكد من الإنترنت';
-        alertBox.classList.remove('hidden');
-      } finally {
-        btn.disabled = false;
-        btn.innerText = 'تفعيل وتشغيل';
-      }
-    }
-
-    function disconnectLicense() {
-      if (confirm('هل ترغب بتسجيل الخروج من هذا الجهاز؟')) {
-        localStorage.removeItem('yt_license_key');
-        localStorage.removeItem('yt_client_email');
-        updateUserUI(false);
-        document.getElementById('userDropdown').classList.add('hidden');
-        closeWatchPage();
-      }
-    }
-
-    // فحص الصلاحية كل 10 ثوانٍ
-    let heartbeatTimer = null;
-    function startHeartbeat(key) {
-      if (heartbeatTimer) clearInterval(heartbeatTimer);
-      heartbeatTimer = setInterval(async () => {
-        try {
-          const res = await fetch(`${API_BASE}/api/verify`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ serial_key: key, device_id: DEVICE_ID })
-          });
-          const data = await res.json();
-          if (!res.ok || data.status !== 'valid') {
-            clearInterval(heartbeatTimer);
-            localStorage.removeItem('yt_license_key');
-            updateUserUI(false);
-            closeWatchPage();
-            openLoginModal();
-            document.getElementById('loginAlert').innerText = 'تم إيقاف أو انتهاء صلاحية هذا الكود من قبل الإدارة فوراً';
-            document.getElementById('loginAlert').classList.remove('hidden');
+      const pipVid = document.getElementById('pipCarrierVideo');
+      if (pipVid) {
+        pipVid.play().then(() => {
+          if (pipVid.requestPictureInPicture) {
+            pipVid.requestPictureInPicture().catch(() => {});
+          } else if (pipVid.webkitSetPresentationMode) {
+            pipVid.webkitSetPresentationMode('picture-in-picture');
           }
-        } catch (e) {}
-      }, 10000);
+        }).catch(() => {});
+      }
+      showToast('✓ نمط الاستماع بالخلفية نشط: يمكنك قفل الشاشة أو استخدام تطبيقات أخرى');
     }
 
-    // جلب الفيديوهات الحية من محرك YouTube حسب التصنيف أو كلمة البحث
-    async function loadYouTubeVideos(query = '', category = 'all') {
-      const loading = document.getElementById('loadingIndicator');
-      const grid = document.getElementById('videoGrid');
-      loading.classList.remove('hidden');
-      grid.innerHTML = '';
-
+    function setupMediaSession(video) {
+      if (!('mediaSession' in navigator)) return;
       try {
-        const url = `${API_BASE}/api/yt/search?q=${encodeURIComponent(query)}&cat=${encodeURIComponent(category)}`;
-        const res = await fetch(url);
-        const data = await res.json();
-        loading.classList.add('hidden');
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: video.title,
+          artist: video.channel || 'YouTube PLUS+',
+          album: 'YouTube PLUS+ Premium',
+          artwork: [
+            { src: video.thumb || `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`, sizes: '480x360', type: 'image/jpeg' },
+            { src: `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`, sizes: '1280x720', type: 'image/jpeg' }
+          ]
+        });
+        navigator.mediaSession.playbackState = 'playing';
 
-        if (data.status === 'success' && Array.isArray(data.videos) && data.videos.length > 0) {
-          currentVideoList = data.videos;
-          renderVideos(data.videos);
-        } else {
-          renderFallback();
-        }
-      } catch (e) {
-        loading.classList.add('hidden');
-        renderFallback();
+        navigator.mediaSession.setActionHandler('play', () => {
+          sendIframeMsg('playVideo');
+          if (bgAudioCarrier) bgAudioCarrier.play().catch(() => {});
+          navigator.mediaSession.playbackState = 'playing';
+        });
+        navigator.mediaSession.setActionHandler('pause', () => {
+          sendIframeMsg('pauseVideo');
+          if (bgAudioCarrier) bgAudioCarrier.pause();
+          navigator.mediaSession.playbackState = 'paused';
+        });
+        navigator.mediaSession.setActionHandler('seekbackward', () => {
+          sendIframeMsg('seekTo', -10);
+        });
+        navigator.mediaSession.setActionHandler('seekforward', () => {
+          sendIframeMsg('seekTo', 10);
+        });
+      } catch (e) {}
+    }
+
+    function sendIframeMsg(func, arg = '') {
+      const iframe = document.getElementById('activeIframe');
+      if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.postMessage(JSON.stringify({
+          event: 'command',
+          func: func,
+          args: arg ? [arg] : []
+        }), '*');
       }
     }
 
-    // تصميم كروت الفيديوهات المطابقة بنسبة 100% ليوتيوب
-    function renderVideos(videos) {
-      const grid = document.getElementById('videoGrid');
-      grid.innerHTML = videos.map(v => `
+    // =====================================================
+    // 4. تشغيل الفيديو والتفاعل الحي (Watch, Subscriptions, Likes)
+    // =====================================================
+    function playVideo(videoId) {
+      const v = currentVideoList.find(item => item.id === videoId) || {
+        id: videoId,
+        title: 'تشغيل مباشر - YouTube',
+        channel: 'YouTube',
+        views: 'مشاهدات عالية',
+        time: 'حديثاً',
+        dur: 'HD',
+        thumb: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
+      };
+
+      currentActiveVideo = v;
+
+      // إضافة تلقائية إلى سجل المشاهدة الحقيقي
+      UserDB.addToHistory(v);
+
+      document.getElementById('watchTitle').innerText = v.title;
+      document.getElementById('watchChannelName').innerText = v.channel || 'YouTube';
+      document.getElementById('watchChannelAvatar').innerText = (v.channel || 'Y').charAt(0);
+
+      const iframe = document.getElementById('activeIframe');
+      // استخدام enablejsapi=1 للتحكم بالصوت من شاشة القفل والـ MediaSession
+      iframe.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&playsinline=1&enablejsapi=1&rel=0&modestbranding=1`;
+
+      // تحديث حالة زر الاشتراك
+      updateSubscribeBtnUI(v.channel);
+
+      // تحديث حالة زر الإعجاب
+      updateLikeBtnUI(v.id);
+
+      updateWatchPlayerBadges();
+
+      document.getElementById('watchPageSection').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // تفعيل الصوت بالخلفية والـ MediaSession
+      if (isActivated) {
+        if (bgAudioCarrier) bgAudioCarrier.play().catch(() => {});
+        setupMediaSession(v);
+      }
+    }
+
+    function updateSubscribeBtnUI(channelName) {
+      const btn = document.getElementById('watchSubscribeBtn');
+      const txt = document.getElementById('watchSubscribeText');
+      const subStatus = document.getElementById('watchSubStatusText');
+      if (!btn || !channelName) return;
+
+      const isSub = UserDB.isSubscribed(channelName);
+      if (isSub) {
+        btn.className = 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 font-bold text-xs sm:text-sm px-4 py-2 rounded-full transition mr-2 flex items-center gap-1.5';
+        txt.innerText = 'مشترك ✓';
+        if (subStatus) subStatus.innerText = 'أنت مشترك في هذه القناة';
+      } else {
+        btn.className = 'bg-[#f1f1f1] hover:bg-zinc-200 text-[#0f0f0f] font-bold text-xs sm:text-sm px-4 py-2 rounded-full transition mr-2 flex items-center gap-1.5 shadow';
+        txt.innerText = 'اشتراك';
+        if (subStatus) subStatus.innerText = 'قناة موثقة';
+      }
+    }
+
+    function toggleChannelSubscription() {
+      if (!currentActiveVideo || !currentActiveVideo.channel) return;
+      const ch = currentActiveVideo.channel;
+      const isNowSub = UserDB.toggleSubscription(ch, (ch || 'Y').charAt(0));
+      updateSubscribeBtnUI(ch);
+      if (isNowSub) {
+        showToast(`تمت إضافة قناة (${ch}) إلى اشتراكاتك بنجاح`);
+      } else {
+        showToast(`تم إلغاء الاشتراك من قناة (${ch})`);
+      }
+    }
+
+    function updateLikeBtnUI(videoId) {
+      const likeBtn = document.getElementById('watchLikeBtn');
+      const likeIcon = document.getElementById('watchLikeIcon');
+      const dislikeBtn = document.getElementById('watchDislikeBtn');
+      const dislikeIcon = document.getElementById('watchDislikeIcon');
+
+      const isLiked = UserDB.isLiked(videoId);
+      const isDisliked = UserDB.isDisliked(videoId);
+
+      if (isLiked) {
+        likeBtn.classList.add('text-[#3ea6ff]');
+        likeIcon.className = 'fa-solid fa-thumbs-up text-sm text-[#3ea6ff]';
+      } else {
+        likeBtn.classList.remove('text-[#3ea6ff]');
+        likeIcon.className = 'fa-regular fa-thumbs-up text-sm';
+      }
+
+      if (isDisliked) {
+        dislikeBtn.classList.add('text-red-400');
+        dislikeIcon.className = 'fa-solid fa-thumbs-down text-sm text-red-400';
+      } else {
+        dislikeBtn.classList.remove('text-red-400');
+        dislikeIcon.className = 'fa-regular fa-thumbs-down text-sm';
+      }
+    }
+
+    function toggleCurrentVideoLike() {
+      if (!currentActiveVideo) return;
+      const isLiked = UserDB.toggleLike(currentActiveVideo);
+      // إذا كان مسجلاً كـ dislike، نحذفه
+      if (UserDB.isDisliked(currentActiveVideo.id)) {
+        UserDB.toggleDislike(currentActiveVideo.id);
+      }
+      updateLikeBtnUI(currentActiveVideo.id);
+      showToast(isLiked ? 'تمت إضافة الفيديو إلى الفيديوهات التي أعجبتك' : 'تمت إزالة الإعجاب');
+    }
+
+    function toggleCurrentVideoDislike() {
+      if (!currentActiveVideo) return;
+      const isDisliked = UserDB.toggleDislike(currentActiveVideo.id);
+      // إذا كان مسجلاً كـ like، نحذفه
+      if (isDisliked && UserDB.isLiked(currentActiveVideo.id)) {
+        UserDB.toggleLike(currentActiveVideo);
+      }
+      updateLikeBtnUI(currentActiveVideo.id);
+      showToast(isDisliked ? 'تم تسجيل عدم الإعجاب' : 'تم إلغاء التفاعل');
+    }
+
+    // =====================================================
+    // 5. إدارة قوائم التشغيل والمشاهدة لاحقاً (Playlists Modal)
+    // =====================================================
+    function openSavePlaylistModal() {
+      if (!currentActiveVideo) {
+        showToast('يرجى فتح فيديو أولاً لحفظه في قائمة');
+        return;
+      }
+      const listEl = document.getElementById('playlistOptionsList');
+      const pls = UserDB.getPlaylists();
+
+      listEl.innerHTML = pls.map(pl => {
+        const inPl = UserDB.isVideoInPlaylist(pl.id, currentActiveVideo.id);
+        return `
+          <label class="flex items-center justify-between p-2.5 rounded-xl hover:bg-white/5 cursor-pointer transition">
+            <span class="text-xs font-medium text-white">${pl.title}</span>
+            <input 
+              type="checkbox" 
+              ${inPl ? 'checked' : ''} 
+              onchange="handleTogglePlaylist('${pl.id}')"
+              class="w-4 h-4 accent-[#3ea6ff] rounded cursor-pointer"
+            >
+          </label>
+        `;
+      }).join('');
+
+      document.getElementById('savePlaylistModal').classList.remove('hidden');
+    }
+
+    function closeSavePlaylistModal() {
+      document.getElementById('savePlaylistModal').classList.add('hidden');
+    }
+
+    function handleTogglePlaylist(plId) {
+      if (!currentActiveVideo) return;
+      const added = UserDB.toggleVideoInPlaylist(plId, currentActiveVideo);
+      showToast(added ? 'تمت الإضافة إلى القائمة' : 'تمت الإزالة من القائمة');
+    }
+
+    function submitCreateNewPlaylist() {
+      const input = document.getElementById('newPlaylistTitleInput');
+      const title = input.value.trim();
+      if (!title) return;
+      const newPl = UserDB.createPlaylist(title);
+      if (newPl && currentActiveVideo) {
+        UserDB.toggleVideoInPlaylist(newPl.id, currentActiveVideo);
+        showToast(`تم إنشاء قائمة (${title}) وإضافة الفيديو إليها`);
+      }
+      input.value = '';
+      openSavePlaylistModal();
+    }
+
+    function updateWatchPlayerBadges() {
+      const badge = document.getElementById('watchPremiumStatusBadge');
+      const unactBanner = document.getElementById('unactivatedWatchBanner');
+      if (isActivated) {
+        if (badge) badge.innerHTML = '<span class="text-emerald-400 font-bold"><i class="fa-solid fa-shield-check"></i> تم التفعيل (Premium) بدون إعلانات وبث بالخلفية</span>';
+        if (unactBanner) unactBanner.classList.add('hidden');
+      } else {
+        if (badge) badge.innerHTML = '<span class="text-amber-400 font-medium"><i class="fa-regular fa-circle-play"></i> تشغيل عادي (يتطلب تفعيل بدون إعلانات)</span>';
+        if (unactBanner) unactBanner.classList.remove('hidden');
+      }
+    }
+
+    function copyCurrentVideoLink() {
+      if (!currentActiveVideo) return;
+      const url = `https://www.youtube.com/watch?v=${currentActiveVideo.id}`;
+      const btnText = document.getElementById('copyLinkBtnText');
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(() => {
+          if (btnText) {
+            btnText.innerText = 'تم النسخ ✓';
+            setTimeout(() => btnText.innerText = 'نسخ الرابط', 2000);
+          }
+        });
+      } else {
+        prompt('انسخ رابط الفيديو:', url);
+      }
+    }
+
+    function closeWatchPage() {
+      const iframe = document.getElementById('activeIframe');
+      if (iframe) iframe.src = 'about:blank';
+      if (bgAudioCarrier) bgAudioCarrier.pause();
+      document.getElementById('watchPageSection').classList.add('hidden');
+      currentActiveVideo = null;
+    }
+
+    // =====================================================
+    // 6. عرض الصفحات التفاعلية الحية (Custom Views Hub)
+    // =====================================================
+    function setCustomViewActive(title, icon) {
+      document.getElementById('chipsSection').classList.add('hidden');
+      document.getElementById('videoGrid').parentElement.classList.add('hidden');
+      const view = document.getElementById('customViewSection');
+      view.classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return view;
+    }
+
+    // صفحة الاشتراكات الحية
+    function showSubscriptionsPage() {
+      highlightNav('navSubs', 'sideSubs');
+      closeWatchPage();
+      const view = setCustomViewActive();
+      const subs = UserDB.getSubscriptions();
+
+      if (subs.length === 0) {
+        view.innerHTML = `
+          <div class="py-16 text-center text-zinc-400 max-w-md mx-auto">
+            <div class="w-16 h-16 rounded-full bg-zinc-800/80 mx-auto flex items-center justify-center text-2xl text-zinc-500 mb-4 shadow">
+              <i class="fa-solid fa-layer-group"></i>
+            </div>
+            <h2 class="text-base font-bold text-white mb-1">لا توجد قنوات في اشتراكاتك بعد</h2>
+            <p class="text-xs text-zinc-400 mb-6 leading-relaxed">
+              اشترك في قنواتك المفضلة أثناء مشاهدة أي فيديو بضغط زر (اشتراك) لتظهر قنواتك ومقاطعها هنا مباشرة.
+            </p>
+            <button onclick="goHome()" class="bg-[#f1f1f1] hover:bg-zinc-200 text-[#0f0f0f] font-bold text-xs px-5 py-2.5 rounded-full transition">
+              استكشاف الفيديوهات الرائجة
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      view.innerHTML = `
+        <div class="space-y-6">
+          <div class="flex items-center justify-between border-b border-white/10 pb-4">
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-layer-group text-red-500"></i>
+              <span>الاشتراكات (${subs.length} قناة)</span>
+            </h2>
+          </div>
+
+          <!-- شريط القنوات المشترك بها الدائري مثل تطبيق يوتيوب -->
+          <div class="overflow-x-auto hide-scrollbar flex items-center gap-4 py-2">
+            ${subs.map(s => `
+              <div onclick="searchChannelVideos('${s.name.replace(/'/g, "\\'")}')" class="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 group">
+                <div class="w-14 h-14 rounded-full bg-gradient-to-tr from-red-600 to-amber-600 flex items-center justify-center font-bold text-white text-base shadow group-hover:scale-105 transition">
+                  ${s.avatar || s.name.charAt(0)}
+                </div>
+                <span class="text-[11px] text-zinc-300 group-hover:text-white max-w-[70px] truncate text-center">${s.name}</span>
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="pt-4">
+            <h3 class="text-sm font-bold text-white mb-4">أحدث مقاطع قنواتك المشترك بها:</h3>
+            <div id="subsVideosGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div class="col-span-full text-center py-10 text-zinc-500 text-xs"><i class="fa-solid fa-spinner fa-spin text-xl text-red-500 mb-2"></i><br>جاري جلب المقاطع...</div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // جلب مقاطع القنوات المشترك بها
+      const firstChannel = subs[0].name;
+      fetch(`${API_BASE}/api/yt/search?q=${encodeURIComponent(firstChannel)}`)
+        .then(r => r.json())
+        .then(d => {
+          const grid = document.getElementById('subsVideosGrid');
+          if (grid && d.videos && d.videos.length > 0) {
+            grid.innerHTML = renderVideoCards(d.videos);
+          } else if (grid) {
+            grid.innerHTML = '<div class="col-span-full text-center py-8 text-zinc-500 text-xs">اضغط على أي قناة بالأعلى لتصفح محتواها مباشرة</div>';
+          }
+        }).catch(() => {});
+    }
+
+    function searchChannelVideos(channelName) {
+      const grid = document.getElementById('subsVideosGrid');
+      if (grid) {
+        grid.innerHTML = '<div class="col-span-full text-center py-10 text-zinc-500 text-xs"><i class="fa-solid fa-spinner fa-spin text-xl text-red-500 mb-2"></i><br>جاري جلب مقاطع ' + channelName + '...</div>';
+      }
+      fetch(`${API_BASE}/api/yt/search?q=${encodeURIComponent(channelName)}`)
+        .then(r => r.json())
+        .then(d => {
+          if (grid && d.videos && d.videos.length > 0) {
+            grid.innerHTML = renderVideoCards(d.videos);
+          }
+        }).catch(() => {});
+    }
+
+    // صفحة الفيديوهات التي أعجبتني
+    function showLikedVideosPage() {
+      highlightNav('', 'sideLiked');
+      closeWatchPage();
+      const view = setCustomViewActive();
+      const liked = UserDB.getLikedVideos();
+
+      if (liked.length === 0) {
+        view.innerHTML = `
+          <div class="py-16 text-center text-zinc-400 max-w-md mx-auto">
+            <div class="w-16 h-16 rounded-full bg-zinc-800/80 mx-auto flex items-center justify-center text-2xl text-blue-400 mb-4 shadow">
+              <i class="fa-regular fa-thumbs-up"></i>
+            </div>
+            <h2 class="text-base font-bold text-white mb-1">لا توجد فيديوهات في قائمة الإعجابات</h2>
+            <p class="text-xs text-zinc-400 mb-6 leading-relaxed">
+              انقر على زر الإعجاب (👍) أثناء مشاهدة أي فيديو لحفظه في هذه القائمة والرجوع إليه في أي وقت.
+            </p>
+            <button onclick="goHome()" class="bg-[#f1f1f1] hover:bg-zinc-200 text-[#0f0f0f] font-bold text-xs px-5 py-2.5 rounded-full transition">
+              تصفح الفيديوهات
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      view.innerHTML = `
+        <div>
+          <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
+            <div>
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-thumbs-up text-blue-400"></i>
+                <span>الفيديوهات التي أعجبتني</span>
+              </h2>
+              <p class="text-xs text-zinc-400 font-mono mt-1">${liked.length} فيديو محفوظ</p>
+            </div>
+            <button onclick="playFirstLikedVideo()" class="bg-[#3ea6ff] hover:bg-[#3ea6ff]/90 text-black font-bold text-xs px-4 py-2 rounded-full transition flex items-center gap-1.5 shadow">
+              <i class="fa-solid fa-play text-xs"></i>
+              <span>تشغيل الكل</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            ${renderVideoCards(liked)}
+          </div>
+        </div>
+      `;
+    }
+
+    function playFirstLikedVideo() {
+      const liked = UserDB.getLikedVideos();
+      if (liked.length > 0) playVideo(liked[0].id);
+    }
+
+    // صفحة سجل المشاهدة (Watch History)
+    function showHistoryPage() {
+      highlightNav('', 'sideHistory');
+      closeWatchPage();
+      const view = setCustomViewActive();
+      const history = UserDB.getHistory();
+
+      if (history.length === 0) {
+        view.innerHTML = `
+          <div class="py-16 text-center text-zinc-400 max-w-md mx-auto">
+            <div class="w-16 h-16 rounded-full bg-zinc-800/80 mx-auto flex items-center justify-center text-2xl text-zinc-500 mb-4 shadow">
+              <i class="fa-solid fa-clock-rotate-left"></i>
+            </div>
+            <h2 class="text-base font-bold text-white mb-1">سجل المشاهدة فارغ</h2>
+            <p class="text-xs text-zinc-400 mb-6 leading-relaxed">
+              جميع الفيديوهات التي تشاهدها سيتم حفظها في هذا السجل لتتمكن من متابعتها لاحقاً.
+            </p>
+            <button onclick="goHome()" class="bg-[#f1f1f1] hover:bg-zinc-200 text-[#0f0f0f] font-bold text-xs px-5 py-2.5 rounded-full transition">
+              بدء المشاهدة
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      view.innerHTML = `
+        <div>
+          <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
+            <div>
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-clock-rotate-left text-zinc-400"></i>
+                <span>سجل المشاهدة</span>
+              </h2>
+              <p class="text-xs text-zinc-400 font-mono mt-1">${history.length} فيديو تمت مشاهدته</p>
+            </div>
+            <button onclick="confirmClearHistory()" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-bold text-xs px-4 py-2 rounded-full transition flex items-center gap-1.5">
+              <i class="fa-solid fa-trash text-xs"></i>
+              <span>محو السجل بالكامل</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            ${renderVideoCards(history)}
+          </div>
+        </div>
+      `;
+    }
+
+    function confirmClearHistory() {
+      if (confirm('هل ترغب حقاً في محو سجل المشاهدة بالكامل؟')) {
+        UserDB.clearHistory();
+        showHistoryPage();
+        showToast('تم محو سجل المشاهدة بنجاح');
+      }
+    }
+
+    // صفحة قوائم التشغيل (Playlists)
+    function showPlaylistsPage() {
+      highlightNav('', 'sidePlaylists');
+      closeWatchPage();
+      const view = setCustomViewActive();
+      const pls = UserDB.getPlaylists();
+
+      view.innerHTML = `
+        <div>
+          <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
+            <div>
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-list text-amber-400"></i>
+                <span>قوائم التشغيل الخاصة بك</span>
+              </h2>
+              <p class="text-xs text-zinc-400 font-mono mt-1">${pls.length} قائمة تشغيل</p>
+            </div>
+            <button onclick="promptCreatePlaylist()" class="bg-[#3ea6ff] hover:bg-[#3ea6ff]/90 text-black font-bold text-xs px-4 py-2 rounded-full transition flex items-center gap-1.5 shadow">
+              <i class="fa-solid fa-plus text-xs"></i>
+              <span>قائمة جديدة</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            ${pls.map(pl => {
+              const count = pl.videos ? pl.videos.length : 0;
+              const thumb = (pl.videos && pl.videos[0]) ? pl.videos[0].thumb : 'https://i.ytimg.com/vi/kJQP7kiw5Fk/hqdefault.jpg';
+              return `
+                <div onclick="showPlaylistDetails('${pl.id}')" class="cursor-pointer bg-[#1f1f1f] hover:bg-[#252525] border border-white/5 rounded-2xl overflow-hidden transition group">
+                  <div class="relative aspect-video bg-zinc-900 overflow-hidden">
+                    <img src="${thumb}" class="w-full h-full object-cover group-hover:scale-105 transition duration-200">
+                    <div class="absolute inset-y-0 left-0 w-2/5 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center text-white">
+                      <span class="font-mono text-sm font-bold">${count}</span>
+                      <i class="fa-solid fa-list text-xs mt-1 text-zinc-400"></i>
+                    </div>
+                  </div>
+                  <div class="p-3.5">
+                    <h3 class="font-bold text-sm text-white truncate">${pl.title}</h3>
+                    <p class="text-[11px] text-zinc-400 mt-1 font-mono">${count} فيديو</p>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function showWatchLaterPage() {
+      showPlaylistDetails('watch_later');
+    }
+
+    function showPlaylistDetails(plId) {
+      closeWatchPage();
+      const view = setCustomViewActive();
+      const pls = UserDB.getPlaylists();
+      const pl = pls.find(p => p.id === plId) || pls[0];
+      const videos = pl.videos || [];
+
+      view.innerHTML = `
+        <div>
+          <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
+            <div>
+              <div class="flex items-center gap-2">
+                <button onclick="showPlaylistsPage()" class="p-2 rounded-full hover:bg-white/10 text-zinc-400 hover:text-white">
+                  <i class="fa-solid fa-arrow-right"></i>
+                </button>
+                <h2 class="text-lg font-bold text-white">${pl.title}</h2>
+              </div>
+              <p class="text-xs text-zinc-400 font-mono mt-1 mr-8">${videos.length} فيديو في هذه القائمة</p>
+            </div>
+            ${videos.length > 0 ? `
+              <button onclick="playVideo('${videos[0].id}')" class="bg-[#3ea6ff] hover:bg-[#3ea6ff]/90 text-black font-bold text-xs px-4 py-2 rounded-full transition flex items-center gap-1.5 shadow">
+                <i class="fa-solid fa-play text-xs"></i>
+                <span>تشغيل الكل</span>
+              </button>
+            ` : ''}
+          </div>
+
+          ${videos.length === 0 ? `
+            <div class="py-16 text-center text-zinc-400">
+              <p class="text-xs">هذه القائمة فارغة حالياً. اضغط على زر (حفظ) أثناء مشاهدة أي مقطع لإضافته هنا.</p>
+            </div>
+          ` : `
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              ${renderVideoCards(videos)}
+            </div>
+          `}
+        </div>
+      `;
+    }
+
+    function promptCreatePlaylist() {
+      const name = prompt('أدخل اسم قائمة التشغيل الجديدة:');
+      if (name && name.trim()) {
+        UserDB.createPlaylist(name.trim());
+        showPlaylistsPage();
+        showToast('تم إنشاء قائمة التشغيل بنجاح');
+      }
+    }
+
+    // صفحة "أنت" الشاملة (You Tab) المطابقة تماماً لتطبيق يوتيوب للهواتف
+    function showYouPage() {
+      highlightNav('navYou', '');
+      closeWatchPage();
+      const view = setCustomViewActive();
+
+      const email = currentClientEmail || localStorage.getItem('yt_client_email') || 'حسابك الشخصي';
+      const history = UserDB.getHistory().slice(0, 8);
+      const liked = UserDB.getLikedVideos().slice(0, 8);
+      const pls = UserDB.getPlaylists();
+      const subs = UserDB.getSubscriptions();
+
+      view.innerHTML = `
+        <div class="space-y-6 max-w-5xl mx-auto pb-10">
+          
+          <!-- بطاقة الحساب الشخصي الرسمية -->
+          <div class="bg-[#1f1f1f] border border-white/10 rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-4 text-center sm:text-right">
+              <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-red-600 via-amber-600 to-emerald-500 flex items-center justify-center font-bold text-white text-2xl shadow-lg shrink-0">
+                ${email ? email.charAt(0).toUpperCase() : 'P'}
+              </div>
+              <div>
+                <h2 class="text-base sm:text-lg font-bold text-white">${email}</h2>
+                <div class="flex items-center gap-2 mt-1 justify-center sm:justify-start">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    عضوية YouTube Premium نشطة
+                  </span>
+                </div>
+                <div class="text-[11px] text-zinc-400 font-mono mt-1">
+                  كود التفعيل: <span class="text-white font-bold">${currentLicenseKey || 'مفعّل'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 flex-wrap justify-center">
+              <button onclick="openEditEmailModal()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold px-4 py-2 rounded-xl transition border border-white/10">
+                تعديل البريد
+              </button>
+              <button onclick="openLoginModal()" class="bg-zinc-800 hover:bg-zinc-700 text-amber-400 text-xs font-bold px-4 py-2 rounded-xl transition border border-white/10">
+                تمديد الاشتراك
+              </button>
+              <button onclick="disconnectLicense()" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-bold px-4 py-2 rounded-xl transition border border-red-500/20">
+                تسجيل الخروج
+              </button>
+            </div>
+          </div>
+
+          <!-- قسم السجل (شريط أفقي متحرك) -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-clock-rotate-left text-zinc-400"></i>
+                <span>السجل</span>
+              </h3>
+              ${history.length > 0 ? `
+                <button onclick="showHistoryPage()" class="text-xs text-[#3ea6ff] font-bold hover:underline">
+                  عرض الكل (${history.length})
+                </button>
+              ` : ''}
+            </div>
+
+            ${history.length === 0 ? `
+              <p class="text-xs text-zinc-500 py-3">لم تشاهد أي مقطع حتى الآن.</p>
+            ` : `
+              <div class="overflow-x-auto hide-scrollbar flex items-start gap-3 py-1">
+                ${history.map(v => `
+                  <div onclick="playVideo('${v.id}')" class="w-44 shrink-0 cursor-pointer group text-right">
+                    <div class="relative aspect-video rounded-xl overflow-hidden bg-zinc-900 mb-1.5">
+                      <img src="${v.thumb}" class="w-full h-full object-cover group-hover:scale-105 transition duration-200">
+                      <span class="absolute bottom-1 left-1 bg-black/80 text-white text-[10px] px-1 rounded font-mono">${v.dur || 'HD'}</span>
+                    </div>
+                    <h4 class="text-xs font-medium text-white line-clamp-2 leading-tight group-hover:text-zinc-200">${v.title}</h4>
+                    <span class="text-[10px] text-zinc-400 truncate block mt-0.5">${v.channel}</span>
+                  </div>
+                `).join('')}
+              </div>
+            `}
+          </div>
+
+          <!-- قسم قوائم التشغيل -->
+          <div class="space-y-3 pt-2">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-list text-amber-400"></i>
+                <span>قوائم التشغيل</span>
+              </h3>
+              <button onclick="showPlaylistsPage()" class="text-xs text-[#3ea6ff] font-bold hover:underline">
+                عرض الكل (${pls.length})
+              </button>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              ${pls.slice(0, 3).map(pl => `
+                <div onclick="showPlaylistDetails('${pl.id}')" class="cursor-pointer bg-[#1f1f1f] p-3 rounded-2xl border border-white/5 hover:bg-[#282828] transition">
+                  <div class="font-bold text-xs text-white truncate">${pl.title}</div>
+                  <div class="text-[10px] text-zinc-400 font-mono mt-1">${pl.videos ? pl.videos.length : 0} فيديو</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- قسم الفيديوهات التي أعجبتني والاشتراكات -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+            <div onclick="showLikedVideosPage()" class="cursor-pointer bg-[#1f1f1f] hover:bg-[#252525] p-4 rounded-2xl border border-white/5 flex items-center justify-between transition">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-lg">
+                  <i class="fa-solid fa-thumbs-up"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-bold text-white">الفيديوهات التي أعجبتني</div>
+                  <div class="text-[11px] text-zinc-400 font-mono">${UserDB.getLikedVideos().length} فيديو</div>
+                </div>
+              </div>
+              <i class="fa-solid fa-chevron-left text-zinc-500 text-xs"></i>
+            </div>
+
+            <div onclick="showSubscriptionsPage()" class="cursor-pointer bg-[#1f1f1f] hover:bg-[#252525] p-4 rounded-2xl border border-white/5 flex items-center justify-between transition">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center text-lg">
+                  <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-bold text-white">قنواتي المشترك بها</div>
+                  <div class="text-[11px] text-zinc-400 font-mono">${subs.length} قناة</div>
+                </div>
+              </div>
+              <i class="fa-solid fa-chevron-left text-zinc-500 text-xs"></i>
+            </div>
+          </div>
+
+        </div>
+      `;
+    }
+
+    function highlightNav(mobileNavId, sideNavId) {
+      document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => {
+        el.classList.remove('text-white');
+        el.classList.add('text-zinc-400');
+      });
+
+      if (sideNavId) {
+        const el = document.getElementById(sideNavId);
+        if (el) el.classList.add('active');
+      }
+      if (mobileNavId) {
+        const el = document.getElementById(mobileNavId);
+        if (el) {
+          el.classList.add('text-white');
+          el.classList.remove('text-zinc-400');
+        }
+      }
+    }
+
+    // =====================================================
+    // 7. دوال جلب وبناء كروت الفيديوهات
+    // =====================================================
+    function renderVideoCards(videos) {
+      return videos.map(v => `
         <div onclick="playVideo('${v.id}')" class="cursor-pointer flex flex-col group text-right">
           <div class="relative aspect-video w-full rounded-xl overflow-hidden bg-[#202020]">
             <img 
-              src="${v.thumb}" 
+              src="${v.thumb || ('https://i.ytimg.com/vi/' + v.id + '/hqdefault.jpg')}" 
               class="w-full h-full object-cover group-hover:scale-105 transition duration-200" 
               loading="lazy" 
               onerror="this.src='https://i.ytimg.com/vi/${v.id}/hqdefault.jpg'"
             >
-            <span class="absolute bottom-1.5 left-1.5 bg-black/80 text-white text-[11px] font-medium px-1.5 py-0.5 rounded">
+            <span class="absolute bottom-1.5 left-1.5 bg-black/80 text-white text-[11px] font-medium px-1.5 py-0.5 rounded font-mono">
               ${v.dur || 'HD'}
             </span>
           </div>
@@ -889,74 +1649,59 @@
       `).join('');
     }
 
-    // تشغيل الفيديو وتحديث حالة التفعيل
-    function playVideo(videoId) {
-      const v = currentVideoList.find(item => item.id === videoId) || {
-        id: videoId,
-        title: 'تشغيل مباشر - YouTube',
-        channel: 'YouTube'
-      };
+    async function loadYouTubeVideos(query = '', category = 'all') {
+      const loading = document.getElementById('loadingIndicator');
+      const grid = document.getElementById('videoGrid');
+      
+      // إخفاء العرض المخصص وإظهار شبكة الفيديوهات الرئيسية
+      document.getElementById('customViewSection').classList.add('hidden');
+      document.getElementById('chipsSection').classList.remove('hidden');
+      grid.parentElement.classList.remove('hidden');
 
-      currentActiveVideoId = videoId;
-      document.getElementById('watchTitle').innerText = v.title;
-      document.getElementById('watchChannelName').innerText = v.channel || 'YouTube';
-      document.getElementById('watchChannelAvatar').innerText = (v.channel || 'Y').charAt(0);
+      loading.classList.remove('hidden');
+      grid.innerHTML = '';
 
-      const iframe = document.getElementById('activeIframe');
-      iframe.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0&modestbranding=1`;
+      try {
+        const url = `${API_BASE}/api/yt/search?q=${encodeURIComponent(query)}&cat=${encodeURIComponent(category)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        loading.classList.add('hidden');
 
-      updateWatchPlayerBadges();
+        if (data.status === 'success' && Array.isArray(data.videos) && data.videos.length > 0) {
+          currentVideoList = data.videos;
+          grid.innerHTML = renderVideoCards(data.videos);
+        } else {
+          renderFallback();
+        }
+      } catch (e) {
+        loading.classList.add('hidden');
+        renderFallback();
+      }
+    }
 
-      document.getElementById('watchPageSection').classList.remove('hidden');
+    function filterCategory(cat, btnEl) {
+      document.querySelectorAll('.yt-chip').forEach(btn => btn.classList.remove('active'));
+      if (btnEl) {
+        btnEl.classList.add('active');
+      }
+      currentActiveCategory = cat;
+      document.getElementById('mainSearchInput').value = '';
+      closeWatchPage();
+      loadYouTubeVideos('', cat);
+    }
+
+    function goHome() {
+      highlightNav('navHome', 'sideHome');
+      document.getElementById('mainSearchInput').value = '';
+      closeWatchPage();
+      const firstChip = document.querySelector('.yt-chip');
+      document.querySelectorAll('.yt-chip').forEach(btn => btn.classList.remove('active'));
+      if (firstChip) firstChip.classList.add('active');
+      currentActiveCategory = 'all';
+      loadYouTubeVideos('', 'all');
       window.scrollTo({ top: 0, behavior: 'smooth' });
-
-      // تفعيل الاستماع في الخلفية فقط للمشتركين المفعلين
-      if (isActivated && 'mediaSession' in navigator) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-          title: v.title,
-          artist: v.channel || 'YouTube Premium',
-          album: 'YouTube PLUS+ Premium',
-          artwork: [{ src: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`, sizes: '480x360', type: 'image/jpeg' }]
-        });
-      }
     }
 
-    function updateWatchPlayerBadges() {
-      const badge = document.getElementById('watchPremiumStatusBadge');
-      const unactBanner = document.getElementById('unactivatedWatchBanner');
-      if (isActivated) {
-        if (badge) badge.innerHTML = '<span class="text-emerald-400 font-bold"><i class="fa-solid fa-shield-check"></i> تم التفعيل (Premium) بدون إعلانات وبث بالخلفية</span>';
-        if (unactBanner) unactBanner.classList.add('hidden');
-      } else {
-        if (badge) badge.innerHTML = '<span class="text-amber-400 font-medium"><i class="fa-regular fa-circle-play"></i> تشغيل عادي (يتطلب تفعيل بدون إعلانات)</span>';
-        if (unactBanner) unactBanner.classList.remove('hidden');
-      }
-    }
-
-    function copyCurrentVideoLink() {
-      if (!currentActiveVideoId) return;
-      const url = `https://www.youtube.com/watch?v=${currentActiveVideoId}`;
-      const btnText = document.getElementById('copyLinkBtnText');
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(url).then(() => {
-          if (btnText) {
-            btnText.innerText = 'تم النسخ ✓';
-            setTimeout(() => btnText.innerText = 'نسخ الرابط', 2000);
-          }
-        });
-      } else {
-        prompt('انسخ رابط الفيديو:', url);
-      }
-    }
-
-    function closeWatchPage() {
-      const iframe = document.getElementById('activeIframe');
-      if (iframe) iframe.src = 'about:blank';
-      document.getElementById('watchPageSection').classList.add('hidden');
-      currentActiveVideoId = null;
-    }
-
-    // البحث
     function executeSearch() {
       const q = document.getElementById('mainSearchInput').value.trim();
       if (!q) return;
@@ -1039,35 +1784,6 @@
       goHome();
     }
 
-    // فلترة التصنيفات الرسمية الحية
-    function filterCategory(cat, btnEl) {
-      document.querySelectorAll('.yt-chip').forEach(btn => btn.classList.remove('active'));
-      if (btnEl) {
-        btnEl.classList.add('active');
-      } else {
-        const chips = document.querySelectorAll('.yt-chip');
-        chips.forEach(c => {
-          if (c.getAttribute('onclick')?.includes(`'${cat}'`)) c.classList.add('active');
-        });
-      }
-
-      currentActiveCategory = cat;
-      document.getElementById('mainSearchInput').value = '';
-      closeWatchPage();
-      loadYouTubeVideos('', cat);
-    }
-
-    function goHome() {
-      document.getElementById('mainSearchInput').value = '';
-      closeWatchPage();
-      const firstChip = document.querySelector('.yt-chip');
-      document.querySelectorAll('.yt-chip').forEach(btn => btn.classList.remove('active'));
-      if (firstChip) firstChip.classList.add('active');
-      currentActiveCategory = 'all';
-      loadYouTubeVideos('', 'all');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
     function toggleSidebar() {
       document.getElementById('mainSidebar').classList.toggle('hidden');
     }
@@ -1081,13 +1797,170 @@
     }
 
     function shareCurrentVideo() {
-      if (!currentActiveVideoId) return;
-      const url = `https://www.youtube.com/watch?v=${currentActiveVideoId}`;
+      if (!currentActiveVideo) return;
+      const url = `https://www.youtube.com/watch?v=${currentActiveVideo.id}`;
       if (navigator.share) {
-        navigator.share({ title: 'YouTube PLUS+', url: url });
+        navigator.share({ title: currentActiveVideo.title, url: url });
       } else {
         copyCurrentVideoLink();
       }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toastNotification');
+      const txt = document.getElementById('toastNotificationText');
+      if (!toast || !txt) return;
+      txt.innerText = msg;
+      toast.classList.remove('opacity-0');
+      setTimeout(() => toast.classList.add('opacity-0'), 2800);
+    }
+
+    // نوافذ الدخول وتعديل البريد
+    function openLoginModal() {
+      document.getElementById('loginAlert').classList.add('hidden');
+      document.getElementById('loginModal').classList.remove('hidden');
+      document.getElementById('userDropdown')?.classList.add('hidden');
+    }
+    function closeLoginModal() {
+      document.getElementById('loginModal').classList.add('hidden');
+    }
+
+    function openEditEmailModal() {
+      document.getElementById('userDropdown')?.classList.add('hidden');
+      const input = document.getElementById('editEmailInput');
+      const alertBox = document.getElementById('editEmailAlert');
+      alertBox.classList.add('hidden');
+      input.value = currentClientEmail || '';
+      document.getElementById('editEmailModal').classList.remove('hidden');
+    }
+    function closeEditEmailModal() {
+      document.getElementById('editEmailModal').classList.add('hidden');
+    }
+
+    async function submitUpdateEmail() {
+      const email = document.getElementById('editEmailInput').value.trim().toLowerCase();
+      const alertBox = document.getElementById('editEmailAlert');
+      const btn = document.getElementById('btnSaveEmail');
+
+      alertBox.classList.add('hidden');
+      if (!email || !email.includes('@') || !email.includes('.')) {
+        alertBox.className = 'p-2 rounded-xl text-center text-xs font-bold bg-red-500/10 border border-red-500/20 text-red-400';
+        alertBox.innerText = 'يرجى إدخال بريد إلكتروني صحيح';
+        alertBox.classList.remove('hidden');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = 'جاري الحفظ...';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/license/update-email`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ serial_key: currentLicenseKey, client_email: email })
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+          currentClientEmail = email;
+          localStorage.setItem('yt_client_email', email);
+          updateUserUI(true, currentLicenseKey, currentExpiryDate, email);
+          alertBox.className = 'p-2 rounded-xl text-center text-xs font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400';
+          alertBox.innerText = 'تم حفظ وتحديث البريد الإلكتروني بنجاح!';
+          alertBox.classList.remove('hidden');
+          setTimeout(() => closeEditEmailModal(), 1200);
+        } else {
+          alertBox.className = 'p-2 rounded-xl text-center text-xs font-bold bg-red-500/10 border border-red-500/20 text-red-400';
+          alertBox.innerText = data.message || 'فشل حفظ البريد';
+          alertBox.classList.remove('hidden');
+        }
+      } catch (err) {
+        alertBox.className = 'p-2 rounded-xl text-center text-xs font-bold bg-red-500/10 border border-red-500/20 text-red-400';
+        alertBox.innerText = 'تعذر الاتصال بالخادم';
+        alertBox.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'حفظ البريد';
+      }
+    }
+
+    async function submitActivation() {
+      const key = document.getElementById('keyInput').value.trim().toUpperCase();
+      const alertBox = document.getElementById('loginAlert');
+      const btn = document.getElementById('btnActivate');
+
+      alertBox.classList.add('hidden');
+      if (!key || key.length < 8) {
+        alertBox.innerText = 'يرجى إدخال كود تفعيل صحيح';
+        alertBox.classList.remove('hidden');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = 'جاري التحقق...';
+
+      const clientEmail = (document.getElementById('clientEmailInput')?.value || '').trim();
+
+      try {
+        const res = await fetch(`${API_BASE}/api/activate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ serial_key: key, device_id: DEVICE_ID, client_email: clientEmail })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.status === 'success') {
+          localStorage.setItem('yt_license_key', key);
+          if (data.client_email) localStorage.setItem('yt_client_email', data.client_email);
+          closeLoginModal();
+          updateUserUI(true, key, data.expires_at, data.client_email);
+          startHeartbeat(key);
+          showToast('تم تفعيل اشتراكك بنجاح!');
+        } else {
+          alertBox.innerText = data.message || 'كود التفعيل غير صالح';
+          alertBox.classList.remove('hidden');
+        }
+      } catch (e) {
+        alertBox.innerText = 'تعذر الاتصال بالخادم، تأكد من الإنترنت';
+        alertBox.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'تفعيل وتشغيل';
+      }
+    }
+
+    function disconnectLicense() {
+      if (confirm('هل ترغب بتسجيل الخروج من هذا الجهاز؟')) {
+        localStorage.removeItem('yt_license_key');
+        localStorage.removeItem('yt_client_email');
+        updateUserUI(false);
+        document.getElementById('userDropdown').classList.add('hidden');
+        closeWatchPage();
+        showToast('تم تسجيل الخروج');
+      }
+    }
+
+    let heartbeatTimer = null;
+    function startHeartbeat(key) {
+      if (heartbeatTimer) clearInterval(heartbeatTimer);
+      heartbeatTimer = setInterval(async () => {
+        try {
+          const res = await fetch(`${API_BASE}/api/verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ serial_key: key, device_id: DEVICE_ID })
+          });
+          const data = await res.json();
+          if (!res.ok || data.status !== 'valid') {
+            clearInterval(heartbeatTimer);
+            localStorage.removeItem('yt_license_key');
+            updateUserUI(false);
+            closeWatchPage();
+            openLoginModal();
+            document.getElementById('loginAlert').innerText = 'تم إيقاف أو انتهاء صلاحية هذا الكود من قبل الإدارة فوراً';
+            document.getElementById('loginAlert').classList.remove('hidden');
+          }
+        } catch (e) {}
+      }, 10000);
     }
 
     function renderFallback() {
@@ -1098,8 +1971,59 @@
         { id: "fJ9rUzIMcZQ", title: "المراجعة الشاملة لأحدث هواتف هذا العام - كل ما تحتاج معرفته قبل الشراء", channel: "فيصل السيف / Tech", views: "1.1M", time: "قبل أسبوعين", dur: "18:40", thumb: "https://i.ytimg.com/vi/fJ9rUzIMcZQ/hqdefault.jpg" }
       ];
       currentVideoList = fallback;
-      renderVideos(fallback);
+      document.getElementById('videoGrid').innerHTML = renderVideoCards(fallback);
     }
 </script>
+
+  <!-- نافذة حفظ الفيديو في قائمة تشغيل حية -->
+  <div id="savePlaylistModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-[#1f1f1f] border border-white/10 rounded-3xl p-6 max-w-sm w-full shadow-2xl text-right relative">
+      <button onclick="closeSavePlaylistModal()" class="absolute left-4 top-4 text-zinc-400 hover:text-white p-2">
+        <i class="fa-solid fa-xmark text-sm"></i>
+      </button>
+      <h2 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-bookmark text-amber-400 text-sm"></i>
+        <span>حفظ الفيديو في قائمة</span>
+      </h2>
+
+      <!-- خيارات القوائم الحالية -->
+      <div id="playlistOptionsList" class="space-y-2 max-h-60 overflow-y-auto custom-scroll py-1">
+        <!-- يتم تعبئتها ديناميكياً مع checkboxes -->
+      </div>
+
+      <hr class="border-white/10 my-4">
+
+      <!-- إنشاء قائمة جديدة -->
+      <div class="space-y-2">
+        <label class="block text-xs font-medium text-zinc-400">+ إنشاء قائمة تشغيل جديدة:</label>
+        <div class="flex gap-2">
+          <input 
+            type="text" 
+            id="newPlaylistTitleInput" 
+            placeholder="اسم القائمة (مثال: مفضلاتي)..." 
+            class="flex-1 bg-[#121212] border border-[#303030] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#3ea6ff]"
+            onkeydown="if(event.key==='Enter') submitCreateNewPlaylist()"
+          >
+          <button 
+            onclick="submitCreateNewPlaylist()" 
+            class="bg-[#3ea6ff] hover:bg-[#3ea6ff]/90 text-black font-bold text-xs px-4 py-2 rounded-xl transition whitespace-nowrap"
+          >
+            إنشاء
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- عنصر إشعار منبثق (Toast) سريع -->
+  <div id="toastNotification" class="fixed bottom-16 left-1/2 -translate-x-1/2 bg-zinc-800 text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-2xl border border-white/10 z-50 pointer-events-none opacity-0 transition-opacity duration-300 flex items-center gap-2">
+    <i class="fa-solid fa-circle-check text-emerald-400"></i>
+    <span id="toastNotificationText">إشعار</span>
+  </div>
+
+  <!-- عناصر داعمة للصوت بالخلفية ونمط PiP على iOS -->
+  <audio id="bgAudioCarrier" loop playsinline preload="auto" class="hidden"></audio>
+  <video id="pipCarrierVideo" loop playsinline webkit-playsinline muted class="hidden"></video>
+
 </body>
 </html>
