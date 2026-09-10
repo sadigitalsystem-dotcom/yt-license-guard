@@ -1128,7 +1128,7 @@
     let silentOsc = null;
 
     function createContinuousSilentWav() {
-      // توليد نغمة صوتية حاملة مكررة تمنع إيقاف النظام للصوت بالخلفية في iOS Safari
+      // توليد ملف صوتي صامت 100% بدون أي ترددات أو صفير للأجهزة المحمولة
       const sampleRate = 8000;
       const numSeconds = 10;
       const numFrames = sampleRate * numSeconds;
@@ -1149,14 +1149,17 @@
       view.setUint32(36, 0x64617461, false); // "data"
       view.setUint32(40, numFrames, true);
       for (let i = 0; i < numFrames; i++) {
-        // تمويج دقيق 127/129 يمنع WebKit من اكتشاف الصمت وتجميد خيط الصوت عند قفل الشاشة
-        view.setUint8(44 + i, (i % 2 === 0) ? 127 : 129);
+        view.setUint8(44 + i, 128); // 128 = صمت رقمي مطلق (0 فولت) لمنع أي صفير نهائياً
       }
       const blob = new Blob([buffer], { type: 'audio/wav' });
       return URL.createObjectURL(blob);
     }
 
     function initBackgroundAudioCarrier() {
+      // تفعيل الناقل الصوتي فقط لأجهزة iOS و Safari نظراً لحاجة نظام أبل له
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      if (!isIOS) return;
+
       bgAudioCarrier = document.getElementById('bgAudioCarrier');
       if (bgAudioCarrier) {
         if (!bgAudioBlobUrl) {
@@ -1168,21 +1171,10 @@
     }
 
     function ensureAudioContextActive() {
+      // لا ننشئ أي Oscillator لمنع صدور أي صوت صفير نهائياً
       try {
-        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if (!audioCtx && AudioContextClass) {
-          audioCtx = new AudioContextClass();
-        }
         if (audioCtx && audioCtx.state === 'suspended') {
           audioCtx.resume();
-        }
-        if (audioCtx && !silentOsc) {
-          silentOsc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          gain.gain.value = 0.0001; // غير مسموع تماماً ولكنه يبقي خط الصوت فعالاً لنظام iOS
-          silentOsc.connect(gain);
-          gain.connect(audioCtx.destination);
-          silentOsc.start();
         }
       } catch (e) {}
     }
@@ -1207,7 +1199,7 @@
       }
 
       ensureAudioContextActive();
-      if (bgAudioCarrier) {
+      if (bgAudioCarrier && bgAudioCarrier.src) {
         bgAudioCarrier.play().catch(() => {});
       }
 
@@ -1233,11 +1225,10 @@
         } catch (e) {}
       }
 
-      // 2. دعم النافذة العائمة على آيفون وآيباد وأندرويد (Video PiP مع مسار صوتي حي)
+      // 2. دعم النافذة العائمة على آيفون وآيباد وأندرويد (Video PiP)
       const pipVid = document.getElementById('pipCarrierVideo');
       if (pipVid) {
         try {
-          ensureAudioContextActive();
           if (!pipVid.srcObject) {
             const canvas = document.createElement('canvas');
             canvas.width = 640;
@@ -1264,23 +1255,9 @@
             ctx.fillStyle = '#aaaaaa';
             ctx.fillText('الاستماع بالخلفية نشط (قفل الشاشة متاح)', 320, 260);
 
-            const videoStream = canvas.captureStream(15);
-            let combinedStream = videoStream;
-            if (audioCtx && audioCtx.createMediaStreamDestination) {
-              const audioDest = audioCtx.createMediaStreamDestination();
-              if (silentOsc) silentOsc.connect(audioDest);
-              const audioTracks = audioDest.stream.getAudioTracks();
-              if (audioTracks.length > 0) {
-                combinedStream = new MediaStream([
-                  ...videoStream.getVideoTracks(),
-                  ...audioTracks
-                ]);
-              }
-            }
-            pipVid.srcObject = combinedStream;
+            pipVid.srcObject = canvas.captureStream(15);
           }
-          pipVid.muted = false;
-          pipVid.volume = 0.001;
+          pipVid.muted = true;
           await pipVid.play();
           if (pipVid.requestPictureInPicture) {
             await pipVid.requestPictureInPicture();
@@ -1311,12 +1288,12 @@
         navigator.mediaSession.setActionHandler('play', () => {
           sendIframeMsg('playVideo');
           ensureAudioContextActive();
-          if (bgAudioCarrier) bgAudioCarrier.play().catch(() => {});
+          if (bgAudioCarrier && bgAudioCarrier.src) bgAudioCarrier.play().catch(() => {});
           navigator.mediaSession.playbackState = 'playing';
         });
         navigator.mediaSession.setActionHandler('pause', () => {
           sendIframeMsg('pauseVideo');
-          if (bgAudioCarrier) bgAudioCarrier.pause();
+          if (bgAudioCarrier && bgAudioCarrier.src) bgAudioCarrier.pause();
           navigator.mediaSession.playbackState = 'paused';
         });
         navigator.mediaSession.setActionHandler('seekbackward', () => {
@@ -1343,7 +1320,7 @@
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
         // الشاشة أغلقت أو تم الانتقال لتطبيق آخر
-        if (currentActiveVideo && bgAudioCarrier) {
+        if (currentActiveVideo && bgAudioCarrier && bgAudioCarrier.src) {
           bgAudioCarrier.play().catch(() => {});
         }
       } else {
