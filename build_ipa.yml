@@ -1,0 +1,131 @@
+name: Build Protected YouTube PLUS IPA (iOS)
+
+on:
+  push:
+    paths:
+      - 'ios_tweak/**'
+      - '.github/workflows/build_ipa.yml'
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-ipa:
+    name: Build & Protect YouTube PLUS IPA
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Xcode Environment
+        run: |
+          xcrun --sdk iphoneos --show-sdk-version
+          echo "SDK Path: $(xcrun --sdk iphoneos --show-sdk-path)"
+
+      - name: Compile YouTubeLicenseGuard.dylib
+        run: |
+          set -e
+          echo "======================================================="
+          echo "🚀 1. Compiling YouTubeLicenseGuard.dylib for iOS arm64"
+          echo "======================================================="
+          SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
+          xcrun --sdk iphoneos clang -dynamiclib -arch arm64 \
+            -isysroot "$SDK_PATH" \
+            -miphoneos-version-min=14.0 \
+            -fobjc-arc \
+            -framework UIKit -framework Foundation -framework Security \
+            -install_name "@rpath/YouTubeLicenseGuard.dylib" \
+            ios_tweak/YouTubeLicenseGuard.m -o YouTubeLicenseGuard.dylib
+          
+          echo "✅ YouTubeLicenseGuard.dylib compiled successfully!"
+          file YouTubeLicenseGuard.dylib
+          otool -L YouTubeLicenseGuard.dylib
+
+      - name: Build insert_dylib utility
+        run: |
+          set -e
+          echo "======================================================="
+          echo "🔨 2. Building insert_dylib Mach-O injector tool"
+          echo "======================================================="
+          git clone --depth 1 https://github.com/Tyilo/insert_dylib.git
+          cd insert_dylib
+          xcodebuild -configuration Release
+          sudo cp build/Release/insert_dylib /usr/local/bin/
+          cd ..
+          insert_dylib --version || true
+
+      - name: Download Base YouTube PLUS IPA
+        run: |
+          set -e
+          echo "======================================================="
+          echo "📥 3. Downloading Base YouTube PLUS IPA"
+          echo "======================================================="
+          curl -f -sL "https://files.catbox.moe/z8jg5n.ipa" -o base_youtube.ipa
+          echo "Downloaded base IPA size: $(ls -lh base_youtube.ipa | awk '{print $5}')"
+
+      - name: Unpack, Inject Dylib, and Codesign
+        run: |
+          set -e
+          echo "======================================================="
+          echo "💉 4. Unpacking, Injecting Dylib, and Signing"
+          echo "======================================================="
+          unzip -q base_youtube.ipa -d ipa_unpacked
+          
+          APP_DIR=$(find ipa_unpacked/Payload -name "*.app" -maxdepth 1 | head -n 1)
+          echo "Target App Directory: $APP_DIR"
+          
+          # Copy YouTubeLicenseGuard.dylib into Frameworks directory
+          mkdir -p "$APP_DIR/Frameworks"
+          cp YouTubeLicenseGuard.dylib "$APP_DIR/Frameworks/"
+          
+          # Inject dylib load command into main YouTube Mach-O binary
+          echo "Injecting @rpath/YouTubeLicenseGuard.dylib into $APP_DIR/YouTube..."
+          insert_dylib --inplace --all-yes "@rpath/YouTubeLicenseGuard.dylib" "$APP_DIR/YouTube"
+          
+          # Verify the load command was successfully inserted
+          echo "Verifying inserted load commands:"
+          otool -L "$APP_DIR/YouTube" | grep -i YouTubeLicenseGuard
+          
+          # Ad-hoc sign dylib and app bundle
+          echo "Codesigning app bundle..."
+          codesign --force --deep --sign - "$APP_DIR/Frameworks/YouTubeLicenseGuard.dylib"
+          codesign --force --deep --sign - "$APP_DIR"
+          
+          echo "======================================================="
+          echo "📦 5. Repacking into Protected YouTube_PLUS_Protected.ipa"
+          echo "======================================================="
+          mkdir -p release_ipa
+          cd ipa_unpacked
+          zip -qry ../release_ipa/YouTube_PLUS_Protected.ipa Payload/
+          cd ..
+          
+          echo "🎉 Final Protected IPA size: $(ls -lh release_ipa/YouTube_PLUS_Protected.ipa | awk '{print $5}')"
+
+      - name: Upload Protected IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: YouTube_PLUS_Protected_IPA
+          path: release_ipa/YouTube_PLUS_Protected.ipa
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish Release Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v2.0.2
+          name: "YouTube PLUS+ iOS Protected v2.0.2"
+          body: |
+            ### تطبيق YouTube PLUS+ المحمي 100% لنظام الآيفون والآيباد (iOS)
+            
+            - **محمي بالكامل بنظام مفتاح التنشيط والترخيص السحابي** (يتطلب إدخال مفتاح `PLUS-XXXX-XXXX-XXXX` للتفعيل).
+            - شاشة قفل عربية أنيقة تظهر عند فتح التطبيق لأول مرة.
+            - ربط آمن بمعرف الجهاز (`Device ID`) لمنع مشاركة المفتاح.
+            - التحقق التلقائي الدوري من استمرار صلاحية الاشتراك.
+            - كافة ميزات YouTube Premium: بدون إعلانات، تشغيل في الخلفية وقفل الشاشة، تحميل الفيديوهات والصوتيات بأعلى دقة 4K.
+            - جاهز للتثبيت السريع عبر برنامج **Sideloadly** أو **AltStore** مجاناً.
+          files: release_ipa/YouTube_PLUS_Protected.ipa
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
