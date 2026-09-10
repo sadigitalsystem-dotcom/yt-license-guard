@@ -103,10 +103,9 @@
         <svg class="w-7 h-5 fill-[#ff0000]" viewBox="0 0 24 24">
           <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
         </svg>
-        <div class="flex items-baseline gap-1">
-          <span class="font-bold text-lg tracking-tighter text-white">YouTube</span>
-          <span id="headerPremiumBadge" class="hidden text-[11px] font-semibold text-zinc-400 tracking-wider">Premium</span>
-          
+        <div class="flex items-center gap-1.5">
+          <span class="font-black text-xl tracking-tighter text-white font-sans">YouTube</span>
+          <span id="headerPremiumBadge" class="text-[10px] font-extrabold text-white bg-[#ff0000] px-1.5 py-0.5 rounded tracking-wider uppercase font-sans">Premium</span>
         </div>
       </div>
     </div>
@@ -1129,7 +1128,7 @@
     let silentOsc = null;
 
     function createContinuousSilentWav() {
-      // توليد ملف صوتي صامت 10 ثوانٍ متصل ومكرر لمنع إيقاف النظام للصوت في الخلفية
+      // توليد نغمة صوتية حاملة مكررة تمنع إيقاف النظام للصوت بالخلفية في iOS Safari
       const sampleRate = 8000;
       const numSeconds = 10;
       const numFrames = sampleRate * numSeconds;
@@ -1150,7 +1149,8 @@
       view.setUint32(36, 0x64617461, false); // "data"
       view.setUint32(40, numFrames, true);
       for (let i = 0; i < numFrames; i++) {
-        view.setUint8(44 + i, 128); // 128 = Silence
+        // تمويج دقيق 127/129 يمنع WebKit من اكتشاف الصمت وتجميد خيط الصوت عند قفل الشاشة
+        view.setUint8(44 + i, (i % 2 === 0) ? 127 : 129);
       }
       const blob = new Blob([buffer], { type: 'audio/wav' });
       return URL.createObjectURL(blob);
@@ -1233,30 +1233,54 @@
         } catch (e) {}
       }
 
-      // 2. دعم النافذة العائمة على آيفون وآيباد وأندرويد (Video PiP)
+      // 2. دعم النافذة العائمة على آيفون وآيباد وأندرويد (Video PiP مع مسار صوتي حي)
       const pipVid = document.getElementById('pipCarrierVideo');
       if (pipVid) {
         try {
+          ensureAudioContextActive();
           if (!pipVid.srcObject) {
             const canvas = document.createElement('canvas');
             canvas.width = 640;
             canvas.height = 360;
             const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#09090b';
+            ctx.fillStyle = '#0f0f0f';
             ctx.fillRect(0, 0, 640, 360);
-            ctx.fillStyle = '#dc2626';
+            ctx.fillStyle = '#ff0000';
             ctx.beginPath();
-            ctx.arc(320, 150, 45, 0, Math.PI * 2);
+            ctx.arc(320, 140, 42, 0, Math.PI * 2);
             ctx.fill();
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 24px sans-serif';
+            ctx.beginPath();
+            ctx.moveTo(310, 120);
+            ctx.lineTo(338, 140);
+            ctx.lineTo(310, 160);
+            ctx.closePath();
+            ctx.fill();
+            ctx.font = 'bold 22px "Cairo", sans-serif';
+            ctx.fillStyle = '#ffffff';
             ctx.textAlign = 'center';
-            ctx.fillText('YouTube PLUS+', 320, 240);
-            ctx.font = '16px sans-serif';
-            ctx.fillStyle = '#a1a1aa';
-            ctx.fillText('الاستماع بالخلفية نشط', 320, 275);
-            pipVid.srcObject = canvas.captureStream(15);
+            ctx.fillText('YouTube PLUS+', 320, 225);
+            ctx.font = '14px "Cairo", sans-serif';
+            ctx.fillStyle = '#aaaaaa';
+            ctx.fillText('الاستماع بالخلفية نشط (قفل الشاشة متاح)', 320, 260);
+
+            const videoStream = canvas.captureStream(15);
+            let combinedStream = videoStream;
+            if (audioCtx && audioCtx.createMediaStreamDestination) {
+              const audioDest = audioCtx.createMediaStreamDestination();
+              if (silentOsc) silentOsc.connect(audioDest);
+              const audioTracks = audioDest.stream.getAudioTracks();
+              if (audioTracks.length > 0) {
+                combinedStream = new MediaStream([
+                  ...videoStream.getVideoTracks(),
+                  ...audioTracks
+                ]);
+              }
+            }
+            pipVid.srcObject = combinedStream;
           }
+          pipVid.muted = false;
+          pipVid.volume = 0.001;
           await pipVid.play();
           if (pipVid.requestPictureInPicture) {
             await pipVid.requestPictureInPicture();
@@ -2337,15 +2361,15 @@
               </span>
             </div>
             <div class="flex gap-3 text-right">
-              <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-zinc-700 to-zinc-900 border border-white/10 shrink-0 flex items-center justify-center text-white text-xs font-bold">
+              <div onclick="event.stopPropagation(); openChannelPage('${(v.channel || '').replace(/'/g, "\\'")}')" class="w-9 h-9 rounded-full bg-gradient-to-tr from-zinc-700 to-zinc-900 border border-white/10 shrink-0 flex items-center justify-center text-white text-xs font-bold cursor-pointer hover:opacity-80 transition" title="فتح القناة">
                 ${(v.channel || 'Y').charAt(0)}
               </div>
               <div class="flex-1 min-w-0">
                 <h3 class="font-bold text-sm text-white line-clamp-2 leading-snug group-hover:text-[#3ea6ff] transition">
                   ${v.title}
                 </h3>
-                <div class="text-xs text-zinc-400 mt-1 flex items-center gap-1.5">
-                  <span class="truncate hover:text-white transition">${v.channel || 'YouTube'}</span>
+                <div onclick="event.stopPropagation(); openChannelPage('${(v.channel || '').replace(/'/g, "\\'")}')" class="text-xs text-zinc-400 mt-1 flex items-center gap-1.5 cursor-pointer hover:text-white transition w-fit" title="فتح القناة">
+                  <span class="truncate">${v.channel || 'YouTube'}</span>
                   <i class="fa-solid fa-circle-check text-[10px]"></i>
                 </div>
                 <div class="text-xs text-zinc-400 flex items-center gap-1 mt-0.5">
@@ -2844,7 +2868,7 @@
 
   <!-- عناصر داعمة للصوت بالخلفية ونمط PiP على iOS -->
   <audio id="bgAudioCarrier" loop playsinline preload="auto" class="hidden"></audio>
-  <video id="pipCarrierVideo" loop playsinline webkit-playsinline muted class="hidden"></video>
+  <video id="pipCarrierVideo" loop playsinline webkit-playsinline class="hidden"></video>
 
 
   <!-- نافذة البحث الصوتي المنبثقة التفاعلية -->
