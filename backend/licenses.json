@@ -23,7 +23,51 @@
           "activated_at": "2026-09-07T11:11:24.032Z",
           "last_seen": "2026-09-07T11:11:24.032Z"
         }
-      ]
+      ],
+      "created_by": "المدير العام",
+      "created_by_id": "admin",
+      "client_email": "dssupply0392@gmail.com",
+      "audit_log": [
+        {
+          "action": "create",
+          "by": "المدير العام",
+          "at": "2026-09-06T22:50:01.966Z",
+          "detail": "توليد المفتاح"
+        },
+        {
+          "action": "activate",
+          "by": "العميل",
+          "at": "2026-09-07T11:11:24.032Z",
+          "detail": "أول تفعيل على الجهاز"
+        },
+        {
+          "action": "update_email",
+          "by": "dssupply0392@gmail.com",
+          "at": "2026-09-09T06:31:09.888Z",
+          "detail": "تحديث البريد الإلكتروني إلى: dssupply0392@gmail.com"
+        },
+        {
+          "action": "update_email",
+          "by": "dssupply0392@gmail.com",
+          "at": "2026-09-09T07:02:25.099Z",
+          "detail": "تحديث البريد الإلكتروني إلى: dssupply0392@gmail.com"
+        }
+      ],
+      "user_data": {
+        "subscriptions": [
+          {
+            "name": "قناة اختبارية"
+          }
+        ],
+        "playlists": [
+          {
+            "id": "pl_test",
+            "title": "قائمة سحابية تجريبية"
+          }
+        ],
+        "liked": [],
+        "history": []
+      }
     },
     {
       "id": "4fc9890a-b592-4413-ade9-4f5863a9e4ad",
@@ -48,7 +92,66 @@
           "activated_at": "2026-09-06T22:48:43.001Z",
           "last_seen": "2026-09-06T22:48:43.001Z"
         }
+      ],
+      "created_by": "المدير العام",
+      "created_by_id": "admin",
+      "client_email": "",
+      "audit_log": [
+        {
+          "action": "create",
+          "by": "المدير العام",
+          "at": "2026-09-06T22:48:42.726Z",
+          "detail": "توليد المفتاح"
+        },
+        {
+          "action": "activate",
+          "by": "العميل",
+          "at": "2026-09-06T22:48:43.001Z",
+          "detail": "أول تفعيل على الجهاز"
+        }
       ]
+    },
+    {
+      "id": "test-user-license-1",
+      "serial_key": "PLUS-7A8813-DD1FA1-BEAAC2",
+      "duration_days": 30,
+      "note": "كود تجريبي للمستخدم",
+      "group": "عام",
+      "whatsapp": "",
+      "max_devices": 5,
+      "device_ids": [
+        "PC-YOBU3"
+      ],
+      "devices_info": [
+        {
+          "id": "PC-YOBU3",
+          "type": "💻 كمبيوتر (Windows PC)",
+          "activated_at": "2026-09-09T09:45:28.550Z",
+          "last_seen": "2026-09-09T09:45:28.568Z"
+        }
+      ],
+      "created_at": "2026-09-09T09:45:26.883Z",
+      "activated_at": "2026-09-09T09:45:28.550Z",
+      "expiry_date": "2026-10-09T09:45:28.553Z",
+      "is_active": true,
+      "client_email": "dssupply0492@gmail.com",
+      "created_by": "المدير العام",
+      "created_by_id": "admin",
+      "audit_log": [
+        {
+          "action": "create",
+          "by": "المدير العام",
+          "at": "2026-09-09T09:45:26.883Z",
+          "detail": "توليد المفتاح"
+        },
+        {
+          "action": "activate",
+          "by": "dssupply0492@gmail.com",
+          "at": "2026-09-09T09:45:28.550Z",
+          "detail": "ربط وتفعيل جهاز جديد: 💻 كمبيوتر (Windows PC)"
+        }
+      ],
+      "device_id": "PC-YOBU3"
     }
   ],
   "admin": {
@@ -63,5 +166,16 @@
     ],
     "apk_drive_link": "",
     "windows_drive_link": ""
-  }
+  },
+  "employees": [],
+  "family_groups": [
+    {
+      "id": "fam-group-1",
+      "name": "مجموعة العائلة الأولى (Google Family 1)",
+      "max_slots": 5,
+      "created_at": "2026-09-09T06:31:06.208Z",
+      "invite_link": "https://families.google.com/familylink/",
+      "members": []
+    }
+  ]
 }

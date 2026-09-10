@@ -922,6 +922,18 @@
     async function initAppSession() {
       const savedKey = localStorage.getItem('yt_license_key');
       if (savedKey) {
+        // تفعيل فوري وسلس دون انتظار استجابة السيرفر لمنع أي تأخير على العميل
+        isActivated = true;
+        currentLicenseKey = savedKey;
+        currentClientEmail = localStorage.getItem('yt_client_email') || '';
+        updateUserUI(true, {
+          serial_key: savedKey,
+          client_email: currentClientEmail,
+          days_left: 'نشط'
+        });
+        loadYouTubeVideos('', currentActiveCategory || 'all');
+
+        // التحقق في الخلفية بهدوء
         verifySavedKey(savedKey);
       } else {
         updateUserUI(false);
@@ -936,11 +948,11 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ serial_key: key, device_id: DEVICE_ID })
         });
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
+        
         if (res.ok && data.status === 'valid') {
           isActivated = true;
-          currentLicenseKey = data.serial_key;
-          // نعتمد الإيميل المحفوظ محلياً لهذا الجهاز ولا نأخذ إيميل شخص آخر
+          currentLicenseKey = data.serial_key || key;
           currentClientEmail = localStorage.getItem('yt_client_email') || data.client_email || '';
           currentExpiryDate = data.expires_at;
 
@@ -949,22 +961,22 @@
           }
 
           updateUserUI(true, data);
-          loadYouTubeVideos('', currentActiveCategory);
-        } else {
+        } else if (res.status === 403 || res.status === 404) {
+          // الحذف يتم حصراً إذا أكد السيرفر برمز 403/404 أن الكود ملغي أو محذوف أو منتهي
           localStorage.removeItem('yt_license_key');
+          isActivated = false;
+          currentLicenseKey = null;
           updateUserUI(false);
-          loadYouTubeVideos('', currentActiveCategory);
+          showToast(data.message || '⚠️ انتهت صلاحية كود التفعيل أو تم إيقافه');
+        } else {
+          // في حال أخطاء 502/503 أو بدء تشغيل السيرفر، يظل الكود نشطاً والعميل مفعلاً دون تسجيل خروج
+          isActivated = true;
+          currentLicenseKey = key;
         }
       } catch (err) {
+        // في حال انقطاع الشبكة المؤقت، يبقى العميل مسجلاً ومفعلاً بشكل دائم
         isActivated = true;
         currentLicenseKey = key;
-        currentClientEmail = localStorage.getItem('yt_client_email') || '';
-        updateUserUI(true, {
-          serial_key: key,
-          client_email: currentClientEmail,
-          days_left: 'نشط'
-        });
-        loadYouTubeVideos('', currentActiveCategory);
       }
     }
 

@@ -153,9 +153,16 @@ class LicenseDB {
 
   save() {
     try {
-      fs.writeFileSync(this.filepath, JSON.stringify(this.data, null, 2), 'utf8');
+      const tempPath = `${this.filepath}.tmp.${Date.now()}`;
+      fs.writeFileSync(tempPath, JSON.stringify(this.data, null, 2), 'utf8');
+      fs.renameSync(tempPath, this.filepath);
     } catch (err) {
-      console.error('Failed to write licenses file:', err);
+      console.error('Failed to write licenses file atomically, fallback direct:', err);
+      try {
+        fs.writeFileSync(this.filepath, JSON.stringify(this.data, null, 2), 'utf8');
+      } catch (e2) {
+        console.error('Fatal: Could not save licenses file:', e2);
+      }
     }
   }
 
@@ -398,12 +405,116 @@ function parseJsonBody(req) {
   });
 }
 
+function getClientIp(req) {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (forwarded) {
+    return forwarded.split(',')[0].trim();
+  }
+  return req.headers['cf-connecting-ip'] || req.socket.remoteAddress || 'unknown';
+}
+
+function hashPassword(password, salt = null) {
+  const s = salt || crypto.randomBytes(16).toString('hex');
+  const hash = crypto.scryptSync(password, s, 64).toString('hex');
+  return `scrypt:${s}:${hash}`;
+}
+
+function verifyPassword(inputPassword, storedHash) {
+  if (!storedHash || !inputPassword) return false;
+  if (storedHash.startsWith('scrypt:')) {
+    const parts = storedHash.split(':');
+    if (parts.length === 3) {
+      const [, salt, expectedHash] = parts;
+      const actualHash = crypto.scryptSync(inputPassword, salt, 64).toString('hex');
+      try {
+        return crypto.timingSafeEqual(Buffer.from(actualHash, 'hex'), Buffer.from(expectedHash, 'hex'));
+      } catch (e) {
+        return false;
+      }
+    }
+  }
+  return inputPassword === storedHash;
+}
+
+class RateLimiter {
+  constructor(maxAttempts, windowMs) {
+    this.maxAttempts = maxAttempts;
+    this.windowMs = windowMs;
+    this.records = new Map();
+  }
+
+  isBlocked(ip) {
+    const now = Date.now();
+    const entry = this.records.get(ip);
+    if (!entry) return false;
+    if (entry.blockedUntil && now < entry.blockedUntil) {
+      return true;
+    }
+    if (now - entry.firstAttempt > this.windowMs) {
+      this.records.delete(ip);
+      return false;
+    }
+    return false;
+  }
+
+  recordFailure(ip, blockDurationMs = this.windowMs) {
+    const now = Date.now();
+    let entry = this.records.get(ip);
+    if (!entry || (now - entry.firstAttempt > this.windowMs)) {
+      entry = { count: 1, firstAttempt: now, blockedUntil: 0 };
+    } else {
+      entry.count++;
+      if (entry.count >= this.maxAttempts) {
+        entry.blockedUntil = now + blockDurationMs;
+      }
+    }
+    this.records.set(ip, entry);
+  }
+
+  recordSuccess(ip) {
+    this.records.delete(ip);
+  }
+
+  getBlockTimeRemainingMinutes(ip) {
+    const entry = this.records.get(ip);
+    if (!entry || !entry.blockedUntil) return 0;
+    return Math.max(1, Math.ceil((entry.blockedUntil - Date.now()) / (60 * 1000)));
+  }
+}
+
+const loginLimiter = new RateLimiter(5, 15 * 60 * 1000);
+const activateLimiter = new RateLimiter(12, 10 * 60 * 1000);
+
+function startKeepAliveEngine() {
+  const RENDER_EXTERNAL_URL = process.env.RENDER_EXTERNAL_URL || 'https://yt-license-guard.onrender.com';
+  console.log(`[KeepAlive] Engine active. Target: ${RENDER_EXTERNAL_URL}`);
+
+  const PING_INTERVAL_MS = 9 * 60 * 1000;
+  setInterval(async () => {
+    try {
+      const pingUrl = `${RENDER_EXTERNAL_URL}/api/ping?t=${Date.now()}`;
+      const res = await fetch(pingUrl, {
+        headers: { 'User-Agent': 'YouTubePlus-KeepAlive/2.0' },
+        signal: AbortSignal.timeout(10000)
+      });
+      if (res.ok) {
+        console.log(`[KeepAlive] Self-ping successful at ${new Date().toISOString()}`);
+      }
+    } catch (err) {
+      // تجاهل أخطاء الشبكة اللحظية
+    }
+  }, PING_INTERVAL_MS);
+}
+
 function sendJson(res, statusCode, data) {
   res.writeHead(statusCode, {
     'Content-Type': 'application/json; charset=utf-8',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'SAMEORIGIN',
+    'Referrer-Policy': 'strict-origin-when-cross-origin'
   });
   res.end(JSON.stringify(data));
 }
@@ -788,7 +899,34 @@ const server = http.createServer(async (req, res) => {
   }
 
   try {
-    // 1. مسار تسجيل الدخول المباشر
+    // نقطة فحص النبض والاستمرارية (Keep-Alive Ping Endpoint)
+    if (req.method === 'GET' && pathname === '/api/ping') {
+      return sendJson(res, 200, {
+        status: 'ok',
+        service: 'YouTube PLUS+ System',
+        uptime_seconds: Math.floor(process.uptime()),
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // 1. مسار تطبيق الويب المباشر (الصفحة الرئيسية والمشغل)
+    if (req.method === 'GET' && (pathname === '/' || pathname === '/app' || pathname === '/app/' || pathname === '/watch')) {
+      if (fs.existsSync(APP_PATH)) {
+        const html = fs.readFileSync(APP_PATH, 'utf8');
+        res.writeHead(200, { 
+          'Content-Type': 'text/html; charset=utf-8',
+          'X-Content-Type-Options': 'nosniff',
+          'X-Frame-Options': 'SAMEORIGIN'
+        });
+        res.end(html);
+      } else {
+        res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+        res.end('ملف التطبيق غير موجود');
+      }
+      return;
+    }
+
+    // 2. مسار تسجيل الدخول للوحة التحكم
     if (req.method === 'GET' && (pathname === '/login' || pathname === '/login/')) {
       if (fs.existsSync(LOGIN_PATH)) {
         const html = fs.readFileSync(LOGIN_PATH, 'utf8');
@@ -801,8 +939,8 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    // 2. الصفحة الرئيسية للوحة التحكم
-    if (req.method === 'GET' && (pathname === '/' || pathname === '/dashboard' || pathname === '/dashboard/')) {
+    // 3. مسار لوحة التحكم للإدارة (Dashboard / Admin / Control)
+    if (req.method === 'GET' && (pathname === '/admin' || pathname === '/admin/' || pathname === '/dashboard' || pathname === '/dashboard/' || pathname === '/control')) {
       if (!isAuthenticated(req)) {
         res.writeHead(302, { 'Location': '/login' });
         res.end();
@@ -819,8 +957,17 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    // 3. API تسجيل دخول الإدارة (Master Admin + Employees)
+    // 4. API تسجيل دخول الإدارة (Master Admin + Employees) مع حماية ضد التخمين Brute-force
     if (req.method === 'POST' && pathname === '/api/admin/login') {
+      const clientIp = getClientIp(req);
+      if (loginLimiter.isBlocked(clientIp)) {
+        const minsLeft = loginLimiter.getBlockTimeRemainingMinutes(clientIp);
+        return sendJson(res, 429, { 
+          status: 'error', 
+          message: `تم حظر محاولات الدخول مؤقتاً بسبب تكرار المحاولات الخاطئة. يرجى المحاولة بعد ${minsLeft} دقيقة.` 
+        });
+      }
+
       const body = await parseJsonBody(req);
       const { email, password } = body;
       const admin = db.getAdmin();
@@ -828,17 +975,25 @@ const server = http.createServer(async (req, res) => {
       const inputEmail = (email || '').trim().toLowerCase();
       const currentEmail = (admin.email || '').trim().toLowerCase();
 
-      // فحص المدير العام أولاً
+      // فحص المدير العام
       const isAdminEmailMatch = inputEmail === currentEmail || 
                                 inputEmail === 'sa.digitalsystem@gmail.com' || 
                                 inputEmail === 'admin@ytplus.com' ||
                                 inputEmail === (process.env.ADMIN_EMAIL || '').trim().toLowerCase();
 
-      const isAdminPasswordMatch = password === admin.password || 
-                                   password === 'Admin@YT2026!' ||
-                                   (process.env.ADMIN_PASSWORD && password === process.env.ADMIN_PASSWORD);
+      const isAdminPasswordMatch = verifyPassword(password, admin.password) || 
+                                   verifyPassword(password, 'Admin@YT2026!') ||
+                                   (process.env.ADMIN_PASSWORD && verifyPassword(password, process.env.ADMIN_PASSWORD));
 
       if (email && password && isAdminEmailMatch && isAdminPasswordMatch) {
+        loginLimiter.recordSuccess(clientIp);
+
+        // ترقية كلمة المرور للتشفير الآمن إذا كانت نصاً صريحاً
+        if (!admin.password.startsWith('scrypt:')) {
+          admin.password = hashPassword(password);
+          db.updateAdmin(admin.email, admin.password);
+        }
+
         if (inputEmail !== currentEmail && inputEmail.includes('@')) {
           admin.email = inputEmail;
           db.updateAdmin(admin.email, admin.password);
@@ -877,10 +1032,18 @@ const server = http.createServer(async (req, res) => {
 
       // إذا لم يكن المدير العام، نفحص الموظفين المسجلين
       const employees = db.getEmployees();
-      const emp = employees.find(e => e.email.toLowerCase() === inputEmail && e.password === password);
+      const emp = employees.find(e => e.email.toLowerCase() === inputEmail && verifyPassword(password, e.password));
       if (emp) {
         if (emp.is_active === false) {
           return sendJson(res, 403, { status: 'error', message: 'تم إيقاف حساب الموظف هذا من قبل الإدارة' });
+        }
+
+        loginLimiter.recordSuccess(clientIp);
+
+        // ترقية كلمة مرور الموظف للتشفير
+        if (!emp.password.startsWith('scrypt:')) {
+          emp.password = hashPassword(password);
+          db.save();
         }
 
         const sessionToken = crypto.randomBytes(32).toString('hex');
@@ -917,6 +1080,7 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
+      loginLimiter.recordFailure(clientIp);
       return sendJson(res, 401, { status: 'error', message: 'البريد الإلكتروني أو كلمة المرور غير صحيحة' });
     }
 
@@ -1151,8 +1315,17 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
-    // 12. API تفعيل الكود مع ربط الإيميل وسجل التدقيق
+    // 12. API تفعيل الكود مع ربط الإيميل وسجل التدقيق مع حماية ضد التخمين Brute-force
     if (req.method === 'POST' && pathname === '/api/activate') {
+      const clientIp = getClientIp(req);
+      if (activateLimiter.isBlocked(clientIp)) {
+        const minsLeft = activateLimiter.getBlockTimeRemainingMinutes(clientIp);
+        return sendJson(res, 429, { 
+          status: 'error', 
+          message: `تم حظر محاولات التنشيط مؤقتاً بسبب تكرار المحاولات الخاطئة. يرجى المحاولة بعد ${minsLeft} دقيقة.` 
+        });
+      }
+
       const body = await parseJsonBody(req);
       const { serial_key, device_id, client_email } = body;
 
@@ -1162,10 +1335,12 @@ const server = http.createServer(async (req, res) => {
 
       const license = db.find(serial_key);
       if (!license) {
+        activateLimiter.recordFailure(clientIp);
         return sendJson(res, 404, { status: 'error', message: 'كود التفعيل غير صحيح أو غير موجود' });
       }
 
       if (!license.is_active) {
+        activateLimiter.recordFailure(clientIp);
         return sendJson(res, 403, { status: 'error', message: 'تم إيقاف هذا الكود من قبل الإدارة' });
       }
 
@@ -1249,11 +1424,14 @@ const server = http.createServer(async (req, res) => {
       }
 
       if (license.expiry_date && new Date(license.expiry_date) < now) {
+        activateLimiter.recordFailure(clientIp);
         return sendJson(res, 403, {
           status: 'error',
           message: 'عذراً، لقد انتهت صلاحية اشتراك هذا الكود. يرجى التجديد.'
         });
       }
+
+      activateLimiter.recordSuccess(clientIp);
 
       const msLeft = new Date(license.expiry_date).getTime() - now.getTime();
       const daysLeft = Math.ceil(msLeft / (1000 * 60 * 60 * 24));
@@ -1795,4 +1973,5 @@ server.listen(PORT, () => {
   console.log(`🔐 تسجيل الدخول: http://localhost:${PORT}/login`);
   console.log(`📡 نقطة التفعيل: http://localhost:${PORT}/api/activate`);
   console.log('=======================================================');
+  startKeepAliveEngine();
 });
