@@ -1027,6 +1027,9 @@ const server = http.createServer(async (req, res) => {
             can_reset: true,
             can_delete: true,
             can_view_all: true,
+            can_view_stats: true,
+            can_view_guide: true,
+            can_manage_groups: true,
             is_master: true
           }
         };
@@ -1133,6 +1136,17 @@ const server = http.createServer(async (req, res) => {
       } else if (session.role === 'admin') {
         const admin = db.getAdmin();
         session.phone = admin.phone || '';
+        session.permissions = {
+          can_generate: true,
+          can_toggle: true,
+          can_reset: true,
+          can_delete: true,
+          can_view_all: true,
+          can_view_stats: true,
+          can_view_guide: true,
+          can_manage_groups: true,
+          is_master: true
+        };
       }
       return sendJson(res, 200, { status: 'success', user: session });
     }

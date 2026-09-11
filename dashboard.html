@@ -93,19 +93,19 @@
       <div class="flex items-center gap-2 flex-wrap">
         
         <!-- زر دليل الأجهزة وروابط التحميل المنظمة -->
-        <button id="btnGuide" onclick="openGuideModal()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 border border-zinc-700 shadow-sm" title="دليل الأجهزة وروابط التثبيت">
+        <button id="btnGuide" onclick="openGuideModal()" class="cursor-pointer bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 border border-zinc-700 shadow-sm active:scale-95" title="دليل الأجهزة وروابط التثبيت">
           <i class="fa-solid fa-book-open text-amber-400 text-sm"></i>
           <span id="txtBtnGuide" class="hidden sm:inline">دليل الأجهزة</span>
         </button>
 
         <!-- زر إدارة الموظفين (خاص بالمدير العام) -->
-        <button id="headerBtnEmployees" onclick="openEmployeesModal()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 border border-zinc-700 shadow-sm" title="إدارة الموظفين والصلاحيات">
+        <button id="headerBtnEmployees" onclick="openEmployeesModal()" class="cursor-pointer bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 border border-zinc-700 shadow-sm active:scale-95" title="إدارة الموظفين والصلاحيات">
           <i class="fa-solid fa-users text-purple-400 text-sm"></i>
           <span id="txtBtnEmployees" class="hidden sm:inline">الموظفون</span>
         </button>
 
         <!-- زر إحصائيات الموظفين الشهرية -->
-        <button id="headerBtnStats" onclick="openEmployeeStatsModal()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 border border-zinc-700 shadow-sm" title="إحصائيات الموظفين الشهرية">
+        <button id="headerBtnStats" onclick="openEmployeeStatsModal()" class="cursor-pointer bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 border border-zinc-700 shadow-sm active:scale-95" title="إحصائيات الموظفين الشهرية">
           <i class="fa-solid fa-chart-pie text-emerald-400 text-sm"></i>
           <span id="txtBtnStats" class="hidden sm:inline">إحصائيات الشهر</span>
         </button>
@@ -149,7 +149,7 @@
             <!-- خيارات القائمة المنسدلة -->
             <div class="p-1 space-y-0.5 text-xs">
               <!-- إعدادات الحساب -->
-              <button onclick="openAccountSettingsModal(); closeProfileDropdown()" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-zinc-200 hover:text-white hover:bg-zinc-800 transition">
+              <button onclick="openAccountSettingsModal()" class="cursor-pointer w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-zinc-200 hover:text-white hover:bg-zinc-800 transition">
                 <i class="fa-solid fa-user-gear text-purple-400 w-4 text-center"></i>
                 <span class="font-bold">إعدادات الحساب</span>
               </button>
@@ -1550,13 +1550,13 @@
 
         let statusBadge = '';
         if (!l.is_active) {
-          statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-red-500/10 text-red-400 border border-red-500/20">${t.statusBanned}</span>`;
+          statusBadge = `<span class="whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-red-500/10 text-red-400 border border-red-500/20"><i class="fa-solid fa-ban text-[10px]"></i><span>${t.statusBanned}</span></span>`;
         } else if (!l.activated_at) {
-          statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">${t.statusPending}</span>`;
+          statusBadge = `<span class="whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20"><i class="fa-solid fa-clock text-[10px]"></i><span>${t.statusPending}</span></span>`;
         } else if (isExpired) {
-          statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-zinc-800 text-zinc-400 border border-zinc-700">${t.statusExpired}</span>`;
+          statusBadge = `<span class="whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-zinc-800 text-zinc-400 border border-zinc-700"><i class="fa-solid fa-hourglass-end text-[10px]"></i><span>${t.statusExpired}</span></span>`;
         } else {
-          statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">${t.statusActive}</span>`;
+          statusBadge = `<span class="whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"><i class="fa-solid fa-circle-check text-[10px]"></i><span>${t.statusActive}</span></span>`;
         }
 
         const startDateDisplay = l.activated_at ? `<span class="font-mono">${formatEnDate(l.activated_at)}</span>` : `<span class="text-zinc-500">${t.neverActivated}</span>`;
@@ -1750,7 +1750,7 @@
                 ${l.note ? `<div class="text-xs text-zinc-400 mt-0.5">${l.note}</div>` : ''}
                 <div class="text-[10px] text-zinc-500 mt-1">بواسطة: <span class="text-zinc-300">${l.created_by || 'المدير العام'}</span></div>
               </div>
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusClass} shrink-0">
+              <span class="whitespace-nowrap inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${statusClass} shrink-0">
                 ${statusText}
               </span>
             </div>
@@ -1829,12 +1829,32 @@
       }).join('');
     }
 
+    // ==========================================
+    // دوال التحكم بالواجهات المنبثقة (Modal Helpers)
+    // ==========================================
+    function showModal(modalId) {
+      const el = document.getElementById(modalId);
+      if (!el) return;
+      closeProfileDropdown();
+      el.classList.remove('hidden');
+      el.style.display = 'flex';
+      el.style.visibility = 'visible';
+      el.style.opacity = '1';
+    }
+
+    function hideModal(modalId) {
+      const el = document.getElementById(modalId);
+      if (!el) return;
+      el.classList.add('hidden');
+      el.style.display = 'none';
+    }
+
     // توليد أكواد جديدة
     function openGenerateModal() {
-      document.getElementById('generateModal').classList.remove('hidden');
+      showModal('generateModal');
     }
     function closeGenerateModal() {
-      document.getElementById('generateModal').classList.add('hidden');
+      hideModal('generateModal');
     }
     async function submitGenerate() {
       const days = document.getElementById('genDays').value;
@@ -1874,19 +1894,21 @@
 
     // تعديل بيانات المفتاح
     function openEditModal(id) {
-      const l = allLicenses.find(item => item.id === id);
-      if (!l) return;
-      document.getElementById('editLicenseId').value = l.id;
-      document.getElementById('editSerialDisplay').innerText = l.serial_key;
-      document.getElementById('editNote').value = l.note || '';
-      document.getElementById('editWhatsapp').value = l.whatsapp || '';
-      if (document.getElementById('editOrderId')) document.getElementById('editOrderId').value = l.order_id || '';
-      document.getElementById('editGroup').value = l.group || 'عام';
-      document.getElementById('editMaxDevices').value = String(l.max_devices || 1);
-      document.getElementById('editModal').classList.remove('hidden');
+      try {
+        const l = allLicenses.find(item => item.id === id);
+        if (!l) return;
+        document.getElementById('editLicenseId').value = l.id;
+        document.getElementById('editSerialDisplay').innerText = l.serial_key;
+        document.getElementById('editNote').value = l.note || '';
+        document.getElementById('editWhatsapp').value = l.whatsapp || '';
+        if (document.getElementById('editOrderId')) document.getElementById('editOrderId').value = l.order_id || '';
+        document.getElementById('editGroup').value = l.group || 'عام';
+        document.getElementById('editMaxDevices').value = String(l.max_devices || 1);
+      } catch (e) {}
+      showModal('editModal');
     }
     function closeEditModal() {
-      document.getElementById('editModal').classList.add('hidden');
+      hideModal('editModal');
     }
     async function submitEditLicense() {
       const id = document.getElementById('editLicenseId').value;
@@ -1917,12 +1939,14 @@
 
     // إدارة المجموعات (Group Modal)
     function openGroupModal() {
-      document.getElementById('newGroupNameInput').value = '';
-      updateGroupsDropdowns();
-      document.getElementById('groupModal').classList.remove('hidden');
+      try {
+        document.getElementById('newGroupNameInput').value = '';
+        updateGroupsDropdowns();
+      } catch (e) {}
+      showModal('groupModal');
     }
     function closeGroupModal() {
-      document.getElementById('groupModal').classList.add('hidden');
+      hideModal('groupModal');
     }
     async function submitCreateGroup() {
       const name = document.getElementById('newGroupNameInput').value.trim();
@@ -1952,12 +1976,15 @@
 
     // إدارة إعدادات روابط قوقل درايف
     function openSettingsModal() {
-      updateSettingsUI();
-      document.getElementById('settingsAlert').classList.add('hidden');
-      document.getElementById('settingsModal').classList.remove('hidden');
+      try {
+        updateSettingsUI();
+        const alertBox = document.getElementById('settingsAlert');
+        if (alertBox) alertBox.classList.add('hidden');
+      } catch (e) {}
+      showModal('settingsModal');
     }
     function closeSettingsModal() {
-      document.getElementById('settingsModal').classList.add('hidden');
+      hideModal('settingsModal');
     }
     async function submitSaveSettings() {
       const apk_drive_link = document.getElementById('setApkDriveLink').value.trim();
@@ -1989,11 +2016,15 @@
 
     // دليل الأجهزة
     function openGuideModal() {
-      updateSettingsUI();
-      document.getElementById('guideModal').classList.remove('hidden');
+      try {
+        updateSettingsUI();
+      } catch (e) {
+        console.warn('updateSettingsUI error:', e);
+      }
+      showModal('guideModal');
     }
     function closeGuideModal() {
-      document.getElementById('guideModal').classList.add('hidden');
+      hideModal('guideModal');
     }
     function openLinkFromInput(inputId) {
       const url = document.getElementById(inputId).value;
@@ -2002,15 +2033,17 @@
 
     // رسائل الواتساب وقوالبها التلقائية (مع مسمى النظام الرقمي بدون أقواس)
     function openWhatsappModal(id) {
-      const l = allLicenses.find(item => item.id === id);
-      if (!l || !l.whatsapp) return;
-      currentActiveLicenseForWa = l;
-      document.getElementById('waModalPhone').innerText = l.whatsapp;
-      setWaTemplate('welcome');
-      document.getElementById('whatsappModal').classList.remove('hidden');
+      try {
+        const l = allLicenses.find(item => item.id === id);
+        if (!l || !l.whatsapp) return;
+        currentActiveLicenseForWa = l;
+        document.getElementById('waModalPhone').innerText = l.whatsapp;
+        setWaTemplate('welcome');
+      } catch (e) {}
+      showModal('whatsappModal');
     }
     function closeWhatsappModal() {
-      document.getElementById('whatsappModal').classList.add('hidden');
+      hideModal('whatsappModal');
       currentActiveLicenseForWa = null;
     }
 
@@ -2124,13 +2157,16 @@ ${getSystemBaseUrl()}/
 
     // نافذة الأمان
     function openSecurityModal() {
-      document.getElementById('secAlert').classList.add('hidden');
-      document.getElementById('secCurrentPass').value = '';
-      document.getElementById('secNewPass').value = '';
-      document.getElementById('securityModal').classList.remove('hidden');
+      try {
+        const alertBox = document.getElementById('secAlert');
+        if (alertBox) alertBox.classList.add('hidden');
+        if (document.getElementById('secCurrentPass')) document.getElementById('secCurrentPass').value = '';
+        if (document.getElementById('secNewPass')) document.getElementById('secNewPass').value = '';
+      } catch (e) {}
+      showModal('securityModal');
     }
     function closeSecurityModal() {
-      document.getElementById('securityModal').classList.add('hidden');
+      hideModal('securityModal');
     }
     async function submitSecurityUpdate() {
       const new_email = document.getElementById('secNewEmail').value.trim();
@@ -2221,21 +2257,25 @@ ${getSystemBaseUrl()}/
 
     // نافذة إعدادات الحساب الشخصي (Account Settings Modal)
     function openAccountSettingsModal() {
-      const alertBox = document.getElementById('accAlert');
-      if (alertBox) alertBox.classList.add('hidden');
-      document.getElementById('accCurrentPass').value = '';
-      document.getElementById('accNewPass').value = '';
-      document.getElementById('accConfirmPass').value = '';
+      try {
+        const alertBox = document.getElementById('accAlert');
+        if (alertBox) alertBox.classList.add('hidden');
+        if (document.getElementById('accCurrentPass')) document.getElementById('accCurrentPass').value = '';
+        if (document.getElementById('accNewPass')) document.getElementById('accNewPass').value = '';
+        if (document.getElementById('accConfirmPass')) document.getElementById('accConfirmPass').value = '';
 
-      if (currentUserProfile) {
-        document.getElementById('accName').value = currentUserProfile.name || '';
-        document.getElementById('accEmail').value = currentUserProfile.email || '';
-        document.getElementById('accPhone').value = currentUserProfile.phone || '';
+        if (currentUserProfile) {
+          if (document.getElementById('accName')) document.getElementById('accName').value = currentUserProfile.name || '';
+          if (document.getElementById('accEmail')) document.getElementById('accEmail').value = currentUserProfile.email || '';
+          if (document.getElementById('accPhone')) document.getElementById('accPhone').value = currentUserProfile.phone || '';
+        }
+      } catch (e) {
+        console.warn('openAccountSettingsModal prep error:', e);
       }
-      document.getElementById('accountSettingsModal').classList.remove('hidden');
+      showModal('accountSettingsModal');
     }
     function closeAccountSettingsModal() {
-      document.getElementById('accountSettingsModal').classList.add('hidden');
+      hideModal('accountSettingsModal');
     }
     async function submitUpdateProfile() {
       const name = document.getElementById('accName').value.trim();
@@ -2317,10 +2357,10 @@ ${getSystemBaseUrl()}/
       document.getElementById('editPermGuide').checked = p.can_view_guide !== false;
       document.getElementById('editPermGroups').checked = p.can_manage_groups === true;
 
-      document.getElementById('editEmployeeModal').classList.remove('hidden');
+      showModal('editEmployeeModal');
     }
     function closeEditEmployeeModal() {
-      document.getElementById('editEmployeeModal').classList.add('hidden');
+      hideModal('editEmployeeModal');
     }
     async function submitUpdateEmployee() {
       const id = document.getElementById('editEmpId').value;
@@ -2464,12 +2504,16 @@ ${getSystemBaseUrl()}/
     })();
 
     function openEmployeesModal() {
-      document.getElementById('employeesModal').classList.remove('hidden');
-      loadEmployees();
+      showModal('employeesModal');
+      try {
+        loadEmployees();
+      } catch (e) {
+        console.warn('loadEmployees error:', e);
+      }
     }
 
     function closeEmployeesModal() {
-      document.getElementById('employeesModal').classList.add('hidden');
+      hideModal('employeesModal');
     }
 
     async function loadEmployees() {
@@ -2638,12 +2682,16 @@ ${getSystemBaseUrl()}/
     // دوال إحصائيات الموظفين الشهرية
     // ==========================================
     function openEmployeeStatsModal() {
-      document.getElementById('employeeStatsModal').classList.remove('hidden');
-      loadEmployeeStats();
+      showModal('employeeStatsModal');
+      try {
+        loadEmployeeStats();
+      } catch (e) {
+        console.warn('loadEmployeeStats error:', e);
+      }
     }
 
     function closeEmployeeStatsModal() {
-      document.getElementById('employeeStatsModal').classList.add('hidden');
+      hideModal('employeeStatsModal');
     }
 
     async function loadEmployeeStats(month = '') {
@@ -2712,9 +2760,18 @@ ${getSystemBaseUrl()}/
       }
     }
 
-    // فحص هوية المستخدم عند بدء التشغيل
+    // فحص هوية المستخدم عند بدء التشغيل وتفعيل إغلاق النوافذ بالخلفية
     window.addEventListener('DOMContentLoaded', () => {
       checkCurrentUser();
+
+      // إغلاق أي نافذة منبثقة عند النقر على الخلفية المظلمة خارج الصندوق
+      document.querySelectorAll('[id$="Modal"]').forEach(modal => {
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) {
+            hideModal(modal.id);
+          }
+        });
+      });
     });
 
     // وظائف مساعدة
