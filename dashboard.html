@@ -1387,7 +1387,7 @@
       try {
         const res = await fetch(`${API_BASE}/api/admin/licenses`);
         if (res.status === 401) {
-          window.location.href = '/login';
+          window.location.href = '/ds-portal';
           return;
         }
         const data = await res.json();
@@ -2171,7 +2171,7 @@ ${getSystemBaseUrl()}/
       try {
         await fetch(`${API_BASE}/api/admin/logout`, { method: 'POST' });
       } catch (e) {}
-      window.location.href = '/login';
+      window.location.href = '/ds-portal';
     }
 
     // ==========================================

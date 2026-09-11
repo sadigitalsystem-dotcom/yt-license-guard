@@ -928,35 +928,49 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    // 2. مسار تسجيل الدخول للوحة التحكم
-    if (req.method === 'GET' && (pathname === '/login' || pathname === '/login/')) {
-      if (fs.existsSync(LOGIN_PATH)) {
-        const html = fs.readFileSync(LOGIN_PATH, 'utf8');
-        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-        res.end(html);
-      } else {
-        res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
-        res.end('ملف تسجيل الدخول غير موجود');
-      }
+    // 2. تمويه وإخفاء المسارات التقليدية للمتطفلين والفضوليين (تحويل صامت للواجهة الرئيسية)
+    if (req.method === 'GET' && (
+      pathname === '/admin' || pathname === '/admin/' || 
+      pathname === '/login' || pathname === '/login/' || 
+      pathname === '/dashboard' || pathname === '/dashboard/' || 
+      pathname === '/control' || pathname === '/control/'
+    )) {
+      res.writeHead(302, { 'Location': '/' });
+      res.end();
       return;
     }
 
-    // 3. مسار لوحة التحكم للإدارة (Dashboard / Admin / Control)
-    if (req.method === 'GET' && (pathname === '/admin' || pathname === '/admin/' || pathname === '/dashboard' || pathname === '/dashboard/' || pathname === '/control')) {
-      if (!isAuthenticated(req)) {
-        res.writeHead(302, { 'Location': '/login' });
-        res.end();
+    // 3. مسار بوابة الإدارة والموظفين السرية (Stealth Admin Portal: /ds-portal)
+    if (req.method === 'GET' && (pathname === '/ds-portal' || pathname === '/ds-portal/')) {
+      if (isAuthenticated(req)) {
+        if (fs.existsSync(DASHBOARD_PATH)) {
+          const html = fs.readFileSync(DASHBOARD_PATH, 'utf8');
+          res.writeHead(200, { 
+            'Content-Type': 'text/html; charset=utf-8',
+            'X-Content-Type-Options': 'nosniff',
+            'X-Frame-Options': 'SAMEORIGIN'
+          });
+          res.end(html);
+        } else {
+          res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+          res.end('ملف لوحة التحكم غير موجود');
+        }
+        return;
+      } else {
+        if (fs.existsSync(LOGIN_PATH)) {
+          const html = fs.readFileSync(LOGIN_PATH, 'utf8');
+          res.writeHead(200, { 
+            'Content-Type': 'text/html; charset=utf-8',
+            'X-Content-Type-Options': 'nosniff',
+            'X-Frame-Options': 'SAMEORIGIN'
+          });
+          res.end(html);
+        } else {
+          res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+          res.end('ملف تسجيل الدخول غير موجود');
+        }
         return;
       }
-      if (fs.existsSync(DASHBOARD_PATH)) {
-        const html = fs.readFileSync(DASHBOARD_PATH, 'utf8');
-        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-        res.end(html);
-      } else {
-        res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
-        res.end('ملف لوحة التحكم غير موجود');
-      }
-      return;
     }
 
     // 4. API تسجيل دخول الإدارة (Master Admin + Employees) مع حماية ضد التخمين Brute-force
@@ -1973,8 +1987,7 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => {
   console.log('=======================================================');
   console.log('🚀 سيرفر إدارة تراخيص YouTube PLUS+ (النظام الرقمي) محمي بنجاح!');
-  console.log(`🌐 لوحة التحكم: http://localhost:${PORT}`);
-  console.log(`🔐 تسجيل الدخول: http://localhost:${PORT}/login`);
+  console.log(`🔐 البوابة السرية للموظفين والإدارة: http://localhost:${PORT}/ds-portal`);
   console.log(`📡 نقطة التفعيل: http://localhost:${PORT}/api/activate`);
   console.log('=======================================================');
   startKeepAliveEngine();

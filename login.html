@@ -106,7 +106,7 @@
         const data = await res.json();
 
         if (res.ok && data.status === 'success') {
-          window.location.href = '/admin';
+          window.location.href = '/ds-portal';
         } else {
           errBox.innerText = data.message || 'بيانات الدخول غير صحيحة';
           errBox.classList.remove('hidden');
