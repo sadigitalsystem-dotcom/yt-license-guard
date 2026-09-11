@@ -69,12 +69,13 @@ class LicenseDB {
       this.save();
     }
 
-    // تهيئة الإعدادات العامة وروابط قوقل درايف والمجموعات
+    // تهيئة الإعدادات العامة وروابط قوقل درايف والمجموعات والنطاق المخصص
     if (!this.data.settings) {
       this.data.settings = {
         custom_groups: ['عام', 'VIP', 'عائلي'],
         apk_drive_link: '',
-        windows_drive_link: ''
+        windows_drive_link: '',
+        custom_domain: 'https://plus.digitalsystemsa.com'
       };
       this.save();
     } else {
@@ -83,6 +84,7 @@ class LicenseDB {
       }
       if (this.data.settings.apk_drive_link === undefined) this.data.settings.apk_drive_link = '';
       if (this.data.settings.windows_drive_link === undefined) this.data.settings.windows_drive_link = '';
+      if (!this.data.settings.custom_domain) this.data.settings.custom_domain = 'https://plus.digitalsystemsa.com';
     }
 
     // تهيئة قائمة الموظفين
@@ -486,7 +488,7 @@ const loginLimiter = new RateLimiter(5, 15 * 60 * 1000);
 const activateLimiter = new RateLimiter(12, 10 * 60 * 1000);
 
 function startKeepAliveEngine() {
-  const RENDER_EXTERNAL_URL = process.env.RENDER_EXTERNAL_URL || 'https://yt-license-guard.onrender.com';
+  const RENDER_EXTERNAL_URL = process.env.RENDER_EXTERNAL_URL || 'https://plus.digitalsystemsa.com';
   console.log(`[KeepAlive] Engine active. Target: ${RENDER_EXTERNAL_URL}`);
 
   const PING_INTERVAL_MS = 9 * 60 * 1000;
@@ -1311,6 +1313,7 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, {
         apk_drive_link: settings.apk_drive_link || '',
         windows_drive_link: settings.windows_drive_link || '',
+        custom_domain: settings.custom_domain || '',
         custom_groups: settings.custom_groups || ['عام', 'VIP', 'عائلي']
       });
     }
@@ -1698,6 +1701,7 @@ const server = http.createServer(async (req, res) => {
       const newSettings = {};
       if (body.apk_drive_link !== undefined) newSettings.apk_drive_link = (body.apk_drive_link || '').trim();
       if (body.windows_drive_link !== undefined) newSettings.windows_drive_link = (body.windows_drive_link || '').trim();
+      if (body.custom_domain !== undefined) newSettings.custom_domain = (body.custom_domain || '').trim();
       if (Array.isArray(body.custom_groups)) newSettings.custom_groups = body.custom_groups;
 
       const updated = db.updateSettings(newSettings);

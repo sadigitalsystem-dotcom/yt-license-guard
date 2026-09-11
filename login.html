@@ -83,17 +83,7 @@
   </div>
 
   <script>
-    const API_BASE = (window.location.protocol === 'file:' || !window.location.hostname) 
-      ? 'https://yt-license-guard.onrender.com' 
-      : '';
-
-    // إذا فتح المستخدم الملف محلياً من جهازه، نوجهه للرابط الأونلاين المباشر
-    if (window.location.protocol === 'file:') {
-      const banner = document.createElement('div');
-      banner.className = 'mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs text-center';
-      banner.innerHTML = '<i class="fa-solid fa-cloud mr-1"></i> للتشغيل الأونلاين من أي مكان: <a href="https://yt-license-guard.onrender.com/login" class="underline font-bold text-white hover:text-red-400">اضغط هنا لفتح الرابط السحابي المباشر</a>';
-      document.getElementById('loginForm').prepend(banner);
-    }
+    const API_BASE = '';
 
     async function handleLogin(e) {
       e.preventDefault();
@@ -116,17 +106,13 @@
         const data = await res.json();
 
         if (res.ok && data.status === 'success') {
-          if (window.location.protocol === 'file:') {
-            window.location.href = 'https://yt-license-guard.onrender.com/dashboard';
-          } else {
-            window.location.href = '/dashboard';
-          }
+          window.location.href = '/admin';
         } else {
           errBox.innerText = data.message || 'بيانات الدخول غير صحيحة';
           errBox.classList.remove('hidden');
         }
       } catch (err) {
-        errBox.innerHTML = 'تعذر الاتصال بالسيرفر! يرجى فتح الرابط الأونلاين المباشر:<br><a href="https://yt-license-guard.onrender.com/login" class="underline font-bold text-white mt-1 inline-block">https://yt-license-guard.onrender.com/login</a>';
+        errBox.innerText = 'تعذر الاتصال بالسيرفر! يرجى التأكد من اتصال الإنترنت.';
         errBox.classList.remove('hidden');
       } finally {
         btn.disabled = false;

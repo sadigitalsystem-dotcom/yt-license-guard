@@ -577,6 +577,18 @@
             placeholder="https://drive.google.com/file/d/.../view?usp=sharing" 
             class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-emerald-500 font-mono text-xs"
           >
+        <div>
+          <label class="block text-xs font-bold text-zinc-300 mb-1 flex items-center justify-between">
+            <span>الرابط الرسمي المعتمد لتشغيل المتصفح واللوحة (Custom Domain / URL):</span>
+            <span class="text-[10px] text-purple-400 font-normal">اختياري - يزيل أي إشارة لمنصات أخرى</span>
+          </label>
+          <input 
+            type="text" 
+            id="setCustomDomain" 
+            placeholder="مثال: https://plus.sadigitalsystem.com أو اتركه فارغاً للاعتماد التلقائي" 
+            class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-purple-500 font-mono text-xs"
+          >
+          <p class="text-[11px] text-zinc-400 mt-1">يتم اعتماد هذا الرابط تلقائياً في رسائل الواتساب للعملاء ودليل الأجهزة للآيفون والشاشات، لكي يرى العميل علامتكم الرسمية فقط.</p>
         </div>
 
         <div id="settingsAlert" class="hidden p-2.5 rounded-xl text-center font-bold text-xs"></div>
@@ -752,7 +764,7 @@
           </div>
           <p class="text-zinc-400 text-xs mb-2">يفتح العميل الرابط في Safari ثم يضغط (مشاركة > إضافة إلى الشاشة الرئيسية) للحصول على تطبيق يوتيوب بلس+ بدون إعلانات مع إمكانية الدخول بحساب Google:</p>
           <div class="flex items-center gap-2">
-            <input type="text" readonly value="https://yt-license-guard.onrender.com/app" id="guideIosLink" class="flex-1 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300">
+            <input type="text" readonly value="" id="guideIosLink" class="flex-1 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300">
             <button onclick="copyLinkById('guideIosLink')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0">
               <i class="fa-solid fa-copy"></i>
               <span>نسخ الرابط</span>
@@ -771,7 +783,7 @@
           </div>
           <div class="text-zinc-300 text-xs space-y-1.5 leading-relaxed">
             <p><strong>• شاشات أندرويد و Google TV:</strong> عبر تطبيق Downloader على الشاشة، حمّل رابط الـ APK المباشر وثبّت التطبيق بضغطة واحدة.</p>
-            <p><strong>• شاشات سامسونج (Tizen) و LG (webOS):</strong> افتح متصفح التلفزيون وادخل الرابط: <code class="text-red-400 font-mono">https://yt-license-guard.onrender.com/app</code> واحفظه في المفضلة، أو استخدم زر البث المباشر (AirPlay / Cast) من الهاتف للشاشة فوراً.</p>
+            <p><strong>• شاشات سامسونج (Tizen) و LG (webOS):</strong> افتح متصفح التلفزيون وادخل الرابط: <code id="guideTvLinkCode" class="text-red-400 font-mono"></code> واحفظه في المفضلة، أو استخدم زر البث المباشر (AirPlay / Cast) من الهاتف للشاشة فوراً.</p>
           </div>
         </div>
 
@@ -1194,9 +1206,20 @@
   <script>
     const API_BASE = '';
     let allLicenses = [];
-    let currentSettings = { custom_groups: ['عام', 'VIP', 'عائلي'], apk_drive_link: '', windows_drive_link: '' };
+    let currentSettings = { custom_groups: ['عام', 'VIP', 'عائلي'], apk_drive_link: '', windows_drive_link: '', custom_domain: 'https://plus.digitalsystemsa.com' };
     let currentDurationFilter = 'all';
     let currentActiveLicenseForWa = null;
+
+    function getSystemBaseUrl() {
+      if (currentSettings && currentSettings.custom_domain && currentSettings.custom_domain.trim()) {
+        let d = currentSettings.custom_domain.trim();
+        if (!d.startsWith('http://') && !d.startsWith('https://')) {
+          d = 'https://' + d;
+        }
+        return d.replace(/\/+$/, '');
+      }
+      return window.location.origin;
+    }
 
     let currentLang = localStorage.getItem('yt_dash_lang') || 'ar';
 
@@ -1392,6 +1415,15 @@
       document.getElementById('guideWindowsInput').value = winUrl;
       document.getElementById('setApkDriveLink').value = currentSettings.apk_drive_link || '';
       document.getElementById('setWindowsDriveLink').value = currentSettings.windows_drive_link || '';
+
+      const customDomainInput = document.getElementById('setCustomDomain');
+      if (customDomainInput) customDomainInput.value = currentSettings.custom_domain || '';
+
+      const base = getSystemBaseUrl();
+      const iosInput = document.getElementById('guideIosLink');
+      if (iosInput) iosInput.value = `${base}/`;
+      const tvCode = document.getElementById('guideTvLinkCode');
+      if (tvCode) tvCode.innerText = `${base}/`;
     }
 
     function updateGroupsDropdowns() {
@@ -1930,19 +1962,20 @@
     async function submitSaveSettings() {
       const apk_drive_link = document.getElementById('setApkDriveLink').value.trim();
       const windows_drive_link = document.getElementById('setWindowsDriveLink').value.trim();
+      const custom_domain = document.getElementById('setCustomDomain').value.trim();
       const alertBox = document.getElementById('settingsAlert');
 
       try {
         const res = await fetch(`${API_BASE}/api/admin/settings`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ apk_drive_link, windows_drive_link })
+          body: JSON.stringify({ apk_drive_link, windows_drive_link, custom_domain })
         });
         const data = await res.json();
         if (data.status === 'success') {
           currentSettings = data.settings;
           updateSettingsUI();
-          showToast('تم حفظ روابط قوقل درايف بنجاح');
+          showToast('تم حفظ الإعدادات والنطاق المعتمد بنجاح');
           closeSettingsModal();
         } else {
           alertBox.className = 'p-2.5 rounded-xl text-center font-bold text-xs bg-red-500/10 text-red-400';
@@ -2003,7 +2036,7 @@ ${l.serial_key}
 📱 عدد الأجهزة المسموحة: ${l.max_devices || 1} جهاز
 
 🌐 رابط تشغيل التطبيق للآيفون والكمبيوتر والشاشات:
-https://yt-license-guard.onrender.com/app
+${getSystemBaseUrl()}/
 
 نتمنى لك مشاهدة ممتعة ومميزة دائماً!`;
       } else if (type === 'reminder') {
