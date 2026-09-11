@@ -350,13 +350,18 @@
         <!-- مدة الاشتراك -->
         <div>
           <label id="lblGenDays" class="block text-xs font-bold text-zinc-300 mb-1">مدة الاشتراك</label>
-          <select id="genDays" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 focus:outline-none focus:border-red-500 font-mono">
+          <select id="genDays" onchange="toggleCustomDaysInput(this.value)" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 focus:outline-none focus:border-red-500 font-mono">
             <option value="7">7 Days (تجربة 7 أيام)</option>
             <option value="30" selected>30 Days (شهر كامل)</option>
             <option value="90">90 Days (3 أشهر)</option>
             <option value="180">180 Days (6 أشهر)</option>
             <option value="365">365 Days (سنة كاملة)</option>
+            <option value="custom">⚙️ مدة مخصصة (أدخل عدد الأيام)...</option>
           </select>
+          <div id="genCustomDaysBox" class="hidden mt-2 p-2.5 bg-zinc-950/80 border border-amber-500/30 rounded-xl">
+            <label class="block text-[11px] font-bold text-amber-400 mb-1">حدد عدد الأيام المخصصة:</label>
+            <input type="number" id="genCustomDaysVal" min="1" max="3650" placeholder="مثال: 15 أو 45 أو 60 أو 400" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-zinc-100 font-mono text-xs focus:outline-none focus:border-amber-400">
+          </div>
         </div>
 
         <!-- عدد الأجهزة المصرح بها للمفتاح الواحد -->
@@ -380,13 +385,19 @@
           </select>
         </div>
 
-        <!-- رقم الطلب في المتجر twsaa.com -->
+        <!-- رقم الطلب في المتجر twsaa.com مع زر الاستيراد المباشر -->
         <div>
           <label id="lblGenOrderId" class="block text-xs font-bold text-zinc-300 mb-1 flex items-center justify-between">
-            <span>رقم الطلب في المتجر (Order ID)</span>
-            <span class="text-[10px] text-indigo-400 font-normal">ربط مباشر مع twsaa.com</span>
+            <span>رقم الطلب في المتجر (Order ID):</span>
+            <span class="text-[10px] text-indigo-400 font-normal">منصة توسع (twsaa.com)</span>
           </label>
-          <input type="text" id="genOrderId" placeholder="مثال: 2098095" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 font-mono text-xs sm:text-sm">
+          <div class="flex gap-2">
+            <input type="text" id="genOrderId" placeholder="مثال: 2098095" class="flex-1 bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 font-mono text-xs sm:text-sm">
+            <button type="button" onclick="fetchTwsaaOrder('genOrderId')" class="bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0" title="استيراد بيانات العميل من منصة توسع">
+              <i class="fa-solid fa-cloud-arrow-down"></i>
+              <span>استيراد</span>
+            </button>
+          </div>
         </div>
 
         <!-- رقم واتساب العميل -->
@@ -446,13 +457,37 @@
           <input type="text" id="editNote" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 focus:outline-none focus:border-red-500 text-xs sm:text-sm">
         </div>
 
-        <!-- رقم الطلب في المتجر twsaa.com -->
+        <!-- رقم الطلب في المتجر twsaa.com مع زر الاستيراد -->
         <div>
           <label class="block text-xs font-bold text-zinc-300 mb-1 flex items-center justify-between">
             <span>رقم الطلب في المتجر (Order ID):</span>
-            <span class="text-[10px] text-indigo-400 font-normal">twsaa.com</span>
+            <span class="text-[10px] text-indigo-400 font-normal">منصة توسع (twsaa.com)</span>
           </label>
-          <input type="text" id="editOrderId" placeholder="مثال: 2098095" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 focus:outline-none focus:border-indigo-500 font-mono text-xs sm:text-sm">
+          <div class="flex gap-2">
+            <input type="text" id="editOrderId" placeholder="مثال: 2098095" class="flex-1 bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 focus:outline-none focus:border-indigo-500 font-mono text-xs sm:text-sm">
+            <button type="button" onclick="fetchTwsaaOrder('editOrderId')" class="bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0" title="استيراد بيانات العميل من منصة توسع">
+              <i class="fa-solid fa-cloud-arrow-down"></i>
+              <span>استيراد</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- تمديد / إضافة أيام لصلاحية الاشتراك -->
+        <div class="bg-zinc-950/70 p-3 rounded-2xl border border-zinc-800 space-y-2">
+          <label class="block text-xs font-bold text-zinc-300 flex items-center justify-between">
+            <span class="flex items-center gap-1.5 text-emerald-400">
+              <i class="fa-solid fa-calendar-plus text-xs"></i>
+              <span>تمديد / زيادة مدة الاشتراك:</span>
+            </span>
+            <span class="text-[10px] text-zinc-400 font-normal">إضافة أيام لصلاحية الكود</span>
+          </label>
+          <div class="flex gap-2">
+            <input type="number" id="editAddDays" min="1" max="3650" placeholder="عدد الأيام المضافة (مثال: 30)" class="flex-1 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-2 text-zinc-100 font-mono text-xs focus:outline-none focus:border-emerald-500">
+            <button type="button" onclick="submitExtendLicense()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 shadow-sm active:scale-95">
+              <i class="fa-solid fa-plus text-xs"></i>
+              <span>تمديد الأيام</span>
+            </button>
+          </div>
         </div>
 
         <!-- رقم الواتساب -->
@@ -540,69 +575,7 @@
     </div>
   </div>
 
-  <!-- ========================================== -->
-  <!-- 6. نافذة تخصيص روابط التحميل (Settings Modal) -->
-  <!-- ========================================== -->
-  <div id="settingsModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-    <div class="glass-card bg-zinc-900 rounded-3xl w-full max-w-lg p-6 border border-zinc-700 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scroll">
-      
-      <div class="flex items-center justify-between mb-4 border-b border-zinc-800 pb-3">
-        <div class="flex items-center gap-2">
-          <i class="fa-brands fa-google-drive text-emerald-400 text-xl"></i>
-          <div>
-            <h3 class="text-base font-bold text-white">تخصيص روابط قوقل درايف للتحميل</h3>
-            <p class="text-xs text-zinc-400">ضع روابط قوقل درايف المباشرة لتطبيقاتك لتظهر للعملاء في دليل الأجهزة فوراً</p>
-          </div>
-        </div>
-        <button onclick="closeSettingsModal()" class="text-zinc-400 hover:text-white p-2"><i class="fa-solid fa-xmark"></i></button>
-      </div>
 
-      <div class="space-y-4 text-xs sm:text-sm">
-        <div>
-          <label class="block text-xs font-bold text-zinc-300 mb-1">رابط قوقل درايف لتطبيق الأندرويد والشاشات (APK):</label>
-          <input 
-            type="url" 
-            id="setApkDriveLink" 
-            placeholder="https://drive.google.com/file/d/.../view?usp=sharing" 
-            class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-emerald-500 font-mono text-xs"
-          >
-          <p class="text-[11px] text-zinc-400 mt-1">تأكد أن إعدادات المشاركة للملف في درايف: "أي شخص لديه الرابط يمكنه العرض/التحميل".</p>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-zinc-300 mb-1">رابط قوقل درايف لتطبيق الكمبيوتر (Windows Desktop App):</label>
-          <input 
-            type="url" 
-            id="setWindowsDriveLink" 
-            placeholder="https://drive.google.com/file/d/.../view?usp=sharing" 
-            class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-emerald-500 font-mono text-xs"
-          >
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-zinc-300 mb-1 flex items-center justify-between">
-            <span>الرابط الرسمي المعتمد لتشغيل المتصفح واللوحة (Custom Domain / URL):</span>
-            <span class="text-[10px] text-purple-400 font-normal">اختياري - يزيل أي إشارة لمنصات أخرى</span>
-          </label>
-          <input 
-            type="text" 
-            id="setCustomDomain" 
-            placeholder="مثال: https://plus.sadigitalsystem.com أو اتركه فارغاً للاعتماد التلقائي" 
-            class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-purple-500 font-mono text-xs"
-          >
-          <p class="text-[11px] text-zinc-400 mt-1">يتم اعتماد هذا الرابط تلقائياً في رسائل الواتساب للعملاء ودليل الأجهزة للآيفون والشاشات، لكي يرى العميل علامتكم الرسمية فقط.</p>
-        </div>
-
-        <div id="settingsAlert" class="hidden p-2.5 rounded-xl text-center font-bold text-xs"></div>
-      </div>
-
-      <div class="mt-6 flex gap-3">
-        <button onclick="closeSettingsModal()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 py-2.5 rounded-xl font-bold transition text-xs">إلغاء</button>
-        <button onclick="submitSaveSettings()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-bold transition text-xs shadow-lg shadow-emerald-600/30">حفظ الروابط</button>
-      </div>
-
-    </div>
-  </div>
 
   <!-- ========================================== -->
   <!-- 7. نافذة رسائل الواتساب التلقائية (WhatsApp Modal) -->
@@ -695,17 +668,14 @@
           </div>
           <p class="text-zinc-400 text-xs mb-3">تطبيق يوتيوب بريميوم الرسمي المدمج مع قفل التراخيص التلقائي وتسجيل الدخول بحساب Google.</p>
           <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-            <input type="text" readonly id="guideApkInput" class="flex-1 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300">
-            <button onclick="openLinkFromInput('guideApkInput')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0">
-              <i class="fa-solid fa-download"></i>
-              <span>تحميل</span>
-            </button>
-            <button onclick="copyLinkById('guideApkInput')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0">
+            <input type="text" readonly id="guideApkInput" class="flex-1 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300 transition focus:outline-none focus:border-amber-400">
+            <button onclick="copyLinkById('guideApkInput')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0" title="نسخ الرابط">
               <i class="fa-solid fa-copy"></i>
               <span>نسخ</span>
             </button>
-            <button onclick="openSettingsModal()" class="bg-zinc-800 hover:bg-zinc-700 text-amber-400 px-2.5 py-2 rounded-xl text-xs transition shrink-0" title="تغيير رابط قوقل درايف">
+            <button id="btnEditGuideApk" onclick="toggleEditGuideLink('guideApkInput', 'btnEditGuideApk', 'apk_drive_link')" class="bg-zinc-800 hover:bg-zinc-700 text-amber-400 hover:text-amber-300 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 border border-zinc-700" title="تعديل الرابط">
               <i class="fa-solid fa-pen"></i>
+              <span>تعديل</span>
             </button>
           </div>
         </div>
@@ -721,82 +691,100 @@
           </div>
           <p class="text-zinc-400 text-xs mb-3">برنامج مكتبي مستقل يشغل يوتيوب الرسمي بالكامل مع حجب الإعلانات وقفل المفتاح وشعار يوتيوب الموحد.</p>
           <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-            <input type="text" readonly id="guideWindowsInput" class="flex-1 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300">
-            <button onclick="openLinkFromInput('guideWindowsInput')" class="bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0">
-              <i class="fa-solid fa-download"></i>
-              <span>تحميل</span>
-            </button>
-            <button onclick="copyLinkById('guideWindowsInput')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0">
+            <input type="text" readonly id="guideWindowsInput" class="flex-1 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300 transition focus:outline-none focus:border-amber-400">
+            <button onclick="copyLinkById('guideWindowsInput')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0" title="نسخ الرابط">
               <i class="fa-solid fa-copy"></i>
               <span>نسخ</span>
             </button>
-            <button onclick="openSettingsModal()" class="bg-zinc-800 hover:bg-zinc-700 text-amber-400 px-2.5 py-2 rounded-xl text-xs transition shrink-0" title="تغيير رابط قوقل درايف">
+            <button id="btnEditGuideWin" onclick="toggleEditGuideLink('guideWindowsInput', 'btnEditGuideWin', 'windows_drive_link')" class="bg-zinc-800 hover:bg-zinc-700 text-amber-400 hover:text-amber-300 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 border border-zinc-700" title="تعديل الرابط">
               <i class="fa-solid fa-pen"></i>
+              <span>تعديل</span>
             </button>
           </div>
         </div>
 
-        <!-- 3. إضافة المتصفحات (Chrome / Edge / Brave / Mac) بضغطة زر -->
-        <div class="bg-zinc-950/80 p-4 rounded-2xl border border-zinc-800">
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center gap-2">
-              <i class="fa-brands fa-chrome text-amber-400 text-lg"></i>
-              <h4 class="font-bold text-white">3. إضافة المتصفحات (Chrome / Edge / Brave / Mac)</h4>
-            </div>
-            <span class="text-[10px] bg-amber-500/10 text-amber-400 px-2.5 py-0.5 rounded-full border border-amber-500/20 font-bold">بضغطة زر واحدة</span>
-          </div>
-          <p class="text-zinc-400 text-xs mb-3">تحول متصفح العميل إلى يوتيوب بريميوم رسمي مع حجب الإعلانات الجانبية والفيديو وقفل التراخيص.</p>
-          <div class="flex items-center gap-2">
-            <a href="/YouTube_PLUS_Browser_Extension.zip" download class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow">
-              <i class="fa-solid fa-file-zipper"></i>
-              <span>تحميل حزمة الإضافة بضغطة زر (ZIP)</span>
-            </a>
-            <span class="text-zinc-500 text-xs">ثم اسحب المجلد المفكوك إلى قائمة ملحقات المتصفح</span>
-          </div>
-        </div>
-
-        <!-- 4. أجهزة الآيفون والآيباد (iOS / iPadOS) -->
+        <!-- 3. أجهزة الآيفون والآيباد (iOS / iPadOS) -->
         <div class="bg-zinc-950/80 p-4 rounded-2xl border border-zinc-800">
           <div class="flex items-center justify-between mb-2">
             <div class="flex items-center gap-2">
               <i class="fa-brands fa-apple text-zinc-200 text-lg"></i>
-              <h4 class="font-bold text-white">4. أجهزة الآيفون والآيباد (iOS / iPadOS)</h4>
+              <h4 class="font-bold text-white">3. أجهزة الآيفون والآيباد (iOS / iPadOS)</h4>
             </div>
             <span class="text-[10px] bg-zinc-500/10 text-zinc-300 px-2.5 py-0.5 rounded-full border border-zinc-500/20 font-bold">تشغيل فوري سريع</span>
           </div>
           <p class="text-zinc-400 text-xs mb-2">يفتح العميل الرابط في Safari ثم يضغط (مشاركة > إضافة إلى الشاشة الرئيسية) للحصول على تطبيق يوتيوب بلس+ بدون إعلانات مع إمكانية الدخول بحساب Google:</p>
-          <div class="flex items-center gap-2">
-            <input type="text" readonly value="" id="guideIosLink" class="flex-1 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300">
-            <button onclick="copyLinkById('guideIosLink')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0">
+          <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+            <input type="text" readonly value="" id="guideIosLink" class="flex-1 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300 transition focus:outline-none focus:border-amber-400">
+            <button onclick="copyLinkById('guideIosLink')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0" title="نسخ الرابط">
               <i class="fa-solid fa-copy"></i>
               <span>نسخ الرابط</span>
+            </button>
+            <button id="btnEditGuideIos" onclick="toggleEditGuideLink('guideIosLink', 'btnEditGuideIos', 'custom_domain')" class="bg-zinc-800 hover:bg-zinc-700 text-amber-400 hover:text-amber-300 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 border border-zinc-700" title="تعديل الرابط المعتمد">
+              <i class="fa-solid fa-pen"></i>
+              <span>تعديل</span>
             </button>
           </div>
         </div>
 
-        <!-- 5. شاشات التلفزيون الذكية (مختصرة وسهلة جداً) -->
+        <!-- 4. إضافة المتصفحات (Chrome / Edge / Brave / Mac) بضغطة زر -->
         <div class="bg-zinc-950/80 p-4 rounded-2xl border border-zinc-800">
           <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <i class="fa-brands fa-chrome text-amber-400 text-lg"></i>
+              <h4 class="font-bold text-white">4. إضافة المتصفحات (Chrome / Edge / Brave / Mac)</h4>
+            </div>
+            <span class="text-[10px] bg-amber-500/10 text-amber-400 px-2.5 py-0.5 rounded-full border border-amber-500/20 font-bold">بضغطة زر واحدة</span>
+          </div>
+          <p class="text-zinc-400 text-xs mb-3">تحول متصفح العميل إلى يوتيوب بريميوم رسمي مع حجب الإعلانات الجانبية والفيديو وقفل التراخيص التلقائي.</p>
+          <div class="flex items-center gap-3 flex-wrap">
+            <a href="/YouTube_PLUS_Browser_Extension.zip" download class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-amber-600/20 active:scale-95">
+              <i class="fa-solid fa-file-zipper text-sm"></i>
+              <span>تحميل حزمة الإضافة بضغطة زر (ZIP)</span>
+            </a>
+            <span class="text-zinc-400 text-xs">ثم فك الضغط واسحب المجلد المفكوك إلى قائمة ملحقات المتصفح (Extensions)</span>
+          </div>
+        </div>
+
+        <!-- 5. شاشات التلفزيون الذكية (مختصرة وسهلة جداً) -->
+        <div class="bg-zinc-950/80 p-4 rounded-2xl border border-zinc-800 space-y-3">
+          <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <i class="fa-solid fa-tv text-purple-400 text-lg"></i>
               <h4 class="font-bold text-white">5. شاشات التلفزيون الذكية (سامسونج، LG، شاومي، سوني)</h4>
             </div>
             <span class="text-[10px] bg-purple-500/10 text-purple-400 px-2.5 py-0.5 rounded-full border border-purple-500/20 font-bold">خطوتان سريعتان</span>
           </div>
-          <div class="text-zinc-300 text-xs space-y-1.5 leading-relaxed">
-            <p><strong>• شاشات أندرويد و Google TV:</strong> عبر تطبيق Downloader على الشاشة، حمّل رابط الـ APK المباشر وثبّت التطبيق بضغطة واحدة.</p>
+          
+          <!-- رابط Downloader المباشر لشاشات أندرويد -->
+          <div class="bg-zinc-900/90 p-3 rounded-xl border border-zinc-800">
+            <p class="text-xs text-zinc-300 mb-2 font-bold flex items-center gap-1.5">
+              <i class="fa-solid fa-download text-emerald-400"></i>
+              <span>شاشات أندرويد و Google TV (عبر تطبيق Downloader على الشاشة):</span>
+            </p>
+            <p class="text-[11px] text-zinc-400 mb-2">أدخل رابط الـ APK المباشر التالي في خانة البحث بتطبيق Downloader لتثبيت التطبيق بضغطة واحدة:</p>
+            <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+              <input type="text" readonly id="guideTvApkInput" class="flex-1 bg-zinc-950 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300 transition focus:outline-none focus:border-amber-400">
+              <button onclick="copyLinkById('guideTvApkInput')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0" title="نسخ رابط APK للشاشات">
+                <i class="fa-solid fa-copy"></i>
+                <span>نسخ</span>
+              </button>
+              <button id="btnEditGuideTvApk" onclick="toggleEditGuideLink('guideTvApkInput', 'btnEditGuideTvApk', 'apk_drive_link')" class="bg-zinc-800 hover:bg-zinc-700 text-amber-400 hover:text-amber-300 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 border border-zinc-700" title="تعديل رابط الـ APK">
+                <i class="fa-solid fa-pen"></i>
+                <span>تعديل</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- شاشات سامسونج و LG -->
+          <div class="text-zinc-300 text-xs space-y-1.5 leading-relaxed bg-zinc-900/50 p-3 rounded-xl border border-zinc-800/80">
             <p><strong>• شاشات سامسونج (Tizen) و LG (webOS):</strong> افتح متصفح التلفزيون وادخل الرابط: <code id="guideTvLinkCode" class="text-red-400 font-mono"></code> واحفظه في المفضلة، أو استخدم زر البث المباشر (AirPlay / Cast) من الهاتف للشاشة فوراً.</p>
           </div>
         </div>
 
       </div>
 
-      <div class="mt-6 flex gap-3">
-        <button onclick="openSettingsModal()" class="flex-1 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 py-2.5 rounded-xl font-bold transition text-xs flex items-center justify-center gap-1.5">
-          <i class="fa-brands fa-google-drive"></i>
-          <span>تعديل روابط قوقل درايف</span>
-        </button>
-        <button onclick="closeGuideModal()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 py-2.5 rounded-xl font-bold transition text-xs">إغلاق الدليل</button>
+      <div class="mt-6">
+        <button onclick="closeGuideModal()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-200 py-2.5 rounded-xl font-bold transition text-xs">إغلاق الدليل</button>
       </div>
 
     </div>
@@ -1413,17 +1401,20 @@
       const apkUrl = currentSettings.apk_drive_link || defApk;
       const winUrl = currentSettings.windows_drive_link || defWin;
 
-      document.getElementById('guideApkInput').value = apkUrl;
-      document.getElementById('guideWindowsInput').value = winUrl;
-      document.getElementById('setApkDriveLink').value = currentSettings.apk_drive_link || '';
-      document.getElementById('setWindowsDriveLink').value = currentSettings.windows_drive_link || '';
+      const guideApk = document.getElementById('guideApkInput');
+      if (guideApk && guideApk.readOnly) guideApk.value = apkUrl;
 
-      const customDomainInput = document.getElementById('setCustomDomain');
-      if (customDomainInput) customDomainInput.value = currentSettings.custom_domain || '';
+      const guideWin = document.getElementById('guideWindowsInput');
+      if (guideWin && guideWin.readOnly) guideWin.value = winUrl;
+
+      const guideTvApk = document.getElementById('guideTvApkInput');
+      if (guideTvApk && guideTvApk.readOnly) guideTvApk.value = apkUrl;
 
       const base = getSystemBaseUrl();
       const iosInput = document.getElementById('guideIosLink');
-      if (iosInput) iosInput.value = `${base}/`;
+      if (iosInput && iosInput.readOnly) {
+        iosInput.value = currentSettings.custom_domain ? (currentSettings.custom_domain.startsWith('http') ? currentSettings.custom_domain : 'https://' + currentSettings.custom_domain) : `${base}/`;
+      }
       const tvCode = document.getElementById('guideTvLinkCode');
       if (tvCode) tvCode.innerText = `${base}/`;
     }
@@ -1454,15 +1445,29 @@
       const container = document.getElementById('groupsListContainer');
       container.innerHTML = groups.map(g => {
         const count = allLicenses.filter(l => (l.group || 'عام') === g).length;
+        const isDefault = (g === 'عام');
+        const safeName = (g || '').replace(/'/g, "\\'");
         return `
           <div class="flex items-center justify-between p-2.5 bg-zinc-950/70 border border-zinc-800 rounded-xl text-xs">
             <div class="flex items-center gap-2">
               <i class="fa-solid fa-folder text-indigo-400"></i>
               <span class="font-bold text-white">${g}</span>
             </div>
-            <span class="bg-indigo-500/10 text-indigo-400 px-2.5 py-0.5 rounded-full font-mono font-bold">
-              ${count} ${currentLang === 'ar' ? 'عميل' : 'clients'}
-            </span>
+            <div class="flex items-center gap-2">
+              <span class="bg-indigo-500/10 text-indigo-400 px-2.5 py-0.5 rounded-full font-mono font-bold">
+                ${count} ${currentLang === 'ar' ? 'عميل' : 'clients'}
+              </span>
+              ${!isDefault ? `
+                <button onclick="promptRenameGroup('${safeName}')" class="text-zinc-400 hover:text-amber-400 p-1.5 transition rounded-lg hover:bg-zinc-800" title="تعديل اسم المجموعة">
+                  <i class="fa-solid fa-pen text-xs"></i>
+                </button>
+                <button onclick="confirmDeleteGroup('${safeName}')" class="text-zinc-400 hover:text-red-400 p-1.5 transition rounded-lg hover:bg-zinc-800" title="حذف المجموعة">
+                  <i class="fa-solid fa-trash text-xs"></i>
+                </button>
+              ` : `
+                <span class="text-[10px] text-zinc-500 font-bold px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800">افتراضية</span>
+              `}
+            </div>
           </div>
         `;
       }).join('');
@@ -1858,8 +1863,32 @@
     function closeGenerateModal() {
       hideModal('generateModal');
     }
+
+    function toggleCustomDaysInput(val) {
+      const box = document.getElementById('genCustomDaysBox');
+      if (box) {
+        if (val === 'custom') {
+          box.classList.remove('hidden');
+          const customInp = document.getElementById('genCustomDaysVal');
+          if (customInp) customInp.focus();
+        } else {
+          box.classList.add('hidden');
+        }
+      }
+    }
+
     async function submitGenerate() {
-      const days = document.getElementById('genDays').value;
+      let days = document.getElementById('genDays').value;
+      if (days === 'custom') {
+        const customInp = document.getElementById('genCustomDaysVal');
+        const customNum = customInp ? parseInt(customInp.value, 10) : NaN;
+        if (!customNum || isNaN(customNum) || customNum <= 0) {
+          showToast('يرجى كتابة عدد الأيام المخصصة للاشتراك بشكل صحيح', 'error');
+          if (customInp) customInp.focus();
+          return;
+        }
+        days = customNum;
+      }
       const maxDevices = document.getElementById('genMaxDevices').value;
       const group = document.getElementById('genGroup').value;
       const note = document.getElementById('genNote').value.trim();
@@ -1906,6 +1935,8 @@
         if (document.getElementById('editOrderId')) document.getElementById('editOrderId').value = l.order_id || '';
         document.getElementById('editGroup').value = l.group || 'عام';
         document.getElementById('editMaxDevices').value = String(l.max_devices || 1);
+        const addDaysInp = document.getElementById('editAddDays');
+        if (addDaysInp) addDaysInp.value = '';
       } catch (e) {}
       showModal('editModal');
     }
@@ -1936,6 +1967,75 @@
         }
       } catch (e) {
         showToast('تعذر الاتصال بالخادم', 'error');
+      }
+    }
+
+    // تمديد أيام الاشتراك لمفتاح محدد
+    async function submitExtendLicense() {
+      const id = document.getElementById('editLicenseId').value;
+      const addDaysInp = document.getElementById('editAddDays');
+      const addDays = parseInt(addDaysInp.value, 10);
+      if (!addDays || isNaN(addDays) || addDays <= 0) {
+        showToast('يرجى كتابة عدد أيام صالح للتمديد (مثال: 30)', 'error');
+        addDaysInp.focus();
+        return;
+      }
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/extend-license`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, add_days: addDays })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          showToast(data.message || `تم تمديد صلاحية الاشتراك بمقدار ${addDays} يوم إضافي بنجاح`);
+          addDaysInp.value = '';
+          closeEditModal();
+          await loadLicenses();
+        } else {
+          showToast(data.message || 'تعذر تمديد الاشتراك', 'error');
+        }
+      } catch (e) {
+        showToast('تعذر الاتصال بالخادم', 'error');
+      }
+    }
+
+    // استيراد بيانات العميل من منصة توسع twsaa.com
+    async function fetchTwsaaOrder(inputId) {
+      const inp = document.getElementById(inputId);
+      if (!inp) return;
+      const rawVal = inp.value.trim().replace(/^#/, '');
+      if (!rawVal) {
+        showToast('يرجى كتابة رقم الطلب أولاً (Order ID)', 'error');
+        inp.focus();
+        return;
+      }
+      showToast('جاري التحقق من بيانات الطلب...', 'info');
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/fetch-twsaa-order`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ order_id: rawVal })
+        });
+        const data = await res.json();
+        if (data.status === 'success' && data.order) {
+          if (inputId === 'genOrderId') {
+            if (data.order.phone) document.getElementById('genWhatsapp').value = data.order.phone.replace(/[^0-9]/g, '');
+            if (data.order.name || data.order.note) {
+              document.getElementById('genNote').value = data.order.name ? (data.order.name + (data.order.note ? ` (${data.order.note})` : '')) : data.order.note;
+            }
+          } else if (inputId === 'editOrderId') {
+            if (data.order.phone) document.getElementById('editWhatsapp').value = data.order.phone.replace(/[^0-9]/g, '');
+            if (data.order.name) document.getElementById('editNote').value = data.order.name;
+          }
+          showToast(`تم استيراد بيانات العميل (${data.order.name || rawVal}) بنجاح`);
+        } else if (data.status === 'info') {
+          showToast(data.message, 'info');
+        } else {
+          showToast(data.message || 'لم يتم العثور على بيانات الطلب', 'error');
+        }
+      } catch (e) {
+        showToast('تعذر الاتصال بخدمة استيراد الطلبات', 'error');
       }
     }
 
@@ -1976,43 +2076,91 @@
       }
     }
 
-    // إدارة إعدادات روابط قوقل درايف
-    function openSettingsModal() {
+    async function promptRenameGroup(oldName) {
+      const newName = prompt(`أدخل الاسم الجديد لمجموعة "${oldName}":`, oldName);
+      if (!newName || newName.trim() === '' || newName.trim() === oldName) return;
       try {
-        updateSettingsUI();
-        const alertBox = document.getElementById('settingsAlert');
-        if (alertBox) alertBox.classList.add('hidden');
-      } catch (e) {}
-      showModal('settingsModal');
-    }
-    function closeSettingsModal() {
-      hideModal('settingsModal');
-    }
-    async function submitSaveSettings() {
-      const apk_drive_link = document.getElementById('setApkDriveLink').value.trim();
-      const windows_drive_link = document.getElementById('setWindowsDriveLink').value.trim();
-      const custom_domain = document.getElementById('setCustomDomain').value.trim();
-      const alertBox = document.getElementById('settingsAlert');
-
-      try {
-        const res = await fetch(`${API_BASE}/api/admin/settings`, {
+        const res = await fetch(`${API_BASE}/api/admin/rename-group`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ apk_drive_link, windows_drive_link, custom_domain })
+          body: JSON.stringify({ old_name: oldName, new_name: newName.trim() })
         });
         const data = await res.json();
         if (data.status === 'success') {
-          currentSettings = data.settings;
-          updateSettingsUI();
-          showToast('تم حفظ الإعدادات والنطاق المعتمد بنجاح');
-          closeSettingsModal();
+          currentSettings.custom_groups = data.custom_groups;
+          await loadLicenses();
+          showToast(data.message || 'تم تعديل اسم المجموعة بنجاح');
         } else {
-          alertBox.className = 'p-2.5 rounded-xl text-center font-bold text-xs bg-red-500/10 text-red-400';
-          alertBox.innerText = data.message || 'تعذر حفظ الإعدادات';
-          alertBox.classList.remove('hidden');
+          showToast(data.message || 'تعذر تعديل المجموعة', 'error');
         }
       } catch (e) {
         showToast('تعذر الاتصال بالخادم', 'error');
+      }
+    }
+
+    async function confirmDeleteGroup(groupName) {
+      if (!confirm(`هل أنت متأكد من حذف مجموعة "${groupName}"؟\nسيتم نقل جميع المشتركين المسجلين في هذه المجموعة تلقائياً إلى مجموعة (عام).`)) {
+        return;
+      }
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/delete-group`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ group_name: groupName })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          currentSettings.custom_groups = data.custom_groups;
+          await loadLicenses();
+          showToast(data.message || 'تم حذف المجموعة ونقل المشتركين بنجاح');
+        } else {
+          showToast(data.message || 'تعذر حذف المجموعة', 'error');
+        }
+      } catch (e) {
+        showToast('تعذر الاتصال بالخادم', 'error');
+      }
+    }
+
+    // تعديل وحفظ روابط دليل الأجهزة مباشرة بشكل مدمج
+    async function toggleEditGuideLink(inputId, btnId, settingKey) {
+      const input = document.getElementById(inputId);
+      const btn = document.getElementById(btnId);
+      if (!input || !btn) return;
+
+      if (input.readOnly) {
+        input.readOnly = false;
+        input.focus();
+        input.classList.add('border-amber-400', 'bg-zinc-950', 'ring-2', 'ring-amber-400/30');
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> <span>حفظ</span>';
+        btn.className = 'bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 shadow-lg shadow-emerald-600/30 active:scale-95';
+        btn.title = 'حفظ الرابط الجديد';
+      } else {
+        const val = input.value.trim();
+        try {
+          const bodyPayload = {};
+          bodyPayload[settingKey] = val;
+          const res = await fetch(`${API_BASE}/api/admin/settings`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bodyPayload)
+          });
+          const data = await res.json();
+          if (data.status === 'success') {
+            currentSettings = data.settings;
+            showToast('تم حفظ وتحديث الرابط بنجاح');
+          } else {
+            showToast(data.message || 'تعذر حفظ الرابط', 'error');
+          }
+        } catch (e) {
+          showToast('تعذر الاتصال بالخادم', 'error');
+        }
+
+        input.readOnly = true;
+        input.classList.remove('border-amber-400', 'bg-zinc-950', 'ring-2', 'ring-amber-400/30');
+        btn.innerHTML = '<i class="fa-solid fa-pen"></i> <span>تعديل</span>';
+        btn.className = 'bg-zinc-800 hover:bg-zinc-700 text-amber-400 hover:text-amber-300 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 border border-zinc-700';
+        btn.title = 'تعديل الرابط';
+        updateSettingsUI();
       }
     }
 

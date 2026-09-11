@@ -1,23 +1,28 @@
 {
-  "name": "YouTube PLUS+ - النظام الرقمي",
-  "short_name": "YouTube PLUS+",
-  "start_url": "/app",
-  "display": "standalone",
-  "background_color": "#09090b",
-  "theme_color": "#dc2626",
-  "orientation": "any",
-  "icons": [
+  "manifest_version": 3,
+  "name": "(يوتيوب بلس+) YouTube PLUS+",
+  "version": "2.0.1",
+  "description": "تجربة يوتيوب بريميوم رسمية 100% مع حجب الإعلانات والتشغيل بالخلفية ونظام الترخيص",
+  "icons": {
+    "128": "icon.png"
+  },
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "*://*.youtube.com/*",
+    "https://plus.digitalsystemsa.com/*",
+    "https://yt-license-guard.onrender.com/*"
+  ],
+  "content_scripts": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/1384/1384060.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "https://cdn-icons-png.flaticon.com/512/1384/1384060.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "matches": ["*://*.youtube.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_start"
     }
-  ]
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "(يوتيوب بلس+) YouTube PLUS+"
+  }
 }

@@ -220,6 +220,75 @@ class LicenseDB {
     return settings.custom_groups;
   }
 
+  deleteGroup(groupName) {
+    const clean = (groupName || '').trim();
+    if (!clean || clean === 'عام') {
+      throw new Error('لا يمكن حذف المجموعة الأساسية (عام)');
+    }
+    const settings = this.getSettings();
+    settings.custom_groups = (settings.custom_groups || []).filter(g => g !== clean);
+    // إعادة توجيه كافة المشتركين تحت هذه المجموعة إلى 'عام'
+    this.data.licenses.forEach(l => {
+      if (l.group === clean) {
+        l.group = 'عام';
+      }
+    });
+    this.save();
+    return settings.custom_groups;
+  }
+
+  renameGroup(oldName, newName) {
+    const cleanOld = (oldName || '').trim();
+    const cleanNew = (newName || '').trim();
+    if (!cleanOld || !cleanNew) throw new Error('اسم المجموعة مطلوب');
+    if (cleanOld === 'عام') throw new Error('لا يمكن تعديل اسم المجموعة الأساسية (عام)');
+    const settings = this.getSettings();
+    if (settings.custom_groups.includes(cleanNew) && cleanNew !== cleanOld) {
+      throw new Error('يوجد مجموعة أخرى بنفس هذا الاسم');
+    }
+    const idx = settings.custom_groups.indexOf(cleanOld);
+    if (idx !== -1) {
+      settings.custom_groups[idx] = cleanNew;
+    } else {
+      settings.custom_groups.push(cleanNew);
+    }
+    this.data.licenses.forEach(l => {
+      if (l.group === cleanOld) {
+        l.group = cleanNew;
+      }
+    });
+    this.save();
+    return settings.custom_groups;
+  }
+
+  extendLicense(id, addDays, byUser = 'المدير العام') {
+    const days = parseInt(addDays, 10);
+    if (isNaN(days) || days <= 0) throw new Error('عدد الأيام المضافة يجب أن يكون أكبر من 0');
+    const license = this.data.licenses.find(l => l.id === id);
+    if (!license) throw new Error('الترخيص غير موجود');
+
+    license.duration_days = (parseInt(license.duration_days, 10) || 0) + days;
+    const now = new Date();
+
+    if (license.expiry_date) {
+      const currentExpiry = new Date(license.expiry_date);
+      const baseDate = currentExpiry > now ? currentExpiry : now;
+      license.expiry_date = new Date(baseDate.getTime() + days * 86400000).toISOString();
+      license.is_active = true;
+    }
+
+    if (!Array.isArray(license.audit_log)) license.audit_log = [];
+    license.audit_log.push({
+      action: 'extend',
+      by: byUser,
+      at: now.toISOString(),
+      detail: `تمديد الصلاحية بمقدار ${days} يوم إضافي (الإجمالي الجديد: ${license.duration_days} يوم)`
+    });
+
+    this.save();
+    return license;
+  }
+
   getAll() {
     return this.data.licenses;
   }
@@ -909,6 +978,27 @@ const server = http.createServer(async (req, res) => {
         uptime_seconds: Math.floor(process.uptime()),
         timestamp: new Date().toISOString()
       });
+    }
+
+    // مسار تحميل إضافة المتصفحات المباشر (Browser Extension ZIP Download)
+    if (req.method === 'GET' && (pathname === '/YouTube_PLUS_Browser_Extension.zip' || pathname === '/download/extension')) {
+      const possiblePaths = [
+        path.join(__dirname, 'extension', 'YouTube_PLUS_Browser_Extension.zip'),
+        path.join(__dirname, 'YouTube_PLUS_Browser_Extension.zip'),
+        path.join(__dirname, '1_تطبيقات_الكمبيوتر_والماك', 'YouTube_PLUS_Browser_Extension.zip')
+      ];
+      const zipPath = possiblePaths.find(p => fs.existsSync(p));
+      if (zipPath) {
+        const stat = fs.statSync(zipPath);
+        res.writeHead(200, {
+          'Content-Type': 'application/zip',
+          'Content-Disposition': 'attachment; filename="YouTube_PLUS_Browser_Extension.zip"',
+          'Content-Length': stat.size
+        });
+        return fs.createReadStream(zipPath).pipe(res);
+      } else {
+        return sendJson(res, 404, { status: 'error', message: 'ملف الإضافة غير موجود' });
+      }
     }
 
     // 1. مسار تطبيق الويب المباشر (الصفحة الرئيسية والمشغل)
@@ -1664,13 +1754,14 @@ const server = http.createServer(async (req, res) => {
       const maxDevices = Math.max(1, parseInt(body.max_devices, 10) || 1);
       const group = body.group || 'عام';
       const whatsapp = body.whatsapp || '';
+      const order_id = (body.order_id || '').toString().trim();
 
       const creatorName = session.name || 'المدير العام';
       const creatorId = session.id || 'admin';
 
       const generated = [];
       for (let i = 0; i < count; i++) {
-        generated.push(db.create(days, note, maxDevices, group, whatsapp, creatorName, creatorId));
+        generated.push(db.create(days, note, maxDevices, group, whatsapp, creatorName, creatorId, order_id));
       }
 
       return sendJson(res, 200, { status: 'success', count: generated.length, licenses: generated });
@@ -1718,6 +1809,94 @@ const server = http.createServer(async (req, res) => {
 
       const updatedGroups = db.addGroup(name);
       return sendJson(res, 200, { status: 'success', message: 'تم إنشاء المجموعة بنجاح', custom_groups: updatedGroups });
+    }
+
+    // 17.1 لوحة الإدارة: حذف مجموعة ونقل المشتركين لمجموعة عام (محمي)
+    if (req.method === 'POST' && pathname === '/api/admin/delete-group') {
+      if (!isAuthenticated(req)) {
+        return sendJson(res, 401, { status: 'error', message: 'غير مصرح، يرجى تسجيل الدخول' });
+      }
+      const body = await parseJsonBody(req);
+      try {
+        const updated = db.deleteGroup(body.group_name);
+        return sendJson(res, 200, { status: 'success', message: 'تم حذف المجموعة ونقل المشتركين لمجموعة (عام) بنجاح', custom_groups: updated });
+      } catch (err) {
+        return sendJson(res, 400, { status: 'error', message: err.message });
+      }
+    }
+
+    // 17.2 لوحة الإدارة: تعديل وإعادة تسمية مجموعة (محمي)
+    if (req.method === 'POST' && pathname === '/api/admin/rename-group') {
+      if (!isAuthenticated(req)) {
+        return sendJson(res, 401, { status: 'error', message: 'غير مصرح، يرجى تسجيل الدخول' });
+      }
+      const body = await parseJsonBody(req);
+      try {
+        const updated = db.renameGroup(body.old_name, body.new_name);
+        return sendJson(res, 200, { status: 'success', message: 'تم تعديل اسم المجموعة بنجاح', custom_groups: updated });
+      } catch (err) {
+        return sendJson(res, 400, { status: 'error', message: err.message });
+      }
+    }
+
+    // 17.3 لوحة الإدارة: تمديد أيام الاشتراك لمفتاح محدد (محمي)
+    if (req.method === 'POST' && pathname === '/api/admin/extend-license') {
+      const session = getSession(req);
+      if (!session) {
+        return sendJson(res, 401, { status: 'error', message: 'غير مصرح، يرجى تسجيل الدخول' });
+      }
+      const body = await parseJsonBody(req);
+      try {
+        const updatedLicense = db.extendLicense(body.id, body.add_days, session.name || 'المدير العام');
+        return sendJson(res, 200, { status: 'success', message: `تم تمديد الاشتراك بنجاح بمقدار ${body.add_days} يوم إضافي`, license: updatedLicense });
+      } catch (err) {
+        return sendJson(res, 400, { status: 'error', message: err.message });
+      }
+    }
+
+    // 17.4 لوحة الإدارة: استيراد بيانات الطلب من منصة توسع (twsaa.com) (محمي)
+    if (req.method === 'POST' && pathname === '/api/admin/fetch-twsaa-order') {
+      const session = getSession(req);
+      if (!session) {
+        return sendJson(res, 401, { status: 'error', message: 'غير مصرح، يرجى تسجيل الدخول' });
+      }
+      const body = await parseJsonBody(req);
+      const orderId = (body.order_id || '').toString().trim().replace(/^#/, '');
+      if (!orderId) {
+        return sendJson(res, 400, { status: 'error', message: 'رقم الطلب مطلوب' });
+      }
+
+      const twsaaToken = process.env.TWSAA_API_KEY || process.env.TWSAA_TOKEN || '';
+      if (!twsaaToken) {
+        return sendJson(res, 200, {
+          status: 'info',
+          message: 'تم تجهيز مسار استيراد طلبات منصة توسع (twsaa.com) بنجاح. للاستعلام الآلي المباشر، يمكن تزويدنا برمز الـ API الخاص بمتجركم من لوحة تحكم منصة توسع.',
+          order_id: orderId,
+          needs_token: true
+        });
+      }
+
+      try {
+        const twsaaRes = await fetch(`https://api.twsaa.com/v1/orders/${orderId}`, {
+          headers: { 'Authorization': `Bearer ${twsaaToken}`, 'Accept': 'application/json' }
+        });
+        if (twsaaRes.ok) {
+          const orderData = await twsaaRes.json();
+          return sendJson(res, 200, {
+            status: 'success',
+            order: {
+              name: orderData.customer?.name || orderData.shipping_address?.name || '',
+              email: orderData.customer?.email || '',
+              phone: orderData.customer?.phone || orderData.shipping_address?.phone || '',
+              note: `طلب #${orderId} - ${orderData.items?.[0]?.name || ''}`
+            }
+          });
+        } else {
+          return sendJson(res, 404, { status: 'error', message: `لم يتم العثور على طلب برقم #${orderId} في منصة توسع` });
+        }
+      } catch (err) {
+        return sendJson(res, 500, { status: 'error', message: 'تعذر الاتصال بمنصة توسع: ' + err.message });
+      }
     }
 
     // 18. لوحة الإدارة: تحديث روابط التحميل والإعدادات العامة (محمي للمدير العام)
