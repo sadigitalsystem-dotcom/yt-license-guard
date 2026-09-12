@@ -8,10 +8,38 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PORT = process.env.PORT || 3000;
-const DB_PATH = path.join(__dirname, 'licenses.json');
+
+// محرك مسار التخزين الدائم (Enterprise Persistent Storage Engine)
+// يدعم الأقراص الدائمة في Render (/var/data) أو Docker أو التخزين المحلي المحمي
+const DATA_DIR = (process.env.DATA_DIR || process.env.PERSISTENT_DATA_PATH || __dirname).trim();
+if (!fs.existsSync(DATA_DIR)) {
+  try {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    console.log(`📁 تم إنشاء مجلد البيانات الدائمة بنجاح: ${DATA_DIR}`);
+  } catch (err) {
+    console.error('⚠️ تعذر إنشاء مجلد البيانات المخصص، الاعتماد على المجلد الحالي:', err.message);
+  }
+}
+
+const DB_PATH = path.join(DATA_DIR, 'licenses.json');
 const DASHBOARD_PATH = path.join(__dirname, 'dashboard.html');
 const LOGIN_PATH = path.join(__dirname, 'login.html');
 const APP_PATH = path.join(__dirname, 'app.html');
+
+// النسخ الأولي التلقائي للقالب إذا كان المسار مخصصاً وجديداً تماماً
+if (DATA_DIR !== __dirname && !fs.existsSync(DB_PATH)) {
+  const localSeed = path.join(__dirname, 'licenses.json');
+  const templateSeed = path.join(__dirname, 'licenses.template.json');
+  const seedSource = fs.existsSync(localSeed) ? localSeed : (fs.existsSync(templateSeed) ? templateSeed : null);
+  if (seedSource) {
+    try {
+      fs.copyFileSync(seedSource, DB_PATH);
+      console.log(`📦 تم نقل وتثبيت قاعدة البيانات المبدئية إلى القرص الدائم من: ${seedSource}`);
+    } catch (sErr) {
+      console.error('⚠️ تعذر نسخ ملف البذور المبدئي:', sErr.message);
+    }
+  }
+}
 
 // وظيفة تحديد نوع الجهاز بدقة من الـ User-Agent ومعرف الجهاز
 function parseDeviceType(ua = '', devId = '', explicitType = '') {
@@ -42,20 +70,118 @@ function parseDeviceType(ua = '', devId = '', explicitType = '') {
 class LicenseDB {
   constructor(filepath) {
     this.filepath = filepath;
+    this.dir = path.dirname(filepath);
+    this.backupDir = path.join(this.dir, 'backups');
+    if (!fs.existsSync(this.backupDir)) {
+      try { fs.mkdirSync(this.backupDir, { recursive: true }); } catch (_) {}
+    }
     this.data = { licenses: [], admin: null, settings: null, employees: [], family_groups: [] };
     this.load();
   }
 
-  load() {
+  createPeriodicSnapshot() {
     try {
-      if (fs.existsSync(this.filepath)) {
-        const raw = fs.readFileSync(this.filepath, 'utf8');
-        this.data = JSON.parse(raw);
-      } else {
-        this.save();
+      const now = new Date();
+      const hourKey = now.toISOString().slice(0, 13);
+      const snapName = `snapshot-${hourKey.replace(/[:]/g, '-')}.json`;
+      const snapPath = path.join(this.backupDir, snapName);
+      
+      // حفظ آخر حالة موثوقة لهذه الساعة
+      fs.writeFileSync(snapPath, JSON.stringify(this.data, null, 2), 'utf8');
+
+      // الاحتفاظ بآخر 15 لقطة دورية وحذف الأقدم تلقائياً
+      const snaps = fs.readdirSync(this.backupDir)
+        .filter(f => f.startsWith('snapshot-') && f.endsWith('.json'))
+        .sort();
+      if (snaps.length > 15) {
+        snaps.slice(0, snaps.length - 15).forEach(f => {
+          try { fs.unlinkSync(path.join(this.backupDir, f)); } catch (_) {}
+        });
       }
     } catch (e) {
-      console.error('Error loading DB, creating fresh state:', e);
+      console.warn('⚠️ تعذر إنشاء اللقطة الدورية:', e.message);
+    }
+  }
+
+  load() {
+    let loaded = false;
+
+    // 1. محاولة القراءة من الملف الأساسي
+    if (fs.existsSync(this.filepath)) {
+      try {
+        const raw = fs.readFileSync(this.filepath, 'utf8');
+        if (raw && raw.trim()) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === 'object') {
+            this.data = parsed;
+            loaded = true;
+          }
+        }
+      } catch (e) {
+        console.error('🚨 تحذير حرج: ملف قاعدة البيانات تالف، حفظ نسخة للفحص والبدء في الاستعادة التلقائية...', e.message);
+        try {
+          fs.copyFileSync(this.filepath, `${this.filepath}.corrupt.${Date.now()}`);
+        } catch (_) {}
+      }
+    }
+
+    // 2. الاستعادة التلقائية للطوارئ (Disaster Recovery) من النسخ الاحتياطية
+    if (!loaded) {
+      const candidates = [
+        `${this.filepath}.backup.json`,
+        `${this.filepath}.backup-prev.json`
+      ];
+
+      // إضافة أحدث اللقطات من مجلد backups
+      try {
+        if (fs.existsSync(this.backupDir)) {
+          const snaps = fs.readdirSync(this.backupDir)
+            .filter(f => f.endsWith('.json'))
+            .sort()
+            .reverse()
+            .map(f => path.join(this.backupDir, f));
+          candidates.push(...snaps);
+        }
+      } catch (_) {}
+
+      for (const candidate of candidates) {
+        if (fs.existsSync(candidate)) {
+          try {
+            const raw = fs.readFileSync(candidate, 'utf8');
+            const parsed = JSON.parse(raw);
+            if (parsed && typeof parsed === 'object') {
+              this.data = parsed;
+              console.log(`✅ نجحت عملية الاستعادة الذاتية للبيانات من النسخة: ${path.basename(candidate)}`);
+              this.save();
+              loaded = true;
+              break;
+            }
+          } catch (_) {}
+        }
+      }
+
+      // 3. التحقق من القالب الافتراضي إذا لم يتوفر أي ملف
+      if (!loaded) {
+        const templatePath = path.join(__dirname, 'licenses.template.json');
+        const fallbackPath = path.join(__dirname, 'licenses.json');
+        const seedPath = (fs.existsSync(fallbackPath) && fallbackPath !== this.filepath) 
+          ? fallbackPath 
+          : ((fs.existsSync(templatePath) && templatePath !== this.filepath) ? templatePath : null);
+
+        if (seedPath) {
+          try {
+            const raw = fs.readFileSync(seedPath, 'utf8');
+            this.data = JSON.parse(raw);
+            console.log(`🌱 تم تهيئة قاعدة البيانات من القالب: ${seedPath}`);
+            this.save();
+            loaded = true;
+          } catch (_) {}
+        }
+      }
+    }
+
+    if (!loaded) {
+      console.warn('ℹ️ بدء حالة قاعدة بيانات جديدة ونظيفة');
       this.data = { licenses: [], admin: null, settings: null, employees: [], family_groups: [] };
       this.save();
     }
@@ -155,9 +281,26 @@ class LicenseDB {
 
   save() {
     try {
-      const tempPath = `${this.filepath}.tmp.${Date.now()}`;
+      const backupPath = `${this.filepath}.backup.json`;
+      const prevBackupPath = `${this.filepath}.backup-prev.json`;
+
+      // 1. تدوير النسخة الاحتياطية السابقة
+      if (fs.existsSync(backupPath)) {
+        try { fs.copyFileSync(backupPath, prevBackupPath); } catch (_) {}
+      }
+
+      // 2. كتابة ذرية آمنة (Atomic Write) عبر ملف مؤقت
+      const tempPath = `${this.filepath}.tmp.${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
       fs.writeFileSync(tempPath, JSON.stringify(this.data, null, 2), 'utf8');
       fs.renameSync(tempPath, this.filepath);
+
+      // 3. مزامنة النسخة الاحتياطية الفورية بعد التأكد من نجاح الكتابة
+      try {
+        fs.copyFileSync(this.filepath, backupPath);
+      } catch (_) {}
+
+      // 4. حفظ اللقطة الدورية
+      this.createPeriodicSnapshot();
     } catch (err) {
       console.error('Failed to write licenses file atomically, fallback direct:', err);
       try {
@@ -466,6 +609,123 @@ class LicenseDB {
 
     this.save();
     return { affectedCount: affected.length, skippedCount: skippedLocked.length, skippedLocked };
+  }
+
+  smartMerge(backupData) {
+    if (!backupData || typeof backupData !== 'object') {
+      throw new Error('بيانات النسخة الاحتياطية غير صالحة');
+    }
+
+    // حفظ لقطة أمان فورية قبل الاستعادة
+    try {
+      const preRestorePath = path.join(this.backupDir, `snapshot-pre-restore-${Date.now()}.json`);
+      fs.writeFileSync(preRestorePath, JSON.stringify(this.data, null, 2), 'utf8');
+      console.log(`🛡️ تم إنشاء نسخة أمان قبل الدمج: ${preRestorePath}`);
+    } catch (_) {}
+
+    const currentLicenses = Array.isArray(this.data.licenses) ? this.data.licenses : [];
+    const backupLicenses = Array.isArray(backupData.licenses) ? backupData.licenses : [];
+
+    const currentEmployees = Array.isArray(this.data.employees) ? this.data.employees : [];
+    const backupEmployees = Array.isArray(backupData.employees) ? backupData.employees : [];
+
+    let mergedLicensesCount = 0;
+    let mergedEmployeesCount = 0;
+
+    // 1. الدمج الذكي للموظفين (Employees Smart Merge)
+    backupEmployees.forEach(bEmp => {
+      const existingIdx = currentEmployees.findIndex(e => e.id === bEmp.id || (bEmp.email && e.email && e.email.toLowerCase() === bEmp.email.toLowerCase()));
+      if (existingIdx === -1) {
+        currentEmployees.push(bEmp);
+        mergedEmployeesCount++;
+      } else {
+        const curr = currentEmployees[existingIdx];
+        if (!curr.name && bEmp.name) curr.name = bEmp.name;
+        if (!curr.phone && bEmp.phone) curr.phone = bEmp.phone;
+        if (!curr.password && bEmp.password) curr.password = bEmp.password;
+        if (!curr.role && bEmp.role) curr.role = bEmp.role;
+        if (!curr.permissions && bEmp.permissions) curr.permissions = bEmp.permissions;
+        if (curr.is_active === undefined && bEmp.is_active !== undefined) curr.is_active = bEmp.is_active;
+      }
+    });
+    this.data.employees = currentEmployees;
+
+    // 2. الدمج الذكي للتراخيص (Licenses Smart Merge)
+    backupLicenses.forEach(bLic => {
+      const existingIdx = currentLicenses.findIndex(l => (l.id && bLic.id && l.id === bLic.id) || (l.serial_key && bLic.serial_key && l.serial_key.toUpperCase() === bLic.serial_key.toUpperCase()));
+      if (existingIdx === -1) {
+        currentLicenses.push(bLic);
+        mergedLicensesCount++;
+      } else {
+        const curr = currentLicenses[existingIdx];
+        // الحفاظ على حالة التفعيل وتاريخ الانتهاء الأحدث
+        if (!curr.activated_at && bLic.activated_at) {
+          curr.activated_at = bLic.activated_at;
+          curr.expiry_date = bLic.expiry_date;
+        }
+        // دمج الأجهزة المسجلة
+        if (Array.isArray(bLic.device_ids)) {
+          if (!Array.isArray(curr.device_ids)) curr.device_ids = [];
+          bLic.device_ids.forEach(did => {
+            if (!curr.device_ids.includes(did)) curr.device_ids.push(did);
+          });
+        }
+        if (Array.isArray(bLic.devices_info)) {
+          if (!Array.isArray(curr.devices_info)) curr.devices_info = [];
+          bLic.devices_info.forEach(dinfo => {
+            if (!curr.devices_info.some(x => x.id === dinfo.id)) {
+              curr.devices_info.push(dinfo);
+            }
+          });
+        }
+        // دمج سجل التدقيق (Audit Log)
+        if (Array.isArray(bLic.audit_log)) {
+          if (!Array.isArray(curr.audit_log)) curr.audit_log = [];
+          bLic.audit_log.forEach(entry => {
+            const exists = curr.audit_log.some(x => x.action === entry.action && x.at === entry.at);
+            if (!exists) curr.audit_log.push(entry);
+          });
+          curr.audit_log.sort((a, b) => new Date(a.at || 0) - new Date(b.at || 0));
+        }
+        // دمج بيانات قوائم التشغيل والاشتراكات السحابية
+        if (bLic.user_data && (!curr.user_data || Object.keys(curr.user_data).length === 0)) {
+          curr.user_data = bLic.user_data;
+        }
+      }
+    });
+    this.data.licenses = currentLicenses;
+
+    // 3. دمج المجموعات العائلية
+    if (Array.isArray(backupData.family_groups)) {
+      if (!Array.isArray(this.data.family_groups)) this.data.family_groups = [];
+      backupData.family_groups.forEach(bFam => {
+        const fIdx = this.data.family_groups.findIndex(f => f.id === bFam.id);
+        if (fIdx === -1) {
+          this.data.family_groups.push(bFam);
+        }
+      });
+    }
+
+    // 4. دمج المجموعات المخصصة
+    if (backupData.settings && Array.isArray(backupData.settings.custom_groups)) {
+      if (!this.data.settings) this.data.settings = {};
+      if (!Array.isArray(this.data.settings.custom_groups)) this.data.settings.custom_groups = ['عام', 'VIP', 'عائلي'];
+      backupData.settings.custom_groups.forEach(cg => {
+        if (!this.data.settings.custom_groups.includes(cg)) {
+          this.data.settings.custom_groups.push(cg);
+        }
+      });
+    }
+
+    // حفظ فوري للبيانات بعد الدمج الكامل
+    this.save();
+
+    return {
+      mergedLicensesCount,
+      mergedEmployeesCount,
+      totalLicenses: this.data.licenses.length,
+      totalEmployees: this.data.employees.length
+    };
   }
 }
 
@@ -2348,8 +2608,127 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
-    
+    // ========================================================
+    // 24. API تصدير نسخة احتياطية فورية شاملة (Export Backup)
+    // ========================================================
+    if (req.method === 'GET' && pathname === '/api/admin/export-backup') {
+      if (!isMasterAdmin(req)) {
+        return sendJson(res, 403, { status: 'error', message: 'خاص بالمدير العام فقط' });
+      }
 
+      const session = getSession(req);
+      const now = new Date();
+      const dateStr = now.toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      const filename = `youtube_plus_backup_${dateStr}.json`;
+
+      const exportPayload = {
+        meta: {
+          system: 'YouTube PLUS Enterprise Data Engine',
+          version: '2.0',
+          exported_at: now.toISOString(),
+          exported_by: session ? (session.name || session.email) : 'المدير العام',
+          is_persistent_storage: DATA_DIR !== __dirname,
+          storage_dir: DATA_DIR
+        },
+        stats: {
+          total_licenses: (db.data.licenses || []).length,
+          total_employees: (db.data.employees || []).length,
+          total_family_groups: (db.data.family_groups || []).length
+        },
+        data: db.data
+      };
+
+      const jsonStr = JSON.stringify(exportPayload, null, 2);
+      res.writeHead(200, {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Content-Disposition': `attachment; filename="${filename}"`,
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Access-Control-Allow-Origin': '*'
+      });
+      return res.end(jsonStr);
+    }
+
+    // ========================================================
+    // 25. API استعادة ودمج ذكي للنسخة الاحتياطية (Import & Smart Merge)
+    // ========================================================
+    if (req.method === 'POST' && pathname === '/api/admin/import-backup') {
+      if (!isMasterAdmin(req)) {
+        return sendJson(res, 403, { status: 'error', message: 'خاص بالمدير العام فقط' });
+      }
+
+      const body = await parseJsonBody(req);
+      if (!body) {
+        return sendJson(res, 400, { status: 'error', message: 'لم يتم إرسال ملف أو بيانات صالحة' });
+      }
+
+      // دعم الملف سواء كان مغلفاً في data أو ملف JSON خام مباشر
+      const backupData = body.data || body;
+      if (!backupData || (typeof backupData !== 'object')) {
+        return sendJson(res, 400, { status: 'error', message: 'صيغة ملف النسخة الاحتياطية غير صالحة' });
+      }
+
+      if (!backupData.licenses && !backupData.employees && !backupData.admin && !backupData.settings) {
+        return sendJson(res, 400, { status: 'error', message: 'الملف لا يحتوي على بيانات يوتيوب بلس صالحة' });
+      }
+
+      try {
+        const result = db.smartMerge(backupData);
+        return sendJson(res, 200, {
+          status: 'success',
+          message: 'تمت استعادة ودمج البيانات بنجاح تام وبدون فقدان أي سجل!',
+          details: result
+        });
+      } catch (mergeErr) {
+        console.error('Merge error:', mergeErr);
+        return sendJson(res, 500, { status: 'error', message: `خطأ أثناء استعادة البيانات: ${mergeErr.message}` });
+      }
+    }
+
+    // ========================================================
+    // 26. API فحص حالة واستقرار محرك التخزين (Storage Engine Status)
+    // ========================================================
+    if (req.method === 'GET' && pathname === '/api/admin/storage-status') {
+      if (!isAuthenticated(req)) {
+        return sendJson(res, 401, { status: 'error', message: 'غير مصرح' });
+      }
+
+      let fileSizeKb = 0;
+      try {
+        if (fs.existsSync(db.filepath)) {
+          fileSizeKb = Math.round((fs.statSync(db.filepath).size / 1024) * 10) / 10;
+        }
+      } catch (_) {}
+
+      let snapshotsCount = 0;
+      let latestSnapshotTime = null;
+      try {
+        if (fs.existsSync(db.backupDir)) {
+          const snaps = fs.readdirSync(db.backupDir).filter(f => f.endsWith('.json')).sort().reverse();
+          snapshotsCount = snaps.length;
+          if (snaps.length > 0) {
+            const stat = fs.statSync(path.join(db.backupDir, snaps[0]));
+            latestSnapshotTime = stat.mtime.toISOString();
+          }
+        }
+      } catch (_) {}
+
+      const isPersistent = DATA_DIR !== __dirname || Boolean(process.env.DATA_DIR || process.env.PERSISTENT_DATA_PATH);
+
+      return sendJson(res, 200, {
+        status: 'success',
+        storage_type: isPersistent ? 'قرص تخزين دائم مخصص (Persistent Disk)' : 'تخزين محلي قياسي محمي بنسخ ذكي (Protected Standard)',
+        is_persistent: isPersistent,
+        data_dir: DATA_DIR,
+        db_path: DB_PATH,
+        file_size_kb: fileSizeKb,
+        snapshots_count: snapshotsCount,
+        latest_snapshot_at: latestSnapshotTime,
+        has_rolling_backup: fs.existsSync(`${db.filepath}.backup.json`),
+        has_prev_backup: fs.existsSync(`${db.filepath}.backup-prev.json`),
+        total_licenses: (db.data.licenses || []).length,
+        total_employees: (db.data.employees || []).length
+      });
+    }
 
     // 404
     sendJson(res, 404, { status: 'error', message: 'Endpoint not found' });

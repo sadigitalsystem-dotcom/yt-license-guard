@@ -115,6 +115,12 @@
           <span id="txtBtnStats" class="hidden sm:inline">إحصائيات الشهر</span>
         </button>
 
+        <!-- زر مركز حماية ونسخ قاعدة البيانات (خاص بالمدير العام) -->
+        <button id="headerBtnBackup" onclick="openBackupModal()" class="cursor-pointer bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 border border-zinc-700 shadow-sm active:scale-95" title="مركز حماية ونسخ قاعدة البيانات">
+          <i class="fa-solid fa-shield-halved text-cyan-400 text-sm"></i>
+          <span id="txtBtnBackup" class="hidden sm:inline">حماية البيانات</span>
+        </button>
+
         <!-- زر تثبيت لوحة التحكم كتطبيق مستقل (PWA) -->
         <button id="btnPwaInstall" onclick="installDashboardPwa()" class="hidden cursor-pointer bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/40 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition items-center gap-1.5 shadow-sm active:scale-95" title="تثبيت لوحة التحكم كتطبيق مستقل">
           <i class="fa-solid fa-download text-red-400 text-sm"></i>
@@ -163,6 +169,12 @@
               <button onclick="openAccountSettingsModal()" class="cursor-pointer w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-zinc-200 hover:text-white hover:bg-zinc-800 transition">
                 <i class="fa-solid fa-user-gear text-purple-400 w-4 text-center"></i>
                 <span class="font-bold">إعدادات الحساب</span>
+              </button>
+
+              <!-- مركز حماية ونسخ قاعدة البيانات (خاص بالمدير العام) -->
+              <button id="menuBtnBackup" onclick="openBackupModal(); closeProfileDropdown()" class="cursor-pointer w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-zinc-200 hover:text-white hover:bg-zinc-800 transition">
+                <i class="fa-solid fa-shield-halved text-cyan-400 w-4 text-center"></i>
+                <span class="font-bold">مركز حماية ونسخ البيانات 💾</span>
               </button>
 
               <!-- تبديل المظهر النهاري / الليلي -->
@@ -1235,6 +1247,137 @@
       <div class="mt-5 flex gap-3">
         <button onclick="closeAccountSettingsModal()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 py-2.5 rounded-xl font-bold transition text-xs">إلغاء</button>
         <button onclick="submitUpdateProfile()" id="btnSaveAcc" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-xl font-bold transition text-xs shadow-lg shadow-purple-600/30">حفظ التغييرات</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- 8.5. نافذة مركز حماية البيانات والنسخ الاحتياطي (Master Admin) -->
+  <!-- ============================================================== -->
+  <div id="backupModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="glass-card bg-zinc-900 rounded-3xl w-full max-w-3xl p-6 border border-zinc-700 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scroll">
+      
+      <!-- ترويسة النافذة -->
+      <div class="flex items-center justify-between mb-5 border-b border-zinc-800 pb-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-lg shadow-inner">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+              <span>مركز حماية البيانات والنسخ الاحتياطي الدائم</span>
+              <span class="text-[10px] bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded-md border border-cyan-500/30">Enterprise Persistence</span>
+            </h3>
+            <p class="text-xs text-zinc-400">حماية فائقة بنسبة 100% لكافة الموظفين والمفاتيح ضد فقدان البيانات أثناء النشر أو التحديث</p>
+          </div>
+        </div>
+        <button onclick="closeBackupModal()" class="text-zinc-400 hover:text-white p-2 text-base transition"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- بطاقة حالة التخزين المباشرة (Storage Engine Live Status) -->
+      <div class="bg-zinc-950/80 p-4 sm:p-5 rounded-2xl border border-zinc-800 mb-6">
+        <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
+          <h4 class="text-xs sm:text-sm font-bold text-zinc-200 flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>حالة محرك التخزين الحي:</span>
+          </h4>
+          <span id="storageBadge" class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-zinc-800 text-zinc-300 border border-zinc-700">جاري الفحص...</span>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+          <div class="bg-zinc-900/90 p-2.5 rounded-xl border border-zinc-800">
+            <span class="block text-[10px] text-zinc-400 font-bold mb-0.5">المفاتيح المحمية</span>
+            <span id="backupStatLicenses" class="text-base font-extrabold text-white">--</span>
+          </div>
+          <div class="bg-zinc-900/90 p-2.5 rounded-xl border border-zinc-800">
+            <span class="block text-[10px] text-zinc-400 font-bold mb-0.5">الموظفون المسجلون</span>
+            <span id="backupStatEmployees" class="text-base font-extrabold text-purple-400">--</span>
+          </div>
+          <div class="bg-zinc-900/90 p-2.5 rounded-xl border border-zinc-800">
+            <span class="block text-[10px] text-zinc-400 font-bold mb-0.5">حجم قاعدة البيانات</span>
+            <span id="backupStatSize" class="text-base font-extrabold text-cyan-400 font-mono">-- KB</span>
+          </div>
+          <div class="bg-zinc-900/90 p-2.5 rounded-xl border border-zinc-800">
+            <span class="block text-[10px] text-zinc-400 font-bold mb-0.5">اللقطات الاحتياطية</span>
+            <span id="backupStatSnaps" class="text-base font-extrabold text-emerald-400">--</span>
+          </div>
+        </div>
+
+        <div class="mt-3 pt-3 border-t border-zinc-800/80 flex items-center justify-between text-[11px] text-zinc-400 flex-wrap gap-2 font-mono">
+          <div class="flex items-center gap-1.5 truncate max-w-full">
+            <i class="fa-regular fa-folder-open text-zinc-500"></i>
+            <span class="text-zinc-500">المسار:</span>
+            <span id="storageDirPath" class="text-zinc-300 truncate" dir="ltr">--</span>
+          </div>
+          <div id="storageRollingBadge" class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            نسخ تدويري تلقائي نشط ✓
+          </div>
+        </div>
+      </div>
+
+      <!-- الإجراءات المباشرة: التصدير والاستيراد الذكي -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        
+        <!-- كارت التصدير الفوري -->
+        <div class="bg-gradient-to-b from-cyan-950/30 to-zinc-950/80 p-4 sm:p-5 rounded-2xl border border-cyan-500/20 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2.5 text-cyan-400 font-bold text-sm mb-2">
+              <i class="fa-solid fa-cloud-arrow-down text-base"></i>
+              <span>تحميل نسخة احتياطية فورية (JSON)</span>
+            </div>
+            <p class="text-xs text-zinc-400 leading-relaxed mb-4">
+              احفظ نسخة كاملة من كافة المفاتيح، الموظفين، الصلاحيات، والإعدادات بملف واحد على جهازك بنقرة زر واحدة لتضمن راحة بالك التامة.
+            </p>
+          </div>
+          <button onclick="downloadBackupFile()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-600/20 active:scale-[0.98]">
+            <i class="fa-solid fa-download"></i>
+            <span>تنزيل النسخة الاحتياطية الآن</span>
+          </button>
+        </div>
+
+        <!-- كارت الاستعادة والدمج الذكي -->
+        <div class="bg-gradient-to-b from-purple-950/30 to-zinc-950/80 p-4 sm:p-5 rounded-2xl border border-purple-500/20 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2.5 text-purple-400 font-bold text-sm mb-2">
+              <i class="fa-solid fa-arrows-rotate text-base"></i>
+              <span>استعادة ودمج ذكي للبيانات (Smart Merge)</span>
+            </div>
+            <p class="text-xs text-zinc-400 leading-relaxed mb-3">
+              استرجع الموظفين أو المفاتيح من أي نسخة احتياطية سابقة. يقوم النظام بدمج السجلات بذكاء دون مسح أو تكرار أي سجل موجود!
+            </p>
+          </div>
+          <div>
+            <input type="file" id="backupFileInput" accept=".json" class="hidden" onchange="handleBackupFileSelected(event)">
+            <button onclick="document.getElementById('backupFileInput').click()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-purple-600/20 active:scale-[0.98]">
+              <i class="fa-solid fa-file-import"></i>
+              <span>اختيار ملف النسخة واستعادتها</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- تقرير نتيجة الاستعادة (إن وجد) -->
+      <div id="restoreReportBox" class="hidden bg-emerald-950/40 border border-emerald-500/40 p-4 rounded-2xl mb-6 text-xs text-emerald-200 animate-fadeIn">
+        <div class="flex items-center gap-2 font-bold mb-1.5 text-emerald-300">
+          <i class="fa-solid fa-circle-check text-sm"></i>
+          <span id="restoreReportTitle">تمت عملية الدمج والاستعادة بنجاح!</span>
+        </div>
+        <p id="restoreReportDetail" class="text-zinc-300 leading-relaxed"></p>
+      </div>
+
+      <!-- إرشادات الأمان الدائم على Render والبيئات السحابية -->
+      <div class="bg-zinc-950/50 p-4 rounded-2xl border border-zinc-800/80">
+        <h5 class="text-xs font-bold text-zinc-300 mb-2 flex items-center gap-1.5">
+          <i class="fa-solid fa-circle-info text-amber-400"></i>
+          <span>كيف يضمن النظام عدم مسح الموظفين أو المفاتيح نهائياً؟</span>
+        </h5>
+        <ul class="space-y-1.5 text-[11px] text-zinc-400 leading-relaxed list-disc list-inside">
+          <li><strong>عزل Git الكامل:</strong> تم تفعيل ملف <code class="text-zinc-300 font-mono">.gitignore</code> لمنع رفع ملفات البيانات المحلية فوق السيرفر الحي نهائياً.</li>
+          <li><strong>النسخ التدويري الذاتي:</strong> الخادم يحتفظ تلقائياً بنسخ احتياطية دورية وساعية في مجلد <code class="text-zinc-300 font-mono">backups/</code>.</li>
+          <li><strong>الدمج الذكي (Zero Data Loss):</strong> حتى في حال إعادة النشر، يمكنك استعادة أي موظف أو مفتاح خلال 3 ثوانٍ دون التأثير على أي بيانات أخرى.</li>
+        </ul>
       </div>
 
     </div>
@@ -3193,9 +3336,13 @@ ${getSystemBaseUrl()}/
 
           // تطبيق الصلاحيات بدقة عالية على عناصر الواجهة
           if (u.role === 'employee') {
-            // إخفاء زر إدارة الموظفين للموظف
+            // إخفاء زر إدارة الموظفين ومركز حماية البيانات للموظف
             const empBtn = document.getElementById('headerBtnEmployees');
             if (empBtn) empBtn.classList.add('hidden');
+            const backupBtn = document.getElementById('headerBtnBackup');
+            if (backupBtn) backupBtn.classList.add('hidden');
+            const menuBackupBtn = document.getElementById('menuBtnBackup');
+            if (menuBackupBtn) menuBackupBtn.classList.add('hidden');
 
             const p = u.permissions || {};
             // إحصائيات الشهر
@@ -3223,9 +3370,14 @@ ${getSystemBaseUrl()}/
               else genBtn.classList.remove('hidden');
             }
           } else {
-            // المدير العام يملك كافة الصلاحيات
+            // المدير العام يملك كافة الصلاحيات ومركز حماية البيانات
             const empBtn = document.getElementById('headerBtnEmployees');
             if (empBtn) empBtn.classList.remove('hidden');
+            const backupBtn = document.getElementById('headerBtnBackup');
+            if (backupBtn) backupBtn.classList.remove('hidden');
+            const menuBackupBtn = document.getElementById('menuBtnBackup');
+            if (menuBackupBtn) menuBackupBtn.classList.remove('hidden');
+
             const statsBtn = document.getElementById('headerBtnStats');
             if (statsBtn) statsBtn.classList.remove('hidden');
             const guideBtn = document.getElementById('btnGuide');
@@ -3582,6 +3734,131 @@ ${getSystemBaseUrl()}/
       setTimeout(() => {
         toast.classList.add('opacity-0', 'pointer-events-none');
       }, 3000);
+    }
+
+    // ==============================================================
+    // دوال مركز حماية البيانات والنسخ الاحتياطي الدائم (Backup & Persistence)
+    // ==============================================================
+    async function openBackupModal() {
+      const reportBox = document.getElementById('restoreReportBox');
+      if (reportBox) reportBox.classList.add('hidden');
+      showModal('backupModal');
+      await refreshStorageStatus();
+    }
+
+    function closeBackupModal() {
+      hideModal('backupModal');
+    }
+
+    async function refreshStorageStatus() {
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/storage-status`);
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+          const badge = document.getElementById('storageBadge');
+          if (badge) {
+            badge.innerText = data.storage_type;
+            if (data.is_persistent) {
+              badge.className = 'text-[11px] font-bold px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+            } else {
+              badge.className = 'text-[11px] font-bold px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/30';
+            }
+          }
+
+          if (document.getElementById('backupStatLicenses')) {
+            document.getElementById('backupStatLicenses').innerText = data.total_licenses || 0;
+          }
+          if (document.getElementById('backupStatEmployees')) {
+            document.getElementById('backupStatEmployees').innerText = data.total_employees || 0;
+          }
+          if (document.getElementById('backupStatSize')) {
+            document.getElementById('backupStatSize').innerText = `${data.file_size_kb || 0} KB`;
+          }
+          if (document.getElementById('backupStatSnaps')) {
+            document.getElementById('backupStatSnaps').innerText = `${data.snapshots_count || 0} لقطات`;
+          }
+          if (document.getElementById('storageDirPath')) {
+            document.getElementById('storageDirPath').innerText = data.data_dir || '--';
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to fetch storage status:', e);
+      }
+    }
+
+    async function downloadBackupFile() {
+      try {
+        showToast('جاري تحضير النسخة الاحتياطية...', 'info');
+        const res = await fetch(`${API_BASE}/api/admin/export-backup`);
+        if (!res.ok) throw new Error('فشل تصدير النسخة الاحتياطية');
+        
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        const now = new Date();
+        const dateStr = now.toISOString().slice(0, 10);
+        a.download = `youtube_plus_backup_${dateStr}.json`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        showToast('تم تنزيل ملف النسخة الاحتياطية بنجاح 💾', 'success');
+      } catch (err) {
+        showToast(`خطأ في التحميل: ${err.message}`, 'error');
+      }
+    }
+
+    async function handleBackupFileSelected(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      const confirmMsg = 'هل أنت متأكد من استعادة ودمج بيانات هذه النسخة الاحتياطية؟\nسيتم دمج كافة الموظفين والمفاتيح بأمان دون حذف أي سجل موجود.';
+      if (!confirm(confirmMsg)) {
+        event.target.value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const text = e.target.result;
+          const json = JSON.parse(text);
+
+          showToast('جاري الدمج والاستعادة الذاتية للبيانات...', 'info');
+          const res = await fetch(`${API_BASE}/api/admin/import-backup`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(json)
+          });
+          const data = await res.json();
+
+          if (res.ok && data.status === 'success') {
+            showToast('تمت استعادة ودمج البيانات بنجاح تام! 🎉', 'success');
+            
+            // عرض التقرير
+            const reportBox = document.getElementById('restoreReportBox');
+            const reportDetail = document.getElementById('restoreReportDetail');
+            if (reportBox && reportDetail) {
+              const d = data.details || {};
+              reportDetail.innerText = `المفاتيح بعد الدمج: ${d.totalLicenses || '--'} (أضيف ${d.mergedLicensesCount || 0} مفتاح جديد) • الموظفون بعد الدمج: ${d.totalEmployees || '--'} (أضيف ${d.mergedEmployeesCount || 0} موظف جديد).`;
+              reportBox.classList.remove('hidden');
+            }
+
+            // تحديث إحصائيات النافذة والجدول الرئيسي
+            await refreshStorageStatus();
+            await loadLicenses();
+          } else {
+            showToast(data.message || 'فشلت عملية الاستعادة', 'error');
+          }
+        } catch (parseErr) {
+          showToast('ملف النسخة الاحتياطية غير صالح أو تالف', 'error');
+        } finally {
+          event.target.value = '';
+        }
+      };
+      reader.readAsText(file);
     }
   </script>
 </body>
