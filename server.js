@@ -380,12 +380,16 @@ class LicenseDB {
       permissions: {
         can_generate: permissions?.can_generate !== false,
         can_toggle: permissions?.can_toggle !== false,
+        can_edit: permissions?.can_edit !== false,
         can_reset: permissions?.can_reset !== false,
+        can_extend: permissions?.can_extend !== false,
         can_delete: permissions?.can_delete === true,
+        can_bulk: permissions?.can_bulk === true,
         can_view_all: permissions?.can_view_all !== false,
         can_view_stats: permissions?.can_view_stats !== false,
         can_view_guide: permissions?.can_view_guide !== false,
-        can_manage_groups: permissions?.can_manage_groups === true
+        can_manage_groups: permissions?.can_manage_groups === true,
+        can_import_orders: permissions?.can_import_orders !== false
       }
     };
     this.data.employees.push(emp);
@@ -418,7 +422,51 @@ class LicenseDB {
     return this.data.employees.length < prevLen;
   }
 
-  
+  toggleLock(id, isLocked) {
+    const license = this.data.licenses.find(l => l.id === id);
+    if (!license) throw new Error('الترخيص غير موجود');
+    license.is_locked = !!isLocked;
+    this.save();
+    return license;
+  }
+
+  bulkActions(action, ids, value, user = 'المدير العام', isMaster = false) {
+    if (!Array.isArray(ids) || ids.length === 0) throw new Error('يرجى تحديد مفتاح واحد على الأقل');
+    const affected = [];
+    const skippedLocked = [];
+
+    this.data.licenses.forEach(l => {
+      if (!ids.includes(l.id)) return;
+
+      // حماية المفاتيح المقفلة من تعديلات الموظفين
+      if (l.is_locked && !isMaster) {
+        skippedLocked.push(l.serial_key);
+        return;
+      }
+
+      if (action === 'delete') {
+        affected.push(l.id);
+      } else if (action === 'change_group') {
+        l.group = (value || 'عام').trim();
+        affected.push(l.id);
+      } else if (action === 'toggle_status') {
+        l.is_active = !!value;
+        affected.push(l.id);
+      } else if (action === 'toggle_lock') {
+        if (isMaster) {
+          l.is_locked = !!value;
+          affected.push(l.id);
+        }
+      }
+    });
+
+    if (action === 'delete') {
+      this.data.licenses = this.data.licenses.filter(l => !affected.includes(l.id));
+    }
+
+    this.save();
+    return { affectedCount: affected.length, skippedCount: skippedLocked.length, skippedLocked };
+  }
 }
 
 const db = new LicenseDB(DB_PATH);
@@ -1342,6 +1390,25 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    // 8-ب. مسار PWA Manifest للوحة التحكم
+    if (req.method === 'GET' && pathname === '/admin-manifest.json') {
+      const adminManifest = {
+        name: "لوحة تحكم YouTube PLUS+",
+        short_name: "إدارة PLUS+",
+        start_url: "/",
+        display: "standalone",
+        background_color: "#0d1117",
+        theme_color: "#e50914",
+        icons: [
+          { src: "/app_icon.png", sizes: "192x192", type: "image/png" },
+          { src: "/app_icon.png", sizes: "512x512", type: "image/png" }
+        ]
+      };
+      res.writeHead(200, { 'Content-Type': 'application/manifest+json; charset=utf-8' });
+      res.end(JSON.stringify(adminManifest));
+      return;
+    }
+
     // 9. مسار أيقونة التطبيق
     if (req.method === 'GET' && pathname === '/app_icon.png') {
       const iconPath = path.join(__dirname, 'app_icon.png');
@@ -1726,6 +1793,7 @@ const server = http.createServer(async (req, res) => {
           max_devices: l.max_devices || 1,
           group: l.group || 'عام',
           whatsapp: l.whatsapp || '',
+          is_locked: !!l.is_locked,
           status_text: statusText
         };
       });
@@ -1777,6 +1845,15 @@ const server = http.createServer(async (req, res) => {
       const license = db.getAll().find(l => l.id === body.id);
       if (!license) return sendJson(res, 404, { status: 'error', message: 'غير موجود' });
 
+      if (session.role === 'employee') {
+        if (session.permissions?.can_edit === false) {
+          return sendJson(res, 403, { status: 'error', message: 'ليس لديك صلاحية تعديل بيانات المفاتيح' });
+        }
+        if (license.is_locked) {
+          return sendJson(res, 403, { status: 'error', message: 'هذا المفتاح مقفل ومحمي بواسطة المدير العام، لا يمكن للموظفين تعديله' });
+        }
+      }
+
       if (body.note !== undefined) license.note = (body.note || '').trim();
       if (body.order_id !== undefined) license.order_id = (body.order_id || '').toString().trim().replace(/^#/, '');
       if (body.whatsapp !== undefined) license.whatsapp = (body.whatsapp || '').trim();
@@ -1796,6 +1873,58 @@ const server = http.createServer(async (req, res) => {
 
       db.update(license);
       return sendJson(res, 200, { status: 'success', message: 'تم تحديث بيانات المفتاح بنجاح', license });
+    }
+
+    // 16.1 لوحة الإدارة: قفل/إلغاء قفل المفتاح للمدير العام فقط (محمي)
+    if (req.method === 'POST' && pathname === '/api/admin/toggle-lock') {
+      if (!isMasterAdmin(req)) {
+        return sendJson(res, 403, { status: 'error', message: 'قفل المفاتيح وحمايتها خاص بالمدير العام فقط' });
+      }
+      const body = await parseJsonBody(req);
+      try {
+        const license = db.toggleLock(body.id, body.is_locked);
+        return sendJson(res, 200, { 
+          status: 'success', 
+          message: license.is_locked ? 'تم قفل المفتاح وحمايته من التعديل والحذف بنجاح' : 'تم إلغاء قفل المفتاح بنجاح', 
+          is_locked: license.is_locked 
+        });
+      } catch (err) {
+        return sendJson(res, 400, { status: 'error', message: err.message });
+      }
+    }
+
+    // 16.2 لوحة الإدارة: العمليات الجماعية على المفاتيح (Bulk Actions)
+    if (req.method === 'POST' && pathname === '/api/admin/bulk-actions') {
+      const session = getSession(req);
+      if (!session) {
+        return sendJson(res, 401, { status: 'error', message: 'غير مصرح، يرجى تسجيل الدخول' });
+      }
+      const body = await parseJsonBody(req);
+      const { action, ids, value } = body;
+      const isMaster = isMasterAdmin(req);
+
+      if (session.role === 'employee') {
+        if (session.permissions?.can_bulk === false) {
+          return sendJson(res, 403, { status: 'error', message: 'ليس لديك صلاحية تنفيذ العمليات الجماعية' });
+        }
+        if (action === 'delete' && session.permissions?.can_delete !== true) {
+          return sendJson(res, 403, { status: 'error', message: 'ليس لديك صلاحية حذف التراخيص' });
+        }
+        if (action === 'toggle_lock') {
+          return sendJson(res, 403, { status: 'error', message: 'قفل المفاتيح متاح للمدير العام فقط' });
+        }
+      }
+
+      try {
+        const result = db.bulkActions(action, ids, value, session.name || 'المدير العام', isMaster);
+        return sendJson(res, 200, {
+          status: 'success',
+          message: `تم تنفيذ العملية بنجاح على ${result.affectedCount} مفتاح${result.skippedCount > 0 ? ` (تم تخطي ${result.skippedCount} مفتاح مقفل من المدير العام)` : ''}`,
+          result
+        });
+      } catch (err) {
+        return sendJson(res, 400, { status: 'error', message: err.message });
+      }
     }
 
     // 17. لوحة الإدارة: إضافة مجموعة جديدة مخصصة (محمي)
@@ -1846,6 +1975,18 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 401, { status: 'error', message: 'غير مصرح، يرجى تسجيل الدخول' });
       }
       const body = await parseJsonBody(req);
+      const license = db.getAll().find(l => l.id === body.id);
+      if (!license) return sendJson(res, 404, { status: 'error', message: 'غير موجود' });
+
+      if (session.role === 'employee') {
+        if (session.permissions?.can_extend === false) {
+          return sendJson(res, 403, { status: 'error', message: 'ليس لديك صلاحية تمديد صلاحية الاشتراكات' });
+        }
+        if (license.is_locked) {
+          return sendJson(res, 403, { status: 'error', message: 'هذا المفتاح مقفل ومحمي بواسطة المدير العام، لا يمكن للموظفين تعديله' });
+        }
+      }
+
       try {
         const updatedLicense = db.extendLicense(body.id, body.add_days, session.name || 'المدير العام');
         return sendJson(res, 200, { status: 'success', message: `تم تمديد الاشتراك بنجاح بمقدار ${body.add_days} يوم إضافي`, license: updatedLicense });
@@ -1860,39 +2001,64 @@ const server = http.createServer(async (req, res) => {
       if (!session) {
         return sendJson(res, 401, { status: 'error', message: 'غير مصرح، يرجى تسجيل الدخول' });
       }
+      if (session.role === 'employee' && session.permissions?.can_import_orders === false) {
+        return sendJson(res, 403, { status: 'error', message: 'ليس لديك صلاحية استيراد الطلبات' });
+      }
       const body = await parseJsonBody(req);
       const orderId = (body.order_id || '').toString().trim().replace(/^#/, '');
       if (!orderId) {
         return sendJson(res, 400, { status: 'error', message: 'رقم الطلب مطلوب' });
       }
 
-      const twsaaToken = process.env.TWSAA_API_KEY || process.env.TWSAA_TOKEN || '';
-      if (!twsaaToken) {
+      const settings = db.getSettings();
+      const token = (body.token || settings.twsaa_api_key || process.env.TWSAA_API_KEY || process.env.TWSAA_TOKEN || '').trim();
+
+      if (body.save_token && body.token) {
+        settings.twsaa_api_key = body.token.trim();
+        db.save();
+      }
+
+      if (!token) {
         return sendJson(res, 200, {
-          status: 'info',
-          message: 'تم تجهيز مسار استيراد طلبات منصة توسع (twsaa.com) بنجاح. للاستعلام الآلي المباشر، يمكن تزويدنا برمز الـ API الخاص بمتجركم من لوحة تحكم منصة توسع.',
-          order_id: orderId,
-          needs_token: true
+          status: 'needs_token',
+          message: 'يرجى إدخال رمز الـ API Token الخاص بمتجرك في منصة توسع twsaa.com ليتم الربط واستيراد الطلب آلياً',
+          order_id: orderId
         });
       }
 
       try {
-        const twsaaRes = await fetch(`https://api.twsaa.com/v1/orders/${orderId}`, {
-          headers: { 'Authorization': `Bearer ${twsaaToken}`, 'Accept': 'application/json' }
+        const twsaaRes = await fetch(`https://twsaa.com/api/orders/${orderId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'User-Agent': 'Mozilla/5.0'
+          }
         });
+
+        if (twsaaRes.status === 401 || twsaaRes.status === 403) {
+          return sendJson(res, 401, {
+            status: 'invalid_token',
+            message: 'رمز API الخاص بمنصة توسع غير صالح أو منتهي الصلاحية. يرجى تجديد الرمز من لوحة تحكم متجر توسع.',
+            order_id: orderId
+          });
+        }
+
         if (twsaaRes.ok) {
           const orderData = await twsaaRes.json();
+          const data = orderData.data || orderData.order || orderData;
+          const customer = data.customer || data.shipping_address || {};
           return sendJson(res, 200, {
             status: 'success',
             order: {
-              name: orderData.customer?.name || orderData.shipping_address?.name || '',
-              email: orderData.customer?.email || '',
-              phone: orderData.customer?.phone || orderData.shipping_address?.phone || '',
-              note: `طلب #${orderId} - ${orderData.items?.[0]?.name || ''}`
+              name: customer.name || customer.full_name || '',
+              email: customer.email || '',
+              phone: customer.mobile || customer.phone || '',
+              note: `طلب #${orderId}${data.items && data.items[0] ? ` - ${data.items[0].name || ''}` : ''}`
             }
           });
         } else {
-          return sendJson(res, 404, { status: 'error', message: `لم يتم العثور على طلب برقم #${orderId} في منصة توسع` });
+          return sendJson(res, 404, { status: 'error', message: `لم يتم العثور على طلب برقم #${orderId} في متجر توسع` });
         }
       } catch (err) {
         return sendJson(res, 500, { status: 'error', message: 'تعذر الاتصال بمنصة توسع: ' + err.message });
@@ -1909,6 +2075,7 @@ const server = http.createServer(async (req, res) => {
       if (body.apk_drive_link !== undefined) newSettings.apk_drive_link = (body.apk_drive_link || '').trim();
       if (body.windows_drive_link !== undefined) newSettings.windows_drive_link = (body.windows_drive_link || '').trim();
       if (body.custom_domain !== undefined) newSettings.custom_domain = (body.custom_domain || '').trim();
+      if (body.twsaa_api_key !== undefined) newSettings.twsaa_api_key = (body.twsaa_api_key || '').trim();
       if (Array.isArray(body.custom_groups)) newSettings.custom_groups = body.custom_groups;
 
       const updated = db.updateSettings(newSettings);
@@ -1929,6 +2096,10 @@ const server = http.createServer(async (req, res) => {
       const body = await parseJsonBody(req);
       const license = db.getAll().find(l => l.id === body.id);
       if (!license) return sendJson(res, 404, { status: 'error', message: 'غير موجود' });
+
+      if (session.role === 'employee' && license.is_locked) {
+        return sendJson(res, 403, { status: 'error', message: 'هذا المفتاح مقفل ومحمي بواسطة المدير العام، لا يمكن للموظفين تعديل حالته' });
+      }
 
       license.is_active = !license.is_active;
 
@@ -1958,6 +2129,10 @@ const server = http.createServer(async (req, res) => {
       const body = await parseJsonBody(req);
       const license = db.getAll().find(l => l.id === body.id);
       if (!license) return sendJson(res, 404, { status: 'error', message: 'غير موجود' });
+
+      if (session.role === 'employee' && license.is_locked) {
+        return sendJson(res, 403, { status: 'error', message: 'هذا المفتاح مقفل ومحمي بواسطة المدير العام، لا يمكن للموظفين فك ارتباطه' });
+      }
 
       if (body.device_id) {
         const target = body.device_id.trim();
@@ -1999,6 +2174,13 @@ const server = http.createServer(async (req, res) => {
       }
 
       const body = await parseJsonBody(req);
+      const license = db.getAll().find(l => l.id === body.id);
+      if (!license) return sendJson(res, 404, { status: 'error', message: 'غير موجود' });
+
+      if (session.role === 'employee' && license.is_locked) {
+        return sendJson(res, 403, { status: 'error', message: 'هذا المفتاح مقفل ومحمي بواسطة المدير العام، لا يمكن للموظفين حذفه' });
+      }
+
       const ok = db.delete(body.id);
       return sendJson(res, 200, { status: ok ? 'success' : 'error' });
     }

@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title id="pageTitle">لوحة إدارة اشتراكات يوتيوب بلس+ - النظام الرقمي</title>
+  <link rel="manifest" href="/admin-manifest.json">
+  <meta name="theme-color" content="#0d1117">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="icon" type="image/png" href="/app_icon.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -108,6 +113,12 @@
         <button id="headerBtnStats" onclick="openEmployeeStatsModal()" class="cursor-pointer bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 border border-zinc-700 shadow-sm active:scale-95" title="إحصائيات الموظفين الشهرية">
           <i class="fa-solid fa-chart-pie text-emerald-400 text-sm"></i>
           <span id="txtBtnStats" class="hidden sm:inline">إحصائيات الشهر</span>
+        </button>
+
+        <!-- زر تثبيت لوحة التحكم كتطبيق مستقل (PWA) -->
+        <button id="btnPwaInstall" onclick="installDashboardPwa()" class="hidden cursor-pointer bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/40 text-xs sm:text-sm font-bold px-3 py-2 rounded-xl transition items-center gap-1.5 shadow-sm active:scale-95" title="تثبيت لوحة التحكم كتطبيق مستقل">
+          <i class="fa-solid fa-download text-red-400 text-sm"></i>
+          <span class="hidden sm:inline">تثبيت التطبيق</span>
         </button>
 
         <!-- زر توليد كود جديد -->
@@ -299,6 +310,9 @@
         <table class="w-full text-right text-sm">
           <thead class="bg-zinc-900/90 text-zinc-400 text-xs border-b border-zinc-800 uppercase tracking-wider">
             <tr>
+              <th class="px-3 py-4 w-10 text-center">
+                <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)" class="accent-red-600 rounded cursor-pointer w-4 h-4" title="تحديد / إلغاء تحديد الكل">
+              </th>
               <th id="thSerial" class="px-5 py-4">كود التفعيل (Serial) والملاحظة</th>
               <th id="thGroup" class="px-4 py-4">المجموعة والمدة</th>
               <th id="thDevices" class="px-4 py-4">الأجهزة ونوعها</th>
@@ -310,7 +324,7 @@
           </thead>
           <tbody id="licensesTableBody" class="divide-y divide-zinc-800/60">
             <tr>
-              <td colspan="7" class="px-6 py-12 text-center text-zinc-500">جاري تحميل البيانات...</td>
+              <td colspan="8" class="px-6 py-12 text-center text-zinc-500">جاري تحميل البيانات...</td>
             </tr>
           </tbody>
         </table>
@@ -325,6 +339,62 @@
 
     </div>
   </main>
+
+  <!-- ============================================================ -->
+  <!-- شريط الإجراءات والعمليات الجماعية العائم (Floating Bulk Bar) -->
+  <!-- ============================================================ -->
+  <div id="bulkActionBar" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-zinc-900/95 backdrop-blur-md border border-zinc-700 shadow-2xl rounded-2xl px-4 py-3 items-center gap-3 hidden transition-all max-w-4xl w-[95%] sm:w-auto">
+    <div class="flex items-center gap-2 border-l border-zinc-700/80 pl-3 shrink-0">
+      <span class="w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center text-xs font-bold font-mono" id="bulkSelectedCount">0</span>
+      <span class="text-xs font-bold text-white whitespace-nowrap">مفتاح محدد</span>
+    </div>
+
+    <div class="flex items-center gap-2 flex-wrap text-xs">
+      <!-- تغيير المجموعة -->
+      <div class="flex items-center gap-1">
+        <select id="bulkGroupSelect" class="bg-zinc-800 border border-zinc-700 text-zinc-200 rounded-xl px-2.5 py-1.5 text-xs focus:outline-none focus:border-indigo-500">
+          <!-- يتم التعبئة بالمجموعات -->
+        </select>
+        <button type="button" onclick="submitBulkMoveGroup()" class="bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/40 px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1 cursor-pointer" title="نقل المفاتيح المحددة للمجموعة">
+          <i class="fa-solid fa-folder-arrow-up"></i>
+          <span class="hidden sm:inline">نقل للمجموعة</span>
+        </button>
+      </div>
+
+      <!-- تفعيل الكل -->
+      <button type="button" onclick="submitBulkAction('activate')" class="bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 border border-emerald-500/40 px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1 cursor-pointer" title="تفعيل كافة المفاتيح المحددة">
+        <i class="fa-solid fa-play text-xs"></i>
+        <span>تفعيل</span>
+      </button>
+
+      <!-- إيقاف الكل -->
+      <button type="button" onclick="submitBulkAction('deactivate')" class="bg-amber-600/30 hover:bg-amber-600/50 text-amber-300 border border-amber-500/40 px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1 cursor-pointer" title="إيقاف كافة المفاتيح المحددة">
+        <i class="fa-solid fa-pause text-xs"></i>
+        <span>إيقاف</span>
+      </button>
+
+      <!-- قفل / إلغاء القفل للمدير العام -->
+      <button type="button" id="bulkBtnLock" onclick="submitBulkAction('toggle_lock', true)" class="bg-purple-600/30 hover:bg-purple-600/50 text-purple-300 border border-purple-500/40 px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1 cursor-pointer" title="قفل وحماية المفاتيح المحددة لمنع الموظفين من تعديلها">
+        <i class="fa-solid fa-lock text-xs"></i>
+        <span>قفل للمدير</span>
+      </button>
+      <button type="button" id="bulkBtnUnlock" onclick="submitBulkAction('toggle_lock', false)" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1 cursor-pointer" title="إلغاء قفل المفاتيح">
+        <i class="fa-solid fa-lock-open text-xs"></i>
+        <span>إلغاء القفل</span>
+      </button>
+
+      <!-- حذف الكل -->
+      <button type="button" onclick="submitBulkAction('delete')" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1 shadow-md shadow-red-600/30 cursor-pointer" title="حذف المفاتيح المحددة نهائياً">
+        <i class="fa-solid fa-trash text-xs"></i>
+        <span>حذف نهائي</span>
+      </button>
+    </div>
+
+    <!-- زر إلغاء التحديد -->
+    <button type="button" onclick="clearBulkSelection()" class="text-zinc-400 hover:text-white p-1.5 ml-auto border-r border-zinc-700/80 pr-2 cursor-pointer" title="إلغاء التحديد">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
 
   <!-- ========================================== -->
   <!-- 3. نافذة توليد أكواد جديدة (Generate Modal) -->
@@ -375,14 +445,36 @@
           </select>
         </div>
 
-        <!-- المجموعة المخصصة -->
+        <!-- المجموعة المخصصة مع إمكانية الإنشاء المباشر السريع -->
         <div>
-          <label id="lblGenGroup" class="block text-xs font-bold text-zinc-300 mb-1">المجموعة أو التصنيف</label>
-          <select id="genGroup" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 focus:outline-none focus:border-red-500">
+          <div class="flex items-center justify-between mb-1">
+            <label id="lblGenGroup" class="text-xs font-bold text-zinc-300">المجموعة أو التصنيف</label>
+            <button type="button" onclick="showQuickCreateGroup()" class="text-[11px] text-indigo-400 hover:text-indigo-300 font-bold flex items-center gap-1 transition cursor-pointer">
+              <i class="fa-solid fa-folder-plus"></i>
+              <span>+ مجموعة جديدة</span>
+            </button>
+          </div>
+          <select id="genGroup" onchange="onGenGroupChange(this.value)" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 focus:outline-none focus:border-red-500 text-xs sm:text-sm">
             <option value="عام">عام</option>
             <option value="VIP">VIP</option>
             <option value="عائلي">عائلي</option>
+            <option value="__new__">➕ إنشاء مجموعة جديدة...</option>
           </select>
+
+          <!-- صندوق الإدخال السريع لإنشاء مجموعة جديدة فوراً -->
+          <div id="quickCreateGroupBox" class="hidden mt-2 p-2.5 bg-zinc-950 border border-indigo-500/40 rounded-xl space-y-2">
+            <label class="block text-[11px] font-bold text-indigo-300">اسم المجموعة الجديدة:</label>
+            <div class="flex gap-2">
+              <input type="text" id="quickGroupNameInput" placeholder="مثال: باقة رمضان، VIP الذهبي..." class="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-zinc-100 text-xs focus:outline-none focus:border-indigo-400" onkeydown="if(event.key==='Enter'){event.preventDefault();submitQuickCreateGroup();}">
+              <button type="button" onclick="submitQuickCreateGroup()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition shrink-0 flex items-center gap-1">
+                <i class="fa-solid fa-check"></i>
+                <span>حفظ واختيار</span>
+              </button>
+              <button type="button" onclick="hideQuickCreateGroup()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-400 font-bold px-2.5 py-1.5 rounded-lg text-xs transition shrink-0">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- رقم الطلب في المتجر twsaa.com مع زر الاستيراد المباشر -->
@@ -570,6 +662,51 @@
 
       <div class="mt-6">
         <button onclick="closeGroupModal()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 py-2.5 rounded-xl font-bold transition text-xs">إغلاق</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 6. نافذة إدارة الأجهزة المتصلة (Devices Modal) -->
+  <!-- ========================================== -->
+  <div id="devicesModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="glass-card bg-zinc-900 rounded-3xl w-full max-w-lg p-6 border border-zinc-700 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scroll">
+      
+      <div class="flex items-center justify-between mb-4 border-b border-zinc-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg">
+            <i class="fa-solid fa-mobile-screen-button"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">إدارة الأجهزة المتصلة بالمفتاح</h3>
+            <p id="devicesModalSerial" class="text-xs font-mono text-zinc-400">--</p>
+          </div>
+        </div>
+        <button onclick="closeDevicesModal()" class="text-zinc-400 hover:text-white p-2 text-sm"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="space-y-4">
+        <!-- شريط ملخص الأجهزة وزر فك ربط الكل -->
+        <div class="bg-zinc-950 p-3 rounded-2xl border border-zinc-800 flex items-center justify-between text-xs">
+          <div class="flex items-center gap-2">
+            <span class="text-zinc-400">الأجهزة المستخدمة:</span>
+            <span id="devicesModalUsage" class="font-mono font-bold text-sm text-white">0 / 1 جهاز</span>
+          </div>
+          <button id="btnDevicesUnlinkAll" onclick="confirmUnlinkAllDevices()" class="bg-red-500/15 hover:bg-red-500/25 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1.5 text-xs active:scale-95 cursor-pointer">
+            <i class="fa-solid fa-arrows-rotate text-xs"></i>
+            <span>فك ربط كافة الأجهزة</span>
+          </button>
+        </div>
+
+        <!-- قائمة الأجهزة المتصلة مع خيار فك ربط كل جهاز منفصلاً -->
+        <div id="devicesModalList" class="space-y-2.5">
+          <!-- يتم التعبئة تلقائياً -->
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <button onclick="closeDevicesModal()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 py-2.5 rounded-xl font-bold transition text-xs">إغلاق</button>
       </div>
 
     </div>
@@ -839,38 +976,18 @@
           </div>
         </div>
 
-        <!-- الصلاحيات الموسعة -->
+        <!-- الصلاحيات الموسعة (12 صلاحية شاملة للنظام) -->
         <div class="mb-4">
-          <label class="block text-xs font-bold text-zinc-400 mb-1.5">صلاحيات الموظف في النظام:</label>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-            <label class="flex items-center gap-1.5 bg-zinc-900/80 p-2 rounded-xl border border-zinc-800 cursor-pointer">
-              <input type="checkbox" id="permGenerate" checked class="accent-purple-500 rounded">
-              <span class="text-zinc-300">توليد أكواد</span>
-            </label>
-            <label class="flex items-center gap-1.5 bg-zinc-900/80 p-2 rounded-xl border border-zinc-800 cursor-pointer">
-              <input type="checkbox" id="permToggle" checked class="accent-purple-500 rounded">
-              <span class="text-zinc-300">إيقاف / تفعيل</span>
-            </label>
-            <label class="flex items-center gap-1.5 bg-zinc-900/80 p-2 rounded-xl border border-zinc-800 cursor-pointer">
-              <input type="checkbox" id="permReset" checked class="accent-purple-500 rounded">
-              <span class="text-zinc-300">فك ارتباط جهاز</span>
-            </label>
-            <label class="flex items-center gap-1.5 bg-zinc-900/80 p-2 rounded-xl border border-zinc-800 cursor-pointer">
-              <input type="checkbox" id="permDelete" class="accent-purple-500 rounded">
-              <span class="text-zinc-300">حذف كود</span>
-            </label>
-            <label class="flex items-center gap-1.5 bg-zinc-900/80 p-2 rounded-xl border border-zinc-800 cursor-pointer">
-              <input type="checkbox" id="permStats" checked class="accent-emerald-500 rounded">
-              <span class="text-emerald-400 font-bold">إحصائيات الشهر</span>
-            </label>
-            <label class="flex items-center gap-1.5 bg-zinc-900/80 p-2 rounded-xl border border-zinc-800 cursor-pointer">
-              <input type="checkbox" id="permGuide" checked class="accent-amber-500 rounded">
-              <span class="text-amber-400 font-bold">دليل الأجهزة</span>
-            </label>
-            <label class="flex items-center gap-1.5 bg-zinc-900/80 p-2 rounded-xl border border-zinc-800 cursor-pointer sm:col-span-2">
-              <input type="checkbox" id="permGroups" class="accent-blue-500 rounded">
-              <span class="text-blue-400 font-bold">إدارة المجموعات</span>
-            </label>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="block text-xs font-bold text-zinc-400">صلاحيات الموظف في النظام (12 صلاحية شاملة):</label>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="setAllPermissions('newPerm', true)" class="text-[10px] text-purple-400 hover:underline cursor-pointer">تحديد الكل</button>
+              <span class="text-zinc-600 text-[10px]">•</span>
+              <button type="button" onclick="setAllPermissions('newPerm', false)" class="text-[10px] text-zinc-400 hover:underline cursor-pointer">إلغاء الكل</button>
+            </div>
+          </div>
+          <div id="newEmpPermsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-xs">
+            <!-- يتم التعبئة تلقائياً عبر JavaScript لكافة الـ 12 صلاحية -->
           </div>
         </div>
 
@@ -1022,38 +1139,18 @@
           </label>
         </div>
 
-        <!-- الصلاحيات الموسعة (7 صلاحيات) -->
+        <!-- الصلاحيات الموسعة (12 صلاحية شاملة للنظام) -->
         <div>
-          <label class="block text-xs font-bold text-zinc-300 mb-2">صلاحيات الموظف في النظام:</label>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-            <label class="flex items-center gap-2 bg-zinc-950 p-2.5 rounded-xl border border-zinc-800 cursor-pointer">
-              <input type="checkbox" id="editPermGenerate" class="accent-purple-500 rounded">
-              <span class="text-zinc-200">توليد التراخيص والأكواد</span>
-            </label>
-            <label class="flex items-center gap-2 bg-zinc-950 p-2.5 rounded-xl border border-zinc-800 cursor-pointer">
-              <input type="checkbox" id="editPermToggle" class="accent-purple-500 rounded">
-              <span class="text-zinc-200">إيقاف وتفعيل التراخيص</span>
-            </label>
-            <label class="flex items-center gap-2 bg-zinc-950 p-2.5 rounded-xl border border-zinc-800 cursor-pointer">
-              <input type="checkbox" id="editPermReset" class="accent-purple-500 rounded">
-              <span class="text-zinc-200">فك ارتباط وتصفير الأجهزة</span>
-            </label>
-            <label class="flex items-center gap-2 bg-zinc-950 p-2.5 rounded-xl border border-zinc-800 cursor-pointer">
-              <input type="checkbox" id="editPermDelete" class="accent-purple-500 rounded">
-              <span class="text-red-300 font-bold">حذف التراخيص نهائياً</span>
-            </label>
-            <label class="flex items-center gap-2 bg-zinc-950 p-2.5 rounded-xl border border-zinc-800 cursor-pointer">
-              <input type="checkbox" id="editPermStats" class="accent-emerald-500 rounded">
-              <span class="text-emerald-300 font-bold">إحصائيات الشهر</span>
-            </label>
-            <label class="flex items-center gap-2 bg-zinc-950 p-2.5 rounded-xl border border-zinc-800 cursor-pointer">
-              <input type="checkbox" id="editPermGuide" class="accent-amber-500 rounded">
-              <span class="text-amber-300 font-bold">دليل الأجهزة والروابط</span>
-            </label>
-            <label class="flex items-center gap-2 bg-zinc-950 p-2.5 rounded-xl border border-zinc-800 cursor-pointer sm:col-span-2">
-              <input type="checkbox" id="editPermGroups" class="accent-blue-500 rounded">
-              <span class="text-blue-300 font-bold">إدارة وإنشاء المجموعات</span>
-            </label>
+          <div class="flex items-center justify-between mb-2">
+            <label class="block text-xs font-bold text-zinc-300">صلاحيات الموظف في النظام (12 صلاحية):</label>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="setAllPermissions('editPerm', true)" class="text-[10px] text-purple-400 hover:underline cursor-pointer">تحديد الكل</button>
+              <span class="text-zinc-600 text-[10px]">•</span>
+              <button type="button" onclick="setAllPermissions('editPerm', false)" class="text-[10px] text-zinc-400 hover:underline cursor-pointer">إلغاء الكل</button>
+            </div>
+          </div>
+          <div id="editEmpPermsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <!-- يتم التعبئة تلقائياً عبر JavaScript لكافة الـ 12 صلاحية -->
           </div>
         </div>
 
@@ -1227,13 +1324,13 @@
         genBtn: 'توليد كود',
         newGroupBtn: 'مجموعة جديدة',
         statTotal: 'إجمالي الأكواد',
-        statTotalDesc: 'كافة السيريالات الصادرة',
+        statTotalDesc: 'كافة الاشتراكات الصادرة بالنظام',
         statActive: 'الاشتراكات النشطة',
-        statActiveDesc: 'تعمل حالياً على الأجهزة',
+        statActiveDesc: 'مفعلة وتعمل حالياً على الأجهزة',
         statPending: 'أكواد للتسليم',
-        statPendingDesc: 'لم تُربط بجهاز بعد',
+        statPendingDesc: 'جاهزة للتسليم بانتظار التفعيل',
         statExpired: 'منتهي / محظور',
-        statExpiredDesc: 'انتهت مدتها أو أوقفت',
+        statExpiredDesc: 'منتهية الصلاحية أو محظورة',
         searchPlaceholder: 'بحث برقم السيريال، ملاحظة، واتساب، أو جهاز...',
         filterAllGroups: 'كافة المجموعات',
         filterGroupLbl: 'المجموعة:',
@@ -1267,13 +1364,13 @@
         genBtn: 'Generate Key',
         newGroupBtn: 'New Group',
         statTotal: 'Total Keys',
-        statTotalDesc: 'All generated licenses',
+        statTotalDesc: 'All issued license keys',
         statActive: 'Active Subscriptions',
         statActiveDesc: 'Currently running on devices',
         statPending: 'Ready to Deliver',
-        statPendingDesc: 'Not yet activated on device',
+        statPendingDesc: 'Ready to deliver, pending activation',
         statExpired: 'Expired / Blocked',
-        statExpiredDesc: 'Expired or disabled keys',
+        statExpiredDesc: 'Expired or suspended keys',
         searchPlaceholder: 'Search serial, note, WhatsApp, or device...',
         filterAllGroups: 'All Groups',
         filterGroupLbl: 'Group:',
@@ -1424,21 +1521,99 @@
       
       // 1. القائمة في شريط الفلترة
       const filterSel = document.getElementById('groupFilterSelect');
-      const curFilterVal = filterSel.value;
-      filterSel.innerHTML = `<option value="all">${currentLang === 'ar' ? 'كافة المجموعات' : 'All Groups'}</option>` + 
-        groups.map(g => `<option value="${g}">${g}</option>`).join('');
-      filterSel.value = curFilterVal || 'all';
+      if (filterSel) {
+        const curFilterVal = filterSel.value;
+        filterSel.innerHTML = `<option value="all">${currentLang === 'ar' ? 'كافة المجموعات' : 'All Groups'}</option>` + 
+          groups.map(g => `<option value="${g}">${g}</option>`).join('');
+        filterSel.value = curFilterVal || 'all';
+      }
 
-      // 2. القائمة في نافذة التوليد
+      // 2. القائمة في نافذة التوليد مع خيار إنشاء مجموعة جديدة
       const genSel = document.getElementById('genGroup');
-      genSel.innerHTML = groups.map(g => `<option value="${g}">${g}</option>`).join('');
+      if (genSel) {
+        const curGenVal = genSel.value;
+        genSel.innerHTML = groups.map(g => `<option value="${g}">${g}</option>`).join('') +
+          `<option value="__new__">➕ إنشاء مجموعة جديدة...</option>`;
+        if (groups.includes(curGenVal)) {
+          genSel.value = curGenVal;
+        } else {
+          genSel.value = groups[0] || 'عام';
+        }
+      }
 
       // 3. القائمة في نافذة التعديل
       const editSel = document.getElementById('editGroup');
-      editSel.innerHTML = groups.map(g => `<option value="${g}">${g}</option>`).join('');
+      if (editSel) {
+        editSel.innerHTML = groups.map(g => `<option value="${g}">${g}</option>`).join('');
+      }
 
-      // 4. القائمة في نافذة إدارة المجموعات
+      // 4. القائمة في شريط العمليات الجماعية
+      const bulkSel = document.getElementById('bulkGroupSelect');
+      if (bulkSel) {
+        bulkSel.innerHTML = groups.map(g => `<option value="${g}">${g}</option>`).join('');
+      }
+
+      // 5. القائمة في نافذة إدارة المجموعات
       renderGroupsManagerList(groups);
+    }
+
+    function showQuickCreateGroup() {
+      const box = document.getElementById('quickCreateGroupBox');
+      if (box) {
+        box.classList.remove('hidden');
+        const inp = document.getElementById('quickGroupNameInput');
+        if (inp) {
+          inp.value = '';
+          inp.focus();
+        }
+      }
+    }
+
+    function hideQuickCreateGroup() {
+      const box = document.getElementById('quickCreateGroupBox');
+      if (box) box.classList.add('hidden');
+      const genSel = document.getElementById('genGroup');
+      if (genSel && genSel.value === '__new__') {
+        genSel.value = 'عام';
+      }
+    }
+
+    function onGenGroupChange(val) {
+      if (val === '__new__') {
+        showQuickCreateGroup();
+      } else {
+        hideQuickCreateGroup();
+      }
+    }
+
+    async function submitQuickCreateGroup() {
+      const inp = document.getElementById('quickGroupNameInput');
+      const name = (inp ? inp.value : '').trim();
+      if (!name) {
+        showToast('يرجى إدخال اسم المجموعة أولاً', 'error');
+        if (inp) inp.focus();
+        return;
+      }
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/create-group`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ group_name: name })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          currentSettings.custom_groups = data.custom_groups;
+          updateGroupsDropdowns();
+          const genSel = document.getElementById('genGroup');
+          if (genSel) genSel.value = name;
+          hideQuickCreateGroup();
+          showToast(`تم إنشاء واختيار مجموعة "${name}" بنجاح`);
+        } else {
+          showToast(data.message || 'تعذر إنشاء المجموعة', 'error');
+        }
+      } catch (e) {
+        showToast('تعذر الاتصال بالخادم', 'error');
+      }
     }
 
     function renderGroupsManagerList(groups) {
@@ -1506,18 +1681,16 @@
       renderLicenses();
     }
 
+    let selectedLicenseIds = new Set();
+
     function filterLicenses() {
       renderLicenses();
     }
 
-    function renderLicenses() {
+    function getCurrentlyFilteredLicenses() {
       const search = document.getElementById('searchInput').value.trim().toLowerCase();
       const groupFilter = document.getElementById('groupFilterSelect').value;
-      const t = I18N[currentLang];
-      const now = new Date();
-
-      let filtered = allLicenses.filter(l => {
-        // بحث بالنص
+      return allLicenses.filter(l => {
         const matchesSearch = !search || 
           l.serial_key.toLowerCase().includes(search) ||
           (l.note && l.note.toLowerCase().includes(search)) ||
@@ -1526,10 +1699,8 @@
           (l.client_email && l.client_email.toLowerCase().includes(search)) ||
           (Array.isArray(l.device_ids) && l.device_ids.some(d => d.toLowerCase().includes(search)));
 
-        // فلترة المجموعات
         const matchesGroup = groupFilter === 'all' || (l.group || 'عام') === groupFilter;
 
-        // فلترة المدة
         let matchesDuration = true;
         if (currentDurationFilter !== 'all') {
           matchesDuration = l.duration_days === parseInt(currentDurationFilter, 10);
@@ -1537,13 +1708,134 @@
 
         return matchesSearch && matchesGroup && matchesDuration;
       });
+    }
+
+    function toggleSelectAll(checked) {
+      const filtered = getCurrentlyFilteredLicenses();
+      if (checked) {
+        filtered.forEach(l => selectedLicenseIds.add(l.id));
+      } else {
+        selectedLicenseIds.clear();
+      }
+      renderLicenses();
+    }
+
+    function onLicenseSelectChange() {
+      selectedLicenseIds.clear();
+      document.querySelectorAll('.lic-checkbox:checked').forEach(cb => {
+        selectedLicenseIds.add(cb.value);
+      });
+      updateBulkActionUI();
+    }
+
+    function onLicenseSelectChangeMobile(id, checked) {
+      if (checked) {
+        selectedLicenseIds.add(id);
+      } else {
+        selectedLicenseIds.delete(id);
+      }
+      updateBulkActionUI();
+    }
+
+    function clearBulkSelection() {
+      selectedLicenseIds.clear();
+      const selAll = document.getElementById('selectAllCheckbox');
+      if (selAll) selAll.checked = false;
+      renderLicenses();
+    }
+
+    function updateBulkActionUI() {
+      const bar = document.getElementById('bulkActionBar');
+      const countEl = document.getElementById('bulkSelectedCount');
+      const count = selectedLicenseIds.size;
+      if (countEl) countEl.innerText = count;
+
+      if (count > 0) {
+        if (bar) {
+          bar.classList.remove('hidden');
+          bar.classList.add('flex');
+        }
+        const isMaster = currentUserProfile && currentUserProfile.role === 'admin';
+        const bLock = document.getElementById('bulkBtnLock');
+        const bUnlock = document.getElementById('bulkBtnUnlock');
+        if (bLock) bLock.style.display = isMaster ? 'inline-flex' : 'none';
+        if (bUnlock) bUnlock.style.display = isMaster ? 'inline-flex' : 'none';
+      } else {
+        if (bar) {
+          bar.classList.add('hidden');
+          bar.classList.remove('flex');
+        }
+        const selAll = document.getElementById('selectAllCheckbox');
+        if (selAll) selAll.checked = false;
+      }
+    }
+
+    async function submitBulkAction(action, value = null) {
+      const ids = Array.from(selectedLicenseIds);
+      if (ids.length === 0) return;
+
+      if (action === 'delete') {
+        if (!confirm(`تحذير خطير: هل أنت متأكد من حذف ${ids.length} مفتاح نهائياً وبلا رجعة من النظام؟`)) return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/bulk-actions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action, ids, value })
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+          showToast(data.message || `تم تطبيق الإجراء على ${data.count} مفتاح بنجاح`);
+          clearBulkSelection();
+          await loadLicenses();
+        } else {
+          showToast(data.message || 'فشلت العملية الجماعية', 'error');
+        }
+      } catch (e) {
+        showToast('تعذر الاتصال بالخادم لتنفيذ العملية', 'error');
+      }
+    }
+
+    function submitBulkMoveGroup() {
+      const group = document.getElementById('bulkGroupSelect').value;
+      if (!group) return;
+      submitBulkAction('move_group', group);
+    }
+
+    async function toggleLicenseLock(id, state) {
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/toggle-lock`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, is_locked: state })
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+          showToast(data.message || (state ? 'تم قفل وحماية المفتاح' : 'تم إلغاء قفل المفتاح'));
+          await loadLicenses();
+        } else {
+          showToast(data.message || 'فشل تغيير حالة قفل المفتاح', 'error');
+        }
+      } catch (e) {
+        showToast('تعذر الاتصال بالخادم', 'error');
+      }
+    }
+
+    function renderLicenses() {
+      const t = I18N[currentLang];
+      const now = new Date();
+      const filtered = getCurrentlyFilteredLicenses();
+      const isMaster = currentUserProfile && currentUserProfile.role === 'admin';
+      const empPerms = (currentUserProfile && currentUserProfile.permissions) || {};
 
       const tbody = document.getElementById('licensesTableBody');
       const mobileContainer = document.getElementById('licensesMobileContainer');
 
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-12 text-center text-zinc-500">${currentLang === 'ar' ? 'لا توجد نتائج مطابقة' : 'No matching records'}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="px-6 py-12 text-center text-zinc-500">${currentLang === 'ar' ? 'لا توجد نتائج مطابقة' : 'No matching records'}</td></tr>`;
         mobileContainer.innerHTML = `<div class="py-12 text-center text-zinc-500 text-sm">${currentLang === 'ar' ? 'لا توجد نتائج مطابقة' : 'No matching records'}</div>`;
+        updateBulkActionUI();
         return;
       }
 
@@ -1554,6 +1846,8 @@
         const devInfoList = Array.isArray(l.devices_info) ? l.devices_info : [];
         const maxDev = l.max_devices || 1;
         const cleanWa = l.whatsapp ? l.whatsapp.replace(/[^0-9]/g, '') : '';
+        const isLocked = !!l.is_locked;
+        const isSelected = selectedLicenseIds.has(l.id);
 
         let statusBadge = '';
         if (!l.is_active) {
@@ -1586,14 +1880,25 @@
         }
 
         return `
-          <tr class="hover:bg-zinc-800/40 transition">
+          <tr class="hover:bg-zinc-800/40 transition ${isSelected ? 'bg-red-500/5' : ''}">
+            <!-- خانة الاختيار الجماعي -->
+            <td class="px-3 py-3.5 text-center">
+              <input type="checkbox" class="lic-checkbox accent-red-600 rounded cursor-pointer w-4 h-4" value="${l.id}" onchange="onLicenseSelectChange()" ${isSelected ? 'checked' : ''}>
+            </td>
+
             <!-- كود التفعيل ورقم الطلب والملاحظة والواتساب وسجل التدقيق -->
             <td class="px-5 py-3.5">
               <div class="flex items-center gap-2 flex-wrap">
-                <button onclick="copyToClipboard('${l.serial_key}')" class="font-mono font-bold text-white hover:text-red-400 flex items-center gap-1.5 transition text-xs sm:text-sm">
+                <button onclick="copyToClipboard('${l.serial_key}')" class="font-mono font-bold text-white hover:text-red-400 flex items-center gap-1.5 transition text-xs sm:text-sm cursor-pointer">
                   <span>${l.serial_key}</span>
                   <i class="fa-regular fa-copy text-xs text-zinc-500"></i>
                 </button>
+                ${isLocked ? `
+                  <span class="inline-flex items-center gap-1 text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-lg" title="المفتاح مقفل ومحمي بواسطة المدير العام ضد الحذف والتعديل">
+                    <i class="fa-solid fa-lock text-[9px]"></i>
+                    <span>محمي</span>
+                  </span>
+                ` : ''}
                 ${l.order_id ? `
                   <a href="https://twsaa.com/admin/sales/orders/view/${encodeURIComponent((l.order_id || '').toString().trim().replace(/^#/, ''))}" target="_blank" class="inline-flex items-center gap-1 text-[11px] font-mono font-bold bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-lg transition" title="فتح الطلب في متجر twsaa.com">
                     <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
@@ -1606,11 +1911,15 @@
               <div class="mt-1 flex items-center gap-2 text-xs">
                 ${l.note ? `
                   <span class="text-zinc-300">${l.note}</span>
-                  <button onclick="openEditModal('${l.id}')" class="text-zinc-500 hover:text-white text-[11px]"><i class="fa-solid fa-pen text-[10px]"></i></button>
+                  ${(isMaster || (!isLocked && empPerms.can_edit !== false)) ? `
+                    <button onclick="openEditModal('${l.id}')" class="text-zinc-500 hover:text-white text-[11px] cursor-pointer"><i class="fa-solid fa-pen text-[10px]"></i></button>
+                  ` : ''}
                 ` : `
-                  <button onclick="openEditModal('${l.id}')" class="text-zinc-500 hover:text-zinc-300 text-[11px] flex items-center gap-1">
-                    <i class="fa-solid fa-plus text-[10px]"></i> <span>${t.addNote}</span>
-                  </button>
+                  ${(isMaster || (!isLocked && empPerms.can_edit !== false)) ? `
+                    <button onclick="openEditModal('${l.id}')" class="text-zinc-500 hover:text-zinc-300 text-[11px] flex items-center gap-1 cursor-pointer">
+                      <i class="fa-solid fa-plus text-[10px]"></i> <span>${t.addNote}</span>
+                    </button>
+                  ` : ''}
                 `}
               </div>
 
@@ -1620,19 +1929,21 @@
                   <a href="https://wa.me/${cleanWa}" target="_blank" class="inline-flex items-center gap-1 text-emerald-400 hover:underline font-mono">
                     <i class="fa-brands fa-whatsapp text-sm"></i> <span>${l.whatsapp}</span>
                   </a>
-                  <button onclick="openWhatsappModal('${l.id}')" class="text-amber-400 hover:text-amber-300 text-[11px] bg-amber-500/10 px-2 py-0.5 rounded-lg border border-amber-500/20 flex items-center gap-1" title="إرسال تذكير بالواتساب">
+                  <button onclick="openWhatsappModal('${l.id}')" class="text-amber-400 hover:text-amber-300 text-[11px] bg-amber-500/10 px-2 py-0.5 rounded-lg border border-amber-500/20 flex items-center gap-1 cursor-pointer" title="إرسال تذكير بالواتساب">
                     <i class="fa-solid fa-paper-plane text-[9px]"></i> <span>تذكير</span>
                   </button>
                 ` : `
-                  <button onclick="openEditModal('${l.id}')" class="text-zinc-500 hover:text-zinc-300 text-[11px] flex items-center gap-1">
-                    <i class="fa-brands fa-whatsapp text-[10px]"></i> <span>${t.addWa}</span>
-                  </button>
+                  ${(isMaster || (!isLocked && empPerms.can_edit !== false)) ? `
+                    <button onclick="openEditModal('${l.id}')" class="text-zinc-500 hover:text-zinc-300 text-[11px] flex items-center gap-1 cursor-pointer">
+                      <i class="fa-brands fa-whatsapp text-[10px]"></i> <span>${t.addWa}</span>
+                    </button>
+                  ` : ''}
                 `}
               </div>
 
               <!-- سجل وتفاصيل المفتاح والموظف -->
               <div class="mt-2">
-                <button onclick="toggleAuditBox('${l.id}')" class="text-[10px] text-zinc-400 hover:text-white bg-zinc-900 border border-zinc-700/70 px-2 py-0.5 rounded-md flex items-center gap-1 transition">
+                <button onclick="toggleAuditBox('${l.id}')" class="text-[10px] text-zinc-400 hover:text-white bg-zinc-900 border border-zinc-700/70 px-2 py-0.5 rounded-md flex items-center gap-1 transition cursor-pointer">
                   <i class="fa-solid fa-clipboard-list text-purple-400 text-[9px]"></i>
                   <span>سجل المفتاح (${l.audit_log ? l.audit_log.length : 1})</span>
                   <span class="text-zinc-500">• ${l.created_by || 'المدير العام'}</span>
@@ -1663,17 +1974,17 @@
               </div>
             </td>
 
-            <!-- الأجهزة المرتبطة ونوعها -->
+            <!-- الأجهزة المرتبطة ونوعها مع زر إدارة الأجهزة المتصلة -->
             <td class="px-4 py-3.5">
               <div class="flex items-center gap-2">
-                <span class="font-mono font-bold text-xs ${devList.length >= maxDev ? 'text-amber-400' : 'text-zinc-200'}">
-                  ${devList.length}/${maxDev}
-                </span>
-                ${devList.length > 0 ? `
-                  <button onclick="resetDevice('${l.id}')" class="text-xs text-amber-400 hover:text-amber-300 p-1 rounded hover:bg-zinc-800" title="فك ربط كافة الأجهزة">
-                    <i class="fa-solid fa-arrows-rotate"></i>
-                  </button>
-                ` : ''}
+                <button type="button" onclick="openDevicesModal('${l.id}')" class="font-mono font-bold text-xs ${devList.length >= maxDev ? 'text-amber-400 hover:text-amber-300' : 'text-zinc-200 hover:text-white'} underline decoration-dotted cursor-pointer flex items-center gap-1.5" title="عرض وإدارة تفاصيل الأجهزة المتصلة">
+                  <i class="fa-solid fa-mobile-screen-button text-[11px] text-zinc-400"></i>
+                  <span>${devList.length}/${maxDev}</span>
+                </button>
+                <button type="button" onclick="openDevicesModal('${l.id}')" class="text-[11px] ${devList.length > 0 ? 'text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20' : 'text-zinc-400 hover:text-zinc-300 bg-zinc-900 border border-zinc-800'} px-2 py-0.5 rounded-lg font-bold transition flex items-center gap-1 cursor-pointer" title="إدارة الأجهزة المتصلة">
+                  <i class="fa-solid fa-gear text-[10px]"></i>
+                  <span>إدارة</span>
+                </button>
               </div>
               <div class="flex flex-wrap gap-1 mt-1">
                 ${deviceBadgesHtml}
@@ -1695,18 +2006,38 @@
               ${statusBadge}
             </td>
 
-            <!-- الإجراءات -->
+            <!-- الإجراءات المحددة بحسب الصلاحيات وقفل المدير -->
             <td class="px-5 py-3.5 text-center">
               <div class="flex items-center justify-center gap-1.5">
-                <button onclick="openEditModal('${l.id}')" class="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition text-xs" title="تعديل الملاحظة / الواتساب / المجموعة">
-                  <i class="fa-solid fa-pen-to-square"></i>
-                </button>
-                <button onclick="toggleActive('${l.id}')" class="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 ${l.is_active ? 'text-zinc-300 hover:text-amber-400' : 'text-emerald-400'} transition text-xs" title="${l.is_active ? 'إيقاف / حظر' : 'تفعيل'}">
-                  <i class="fa-solid ${l.is_active ? 'fa-pause' : 'fa-play'}"></i>
-                </button>
-                <button onclick="deleteLicense('${l.id}')" class="p-2 rounded-xl bg-zinc-800 hover:bg-red-500/20 text-zinc-400 hover:text-red-400 transition text-xs" title="حذف الكود">
-                  <i class="fa-solid fa-trash"></i>
-                </button>
+                <!-- زر القفل للمدير العام فقط -->
+                ${isMaster ? `
+                  <button type="button" onclick="toggleLicenseLock('${l.id}', ${!isLocked})" class="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 ${isLocked ? 'text-amber-400 border border-amber-500/30' : 'text-zinc-400 hover:text-amber-400'} transition text-xs cursor-pointer" title="${isLocked ? 'إلغاء قفل المفتاح' : 'قفل وحماية المفتاح للمدير العام فقط'}">
+                    <i class="fa-solid ${isLocked ? 'fa-lock' : 'fa-lock-open'}"></i>
+                  </button>
+                ` : ''}
+
+                ${(!isMaster && isLocked) ? `
+                  <span class="text-[10px] text-zinc-500 bg-zinc-900 border border-zinc-800 px-2 py-1 rounded-xl flex items-center gap-1 cursor-not-allowed" title="هذا المفتاح مقفل ومحمي بواسطة المدير العام، لا يمكن تعديله">
+                    <i class="fa-solid fa-lock text-amber-400 text-[10px]"></i>
+                    <span>محمي</span>
+                  </span>
+                ` : `
+                  ${(isMaster || empPerms.can_edit !== false) ? `
+                    <button type="button" onclick="openEditModal('${l.id}')" class="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition text-xs cursor-pointer" title="تعديل الملاحظة / الواتساب / المجموعة">
+                      <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                  ` : ''}
+                  ${(isMaster || empPerms.can_toggle !== false) ? `
+                    <button type="button" onclick="toggleActive('${l.id}')" class="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 ${l.is_active ? 'text-zinc-300 hover:text-amber-400' : 'text-emerald-400'} transition text-xs cursor-pointer" title="${l.is_active ? 'إيقاف / حظر' : 'تفعيل'}">
+                      <i class="fa-solid ${l.is_active ? 'fa-pause' : 'fa-play'}"></i>
+                    </button>
+                  ` : ''}
+                  ${(isMaster || empPerms.can_delete === true) ? `
+                    <button type="button" onclick="deleteLicense('${l.id}')" class="p-2 rounded-xl bg-zinc-800 hover:bg-red-500/20 text-zinc-400 hover:text-red-400 transition text-xs cursor-pointer" title="حذف الكود">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  ` : ''}
+                `}
               </div>
             </td>
           </tr>
@@ -1720,6 +2051,8 @@
         const devInfoList = Array.isArray(l.devices_info) ? l.devices_info : [];
         const maxDev = l.max_devices || 1;
         const cleanWa = l.whatsapp ? l.whatsapp.replace(/[^0-9]/g, '') : '';
+        const isLocked = !!l.is_locked;
+        const isSelected = selectedLicenseIds.has(l.id);
 
         let statusText = t.statusActive;
         let statusClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
@@ -1738,24 +2071,33 @@
         const expiryDateStr = l.expiry_date ? formatEnDate(l.expiry_date) : (currentLang === 'ar' ? 'عند التفعيل' : 'On activation');
 
         return `
-          <div class="glass-card rounded-2xl p-4 border border-zinc-800 shadow-lg space-y-3">
+          <div class="glass-card rounded-2xl p-4 border border-zinc-800 shadow-lg space-y-3 ${isSelected ? 'ring-2 ring-red-500/40 bg-red-500/5' : ''}">
             
             <div class="flex items-start justify-between gap-2 border-b border-zinc-800/80 pb-2.5">
-              <div>
-                <div class="flex items-center gap-2 flex-wrap">
-                  <button onclick="copyToClipboard('${l.serial_key}')" class="font-mono font-bold text-sm text-white hover:text-red-400 flex items-center gap-1.5 transition text-right">
-                    <span>${l.serial_key}</span>
-                    <i class="fa-regular fa-copy text-xs text-zinc-500"></i>
-                  </button>
-                  ${l.order_id ? `
-                    <a href="https://twsaa.com/admin/sales/orders/view/${encodeURIComponent((l.order_id || '').toString().trim().replace(/^#/, ''))}" target="_blank" class="inline-flex items-center gap-1 text-[10px] font-mono font-bold bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-lg transition" title="فتح الطلب في متجر twsaa.com">
-                      <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i>
-                      <span>#${(l.order_id || '').toString().trim().replace(/^#/, '')}</span>
-                    </a>
-                  ` : ''}
+              <div class="flex items-start gap-2.5">
+                <input type="checkbox" class="lic-checkbox-mob accent-red-600 rounded cursor-pointer w-4 h-4 mt-1 shrink-0" value="${l.id}" onchange="onLicenseSelectChangeMobile('${l.id}', this.checked)" ${isSelected ? 'checked' : ''}>
+                <div>
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <button onclick="copyToClipboard('${l.serial_key}')" class="font-mono font-bold text-sm text-white hover:text-red-400 flex items-center gap-1.5 transition text-right cursor-pointer">
+                      <span>${l.serial_key}</span>
+                      <i class="fa-regular fa-copy text-xs text-zinc-500"></i>
+                    </button>
+                    ${isLocked ? `
+                      <span class="inline-flex items-center gap-1 text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded-md" title="المفتاح محمي ومقفل">
+                        <i class="fa-solid fa-lock text-[9px]"></i>
+                        <span>محمي</span>
+                      </span>
+                    ` : ''}
+                    ${l.order_id ? `
+                      <a href="https://twsaa.com/admin/sales/orders/view/${encodeURIComponent((l.order_id || '').toString().trim().replace(/^#/, ''))}" target="_blank" class="inline-flex items-center gap-1 text-[10px] font-mono font-bold bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-lg transition" title="فتح الطلب في متجر twsaa.com">
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i>
+                        <span>#${(l.order_id || '').toString().trim().replace(/^#/, '')}</span>
+                      </a>
+                    ` : ''}
+                  </div>
+                  ${l.note ? `<div class="text-xs text-zinc-400 mt-0.5">${l.note}</div>` : ''}
+                  <div class="text-[10px] text-zinc-500 mt-1">بواسطة: <span class="text-zinc-300">${l.created_by || 'المدير العام'}</span></div>
                 </div>
-                ${l.note ? `<div class="text-xs text-zinc-400 mt-0.5">${l.note}</div>` : ''}
-                <div class="text-[10px] text-zinc-500 mt-1">بواسطة: <span class="text-zinc-300">${l.created_by || 'المدير العام'}</span></div>
               </div>
               <span class="whitespace-nowrap inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${statusClass} shrink-0">
                 ${statusText}
@@ -1767,9 +2109,15 @@
                 <span class="text-[10px] text-zinc-500 block">${currentLang === 'ar' ? 'المدة والمجموعة:' : 'Duration & Group:'}</span>
                 <span class="font-bold text-zinc-200 font-mono">${l.duration_days}d</span> • <span>${l.group || 'عام'}</span>
               </div>
-              <div class="bg-zinc-900/60 p-2 rounded-xl border border-zinc-800/60">
-                <span class="text-[10px] text-zinc-500 block">${currentLang === 'ar' ? 'الأجهزة المتصلة:' : 'Devices:'}</span>
-                <span class="font-bold ${devList.length >= maxDev ? 'text-amber-400' : 'text-zinc-200'} font-mono">${devList.length}/${maxDev}</span>
+              <div class="bg-zinc-900/60 p-2 rounded-xl border border-zinc-800/60 flex items-center justify-between">
+                <div>
+                  <span class="text-[10px] text-zinc-500 block">${currentLang === 'ar' ? 'الأجهزة:' : 'Devices:'}</span>
+                  <span class="font-bold ${devList.length >= maxDev ? 'text-amber-400' : 'text-zinc-200'} font-mono">${devList.length}/${maxDev}</span>
+                </div>
+                <button type="button" onclick="openDevicesModal('${l.id}')" class="text-[10px] text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 px-2 py-1 rounded-lg font-bold transition flex items-center gap-1 cursor-pointer">
+                  <i class="fa-solid fa-gear text-[9px]"></i>
+                  <span>إدارة</span>
+                </button>
               </div>
             </div>
 
@@ -1802,38 +2150,55 @@
                     <i class="fa-brands fa-whatsapp text-sm"></i> <span>محادثة</span>
                   </a>
                 ` : `
-                  <button onclick="openEditModal('${l.id}')" class="text-xs text-zinc-500 hover:text-zinc-300 flex items-center gap-1">
-                    <i class="fa-brands fa-whatsapp"></i> <span>${t.addWa}</span>
-                  </button>
+                  ${(isMaster || (!isLocked && empPerms.can_edit !== false)) ? `
+                    <button onclick="openEditModal('${l.id}')" class="text-xs text-zinc-500 hover:text-zinc-300 flex items-center gap-1 cursor-pointer">
+                      <i class="fa-brands fa-whatsapp"></i> <span>${t.addWa}</span>
+                    </button>
+                  ` : ''}
                 `}
               </div>
 
               <div class="flex items-center gap-1.5">
                 ${cleanWa ? `
-                  <button onclick="openWhatsappModal('${l.id}')" class="p-2 rounded-xl bg-zinc-800 text-amber-400 hover:text-white text-xs" title="تذكير واتساب">
+                  <button onclick="openWhatsappModal('${l.id}')" class="p-2 rounded-xl bg-zinc-800 text-amber-400 hover:text-white text-xs cursor-pointer" title="تذكير واتساب">
                     <i class="fa-solid fa-bell"></i>
                   </button>
                 ` : ''}
-                <button onclick="openEditModal('${l.id}')" class="p-2 rounded-xl bg-zinc-800 text-zinc-300 hover:text-white text-xs" title="تعديل">
-                  <i class="fa-solid fa-pen-to-square"></i>
-                </button>
-                <button onclick="toggleActive('${l.id}')" class="p-2 rounded-xl bg-zinc-800 ${l.is_active ? 'text-zinc-300' : 'text-emerald-400'} text-xs" title="إيقاف / تفعيل">
-                  <i class="fa-solid ${l.is_active ? 'fa-pause' : 'fa-play'}"></i>
-                </button>
-                ${devList.length > 0 ? `
-                  <button onclick="resetDevice('${l.id}')" class="p-2 rounded-xl bg-zinc-800 text-amber-400 text-xs" title="فك ربط الأجهزة">
-                    <i class="fa-solid fa-arrows-rotate"></i>
+                ${isMaster ? `
+                  <button onclick="toggleLicenseLock('${l.id}', ${!isLocked})" class="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 ${isLocked ? 'text-amber-400 border border-amber-500/30' : 'text-zinc-400'} text-xs cursor-pointer" title="${isLocked ? 'إلغاء قفل المفتاح' : 'قفل وحماية المفتاح للمدير'}">
+                    <i class="fa-solid ${isLocked ? 'fa-lock' : 'fa-lock-open'}"></i>
                   </button>
                 ` : ''}
-                <button onclick="deleteLicense('${l.id}')" class="p-2 rounded-xl bg-zinc-800 text-red-400 text-xs" title="حذف">
-                  <i class="fa-solid fa-trash"></i>
-                </button>
+                ${(!isMaster && isLocked) ? `
+                  <span class="text-[10px] text-zinc-500 bg-zinc-900 border border-zinc-800 px-2 py-1 rounded-xl flex items-center gap-1" title="محمي بواسطة المدير">
+                    <i class="fa-solid fa-lock text-amber-400 text-[10px]"></i>
+                    <span>محمي</span>
+                  </span>
+                ` : `
+                  ${(isMaster || empPerms.can_edit !== false) ? `
+                    <button onclick="openEditModal('${l.id}')" class="p-2 rounded-xl bg-zinc-800 text-zinc-300 hover:text-white text-xs cursor-pointer" title="تعديل">
+                      <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                  ` : ''}
+                  ${(isMaster || empPerms.can_toggle !== false) ? `
+                    <button onclick="toggleActive('${l.id}')" class="p-2 rounded-xl bg-zinc-800 ${l.is_active ? 'text-zinc-300' : 'text-emerald-400'} text-xs cursor-pointer" title="إيقاف / تفعيل">
+                      <i class="fa-solid ${l.is_active ? 'fa-pause' : 'fa-play'}"></i>
+                    </button>
+                  ` : ''}
+                  ${(isMaster || empPerms.can_delete === true) ? `
+                    <button onclick="deleteLicense('${l.id}')" class="p-2 rounded-xl bg-zinc-800 text-red-400 text-xs cursor-pointer" title="حذف">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  ` : ''}
+                `}
               </div>
             </div>
 
           </div>
         `;
       }).join('');
+
+      updateBulkActionUI();
     }
 
     // ==========================================
@@ -1928,6 +2293,11 @@
       try {
         const l = allLicenses.find(item => item.id === id);
         if (!l) return;
+        const isMaster = currentUserProfile && currentUserProfile.role === 'admin';
+        if (!isMaster && l.is_locked) {
+          showToast('هذا المفتاح مقفل ومحمي بواسطة المدير العام، لا يمكن للموظفين تعديله', 'error');
+          return;
+        }
         document.getElementById('editLicenseId').value = l.id;
         document.getElementById('editSerialDisplay').innerText = l.serial_key;
         document.getElementById('editNote').value = l.note || '';
@@ -2000,7 +2370,7 @@
       }
     }
 
-    // استيراد بيانات العميل من منصة توسع twsaa.com
+    // استيراد بيانات العميل من منصة توسع twsaa.com مع طلب وحفظ رمز الـ API Token آلياً
     async function fetchTwsaaOrder(inputId) {
       const inp = document.getElementById(inputId);
       if (!inp) return;
@@ -2010,14 +2380,33 @@
         inp.focus();
         return;
       }
-      showToast('جاري التحقق من بيانات الطلب...', 'info');
+      showToast('جاري التحقق من بيانات الطلب في منصة توسع...', 'info');
       try {
-        const res = await fetch(`${API_BASE}/api/admin/fetch-twsaa-order`, {
+        let res = await fetch(`${API_BASE}/api/admin/fetch-twsaa-order`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ order_id: rawVal })
         });
-        const data = await res.json();
+        let data = await res.json();
+
+        if (data.status === 'needs_token' || data.status === 'invalid_token') {
+          const userToken = prompt(
+            `${data.message}\n\nأدخل رمز API Token لمتجرك في منصة توسع (twsaa.com) ليتم الحفظ والربط الآلي:`,
+            ''
+          );
+          if (!userToken || !userToken.trim()) {
+            showToast('تم إلغاء الربط، يمكنك كتابة بيانات العميل يدوياً', 'info');
+            return;
+          }
+          showToast('جاري حفظ الرمز والتحقق من الطلب...', 'info');
+          res = await fetch(`${API_BASE}/api/admin/fetch-twsaa-order`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ order_id: rawVal, token: userToken.trim(), save_token: true })
+          });
+          data = await res.json();
+        }
+
         if (data.status === 'success' && data.order) {
           if (inputId === 'genOrderId') {
             if (data.order.phone) document.getElementById('genWhatsapp').value = data.order.phone.replace(/[^0-9]/g, '');
@@ -2036,6 +2425,149 @@
         }
       } catch (e) {
         showToast('تعذر الاتصال بخدمة استيراد الطلبات', 'error');
+      }
+    }
+
+    // ==========================================
+    // دوال إدارة وفك ربط الأجهزة المتصلة
+    // ==========================================
+    let currentActiveLicenseForDevices = null;
+
+    function openDevicesModal(id) {
+      const license = allLicenses.find(l => l.id === id);
+      if (!license) return;
+      currentActiveLicenseForDevices = license;
+
+      const serialEl = document.getElementById('devicesModalSerial');
+      if (serialEl) serialEl.innerText = `السيريال: ${license.serial_key} (${license.note || 'بدون ملاحظة'})`;
+      
+      const devList = Array.isArray(license.device_ids) ? license.device_ids : (license.device_id ? [license.device_id] : []);
+      const maxDev = license.max_devices || 1;
+      const usageEl = document.getElementById('devicesModalUsage');
+      if (usageEl) usageEl.innerText = `${devList.length} / ${maxDev} جهاز`;
+
+      const isMaster = currentUserProfile && currentUserProfile.role === 'admin';
+      const isLocked = !!license.is_locked;
+      const canReset = isMaster || (!isLocked && currentUserProfile?.permissions?.can_reset !== false);
+
+      const unlinkAllBtn = document.getElementById('btnDevicesUnlinkAll');
+      if (unlinkAllBtn) {
+        unlinkAllBtn.style.display = (devList.length > 0 && canReset) ? 'flex' : 'none';
+      }
+
+      const listContainer = document.getElementById('devicesModalList');
+      if (!listContainer) return;
+
+      if (devList.length === 0) {
+        listContainer.innerHTML = `
+          <div class="p-6 text-center text-zinc-500 text-xs bg-zinc-950/60 rounded-2xl border border-zinc-800/80">
+            <i class="fa-solid fa-circle-check text-emerald-400 text-lg mb-2 block"></i>
+            لم يتم ربط أي جهاز بهذا المفتاح حتى الآن.<br>
+            المفتاح متاح وجاهز للتسليم والاستخدام على (${maxDev} جهاز).
+          </div>
+        `;
+      } else {
+        const devInfoList = Array.isArray(license.devices_info) ? license.devices_info : [];
+        listContainer.innerHTML = devList.map((devId, idx) => {
+          const info = devInfoList.find(d => d.id === devId) || {};
+          let devIcon = 'fa-desktop text-blue-400';
+          let devType = info.type || 'جهاز متصل';
+          if (devId.includes('iPhone') || devType.toLowerCase().includes('iphone') || devType.toLowerCase().includes('ios')) {
+            devIcon = 'fa-mobile-screen-button text-blue-400';
+          } else if (devType.toLowerCase().includes('tv') || devType.toLowerCase().includes('car') || devType.toLowerCase().includes('شاشة')) {
+            devIcon = 'fa-tv text-amber-400';
+          } else if (devType.toLowerCase().includes('android')) {
+            devIcon = 'fa-android text-emerald-400';
+          } else if (devType.toLowerCase().includes('windows')) {
+            devIcon = 'fa-windows text-blue-400';
+          } else if (devType.toLowerCase().includes('mac')) {
+            devIcon = 'fa-apple text-zinc-300';
+          }
+
+          const registeredDate = info.at ? formatEnDate(info.at) : (info.activated_at ? formatEnDate(info.activated_at) : 'تاريخ غير مسجل');
+          const shortId = devId.length > 28 ? devId.slice(0, 14) + '...' + devId.slice(-8) : devId;
+          const safeDevId = devId.replace(/'/g, "\\'");
+
+          return `
+            <div class="p-3 bg-zinc-950 border border-zinc-800 rounded-2xl flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3 overflow-hidden">
+                <div class="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-base shrink-0">
+                  <i class="fa-solid ${devIcon}"></i>
+                </div>
+                <div class="overflow-hidden">
+                  <div class="font-bold text-white text-xs flex items-center gap-1.5">
+                    <span>الجهاز ${idx + 1}: ${devType}</span>
+                  </div>
+                  <div class="font-mono text-[10px] text-zinc-400 truncate flex items-center gap-1 mt-0.5" title="${devId}">
+                    <span>ID: ${shortId}</span>
+                    <button onclick="copyToClipboard('${safeDevId}')" class="text-zinc-500 hover:text-zinc-300 p-0.5 cursor-pointer"><i class="fa-regular fa-copy text-[10px]"></i></button>
+                  </div>
+                  <div class="text-[10px] text-zinc-500 mt-0.5">تاريخ الارتباط: ${registeredDate}</div>
+                </div>
+              </div>
+
+              ${canReset ? `
+                <button onclick="confirmUnlinkDevice('${license.id}', '${safeDevId}')" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 cursor-pointer" title="فك ارتباط هذا الجهاز بالتحديد">
+                  <i class="fa-solid fa-link-slash text-xs"></i>
+                  <span>فك الربط</span>
+                </button>
+              ` : `
+                <span class="text-[10px] text-zinc-500 bg-zinc-900 px-2 py-1 rounded-lg border border-zinc-800">محمي</span>
+              `}
+            </div>
+          `;
+        }).join('');
+      }
+
+      showModal('devicesModal');
+    }
+
+    function closeDevicesModal() {
+      hideModal('devicesModal');
+      currentActiveLicenseForDevices = null;
+    }
+
+    async function confirmUnlinkDevice(licenseId, devId) {
+      if (!confirm('هل أنت متأكد من فك ارتباط هذا الجهاز المحدد؟\\nسيتمكن العميل من تفعيل جهاز جديد بدلاً منه.')) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/reset-device`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: licenseId, device_id: devId })
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+          showToast('تم فك ارتباط الجهاز المحدد بنجاح');
+          await loadLicenses();
+          openDevicesModal(licenseId);
+        } else {
+          showToast(data.message || 'تعذر فك ارتباط الجهاز', 'error');
+        }
+      } catch (e) {
+        showToast('تعذر الاتصال بالخادم', 'error');
+      }
+    }
+
+    async function confirmUnlinkAllDevices() {
+      if (!currentActiveLicenseForDevices) return;
+      const licenseId = currentActiveLicenseForDevices.id;
+      if (!confirm('هل أنت متأكد من فك ارتباط كافة الأجهزة المسجلة على هذا المفتاح؟')) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/reset-device`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: licenseId })
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+          showToast('تم فك ارتباط كافة الأجهزة بنجاح');
+          await loadLicenses();
+          openDevicesModal(licenseId);
+        } else {
+          showToast(data.message || 'تعذر فك ارتباط الأجهزة', 'error');
+        }
+      } catch (e) {
+        showToast('تعذر الاتصال بالخادم', 'error');
       }
     }
 
@@ -2374,6 +2906,74 @@ ${getSystemBaseUrl()}/
     let currentUserProfile = null;
     let cachedEmployeesList = [];
 
+    // تعريف الصلاحيات الـ 12 الشاملة للموظفين
+    const EMPLOYEE_PERMISSIONS_DEF = [
+      { key: 'can_generate', label: 'توليد مفاتيح جديدة', default: true, icon: 'fa-key' },
+      { key: 'can_toggle', label: 'إيقاف / تنشيط المفتاح', default: true, icon: 'fa-power-off' },
+      { key: 'can_edit', label: 'تعديل بيانات المفتاح', default: true, icon: 'fa-pen-to-square' },
+      { key: 'can_reset', label: 'فك ربط الأجهزة المتصلة', default: true, icon: 'fa-arrows-rotate' },
+      { key: 'can_extend', label: 'تمديد فترة الصلاحية', default: true, icon: 'fa-calendar-plus' },
+      { key: 'can_delete', label: 'حذف المفاتيح من النظام', default: false, icon: 'fa-trash-can', danger: true },
+      { key: 'can_bulk', label: 'تنفيذ العمليات الجماعية', default: false, icon: 'fa-layer-group' },
+      { key: 'can_view_all', label: 'مشاهدة كافة مفاتيح النظام', default: true, icon: 'fa-eye' },
+      { key: 'can_view_stats', label: 'مشاهدة تقارير الإحصائيات', default: true, icon: 'fa-chart-pie' },
+      { key: 'can_view_guide', label: 'مشاهدة دليل الأجهزة والروابط', default: true, icon: 'fa-book-open' },
+      { key: 'can_manage_groups', label: 'إدارة وإنشاء المجموعات', default: false, icon: 'fa-users-gear' },
+      { key: 'can_import_orders', label: 'استيراد طلبات منصة توسعة', default: true, icon: 'fa-cart-shopping' }
+    ];
+
+    const PERM_BADGE_CONFIG = {
+      can_generate: { label: 'توليد', class: 'bg-purple-500/10 text-purple-300 border border-purple-500/20' },
+      can_toggle: { label: 'إيقاف/تنشيط', class: 'bg-zinc-800 text-zinc-300 border border-zinc-700/50' },
+      can_edit: { label: 'تعديل', class: 'bg-blue-500/10 text-blue-300 border border-blue-500/20' },
+      can_reset: { label: 'فك أجهزة', class: 'bg-amber-500/10 text-amber-300 border border-amber-500/20' },
+      can_extend: { label: 'تمديد', class: 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/20' },
+      can_delete: { label: 'حذف', class: 'bg-red-500/10 text-red-400 border border-red-500/20' },
+      can_bulk: { label: 'عمليات جماعية', class: 'bg-indigo-500/10 text-indigo-300 border border-indigo-500/20' },
+      can_view_all: { label: 'مشاهدة الكل', class: 'bg-zinc-800 text-zinc-300 border border-zinc-700/50' },
+      can_view_stats: { label: 'إحصائيات', class: 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20' },
+      can_view_guide: { label: 'دليل الأجهزة', class: 'bg-orange-500/10 text-orange-300 border border-orange-500/20' },
+      can_manage_groups: { label: 'مجموعات', class: 'bg-teal-500/10 text-teal-300 border border-teal-500/20' },
+      can_import_orders: { label: 'استيراد توسعة', class: 'bg-sky-500/10 text-sky-300 border border-sky-500/20' }
+    };
+
+    function renderPermissionsCheckboxes(containerId, prefix, existingPerms = null) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      container.innerHTML = EMPLOYEE_PERMISSIONS_DEF.map(item => {
+        let checked = item.default;
+        if (existingPerms && existingPerms[item.key] !== undefined) {
+          checked = !!existingPerms[item.key];
+        }
+        const inputId = `${prefix}_${item.key}`;
+        return `
+          <label class="flex items-center gap-2 p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800/80 border border-zinc-800 cursor-pointer transition select-none ${item.danger ? 'border-red-900/30' : ''}">
+            <input type="checkbox" id="${inputId}" data-perm="${item.key}" ${checked ? 'checked' : ''} class="w-4 h-4 rounded text-purple-600 focus:ring-0 bg-zinc-800 border-zinc-700 cursor-pointer accent-purple-600">
+            <span class="flex items-center gap-1.5 text-zinc-300 text-[11px] ${item.danger ? 'text-red-300 font-bold' : ''}">
+              <i class="fa-solid ${item.icon} text-[10px] text-zinc-400"></i>
+              <span>${item.label}</span>
+            </span>
+          </label>
+        `;
+      }).join('');
+    }
+
+    function collectPermissionsFromUI(prefix) {
+      const perms = {};
+      EMPLOYEE_PERMISSIONS_DEF.forEach(item => {
+        const el = document.getElementById(`${prefix}_${item.key}`);
+        perms[item.key] = el ? el.checked : item.default;
+      });
+      return perms;
+    }
+
+    function setAllPermissions(prefix, checked) {
+      EMPLOYEE_PERMISSIONS_DEF.forEach(item => {
+        const el = document.getElementById(`${prefix}_${item.key}`);
+        if (el) el.checked = checked;
+      });
+    }
+
     // إدارة القائمة المنسدلة للملف الشخصي
     function toggleProfileDropdown() {
       const menu = document.getElementById('profileDropdownMenu');
@@ -2498,14 +3098,7 @@ ${getSystemBaseUrl()}/
       document.getElementById('editEmpPass').value = '';
       document.getElementById('editEmpActive').checked = emp.is_active !== false;
 
-      const p = emp.permissions || {};
-      document.getElementById('editPermGenerate').checked = p.can_generate !== false;
-      document.getElementById('editPermToggle').checked = p.can_toggle !== false;
-      document.getElementById('editPermReset').checked = p.can_reset !== false;
-      document.getElementById('editPermDelete').checked = p.can_delete === true;
-      document.getElementById('editPermStats').checked = p.can_view_stats !== false;
-      document.getElementById('editPermGuide').checked = p.can_view_guide !== false;
-      document.getElementById('editPermGroups').checked = p.can_manage_groups === true;
+      renderPermissionsCheckboxes('editEmpPermsContainer', 'editPerm', emp.permissions || {});
 
       showModal('editEmployeeModal');
     }
@@ -2529,16 +3122,7 @@ ${getSystemBaseUrl()}/
         return;
       }
 
-      const permissions = {
-        can_generate: document.getElementById('editPermGenerate').checked,
-        can_toggle: document.getElementById('editPermToggle').checked,
-        can_reset: document.getElementById('editPermReset').checked,
-        can_delete: document.getElementById('editPermDelete').checked,
-        can_view_stats: document.getElementById('editPermStats').checked,
-        can_view_guide: document.getElementById('editPermGuide').checked,
-        can_manage_groups: document.getElementById('editPermGroups').checked,
-        can_view_all: true
-      };
+      const permissions = collectPermissionsFromUI('editPerm');
 
       btn.disabled = true;
       try {
@@ -2654,6 +3238,7 @@ ${getSystemBaseUrl()}/
     })();
 
     function openEmployeesModal() {
+      renderPermissionsCheckboxes('newEmpPermsContainer', 'newPerm', null);
       showModal('employeesModal');
       try {
         loadEmployees();
@@ -2682,6 +3267,13 @@ ${getSystemBaseUrl()}/
           container.innerHTML = data.employees.map(emp => {
             const cleanPhone = (emp.phone || '').replace(/[^0-9]/g, '');
             const p = emp.permissions || {};
+            const badgesHtml = EMPLOYEE_PERMISSIONS_DEF
+              .filter(item => p[item.key] === true || (item.default && p[item.key] !== false))
+              .map(item => {
+                const conf = PERM_BADGE_CONFIG[item.key] || { label: item.label, class: 'bg-zinc-800 text-zinc-300' };
+                return `<span class="px-1.5 py-0.5 rounded text-[10px] ${conf.class}">${conf.label}</span>`;
+              }).join('');
+
             return `
             <div class="bg-zinc-950 p-3.5 rounded-2xl border border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
@@ -2703,19 +3295,13 @@ ${getSystemBaseUrl()}/
                 
                 <!-- شارات الصلاحيات -->
                 <div class="flex items-center gap-1 flex-wrap mt-1.5 text-[10px]">
-                  ${p.can_generate !== false ? '<span class="bg-purple-500/10 text-purple-300 border border-purple-500/20 px-1.5 py-0.5 rounded">توليد</span>' : ''}
-                  ${p.can_toggle !== false ? '<span class="bg-zinc-800 text-zinc-300 px-1.5 py-0.5 rounded">إيقاف/تفعيل</span>' : ''}
-                  ${p.can_reset !== false ? '<span class="bg-zinc-800 text-zinc-300 px-1.5 py-0.5 rounded">تصفير</span>' : ''}
-                  ${p.can_view_stats !== false ? '<span class="bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 px-1.5 py-0.5 rounded">إحصائيات</span>' : ''}
-                  ${p.can_view_guide !== false ? '<span class="bg-amber-500/10 text-amber-300 border border-amber-500/20 px-1.5 py-0.5 rounded">دليل الأجهزة</span>' : ''}
-                  ${p.can_manage_groups === true ? '<span class="bg-blue-500/10 text-blue-300 border border-blue-500/20 px-1.5 py-0.5 rounded">مجموعات</span>' : ''}
-                  ${p.can_delete === true ? '<span class="bg-red-500/10 text-red-400 border border-red-500/20 px-1.5 py-0.5 rounded">حذف</span>' : ''}
+                  ${badgesHtml || '<span class="text-zinc-500 text-[10px]">بدون صلاحيات إضافية</span>'}
                 </div>
 
                 <div class="flex items-center gap-3 text-[10px] text-zinc-400 mt-1 font-mono">
-                  <span>أكواد هذا الشهر: <strong class="text-emerald-400">${emp.month_keys}</strong></span>
+                  <span>أكواد هذا الشهر: <strong class="text-emerald-400">${emp.month_keys || 0}</strong></span>
                   <span>•</span>
-                  <span>إجمالي الأكواد: <strong class="text-zinc-200">${emp.total_keys}</strong></span>
+                  <span>إجمالي الأكواد: <strong class="text-zinc-200">${emp.total_keys || 0}</strong></span>
                 </div>
               </div>
 
@@ -2756,16 +3342,7 @@ ${getSystemBaseUrl()}/
         return;
       }
 
-      const permissions = {
-        can_generate: document.getElementById('permGenerate').checked,
-        can_toggle: document.getElementById('permToggle').checked,
-        can_reset: document.getElementById('permReset').checked,
-        can_delete: document.getElementById('permDelete').checked,
-        can_view_stats: document.getElementById('permStats') ? document.getElementById('permStats').checked : true,
-        can_view_guide: document.getElementById('permGuide') ? document.getElementById('permGuide').checked : true,
-        can_manage_groups: document.getElementById('permGroups') ? document.getElementById('permGroups').checked : false,
-        can_view_all: true
-      };
+      const permissions = collectPermissionsFromUI('newPerm');
 
       try {
         const res = await fetch(`${API_BASE}/api/admin/employees`, {
@@ -2779,6 +3356,8 @@ ${getSystemBaseUrl()}/
           document.getElementById('newEmpName').value = '';
           document.getElementById('newEmpEmail').value = '';
           document.getElementById('newEmpPass').value = '';
+          if (document.getElementById('newEmpPhone')) document.getElementById('newEmpPhone').value = '';
+          renderPermissionsCheckboxes('newEmpPermsContainer', 'newPerm', null);
           alertBox.classList.add('hidden');
           loadEmployees();
         } else {
@@ -2923,6 +3502,44 @@ ${getSystemBaseUrl()}/
         });
       });
     });
+
+    // ==========================================
+    // دعم تثبيت لوحة التحكم كتطبيق ويب تقدمي (PWA)
+    // ==========================================
+    let deferredPwaPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPwaPrompt = e;
+      const btn = document.getElementById('btnPwaInstall');
+      if (btn) {
+        btn.classList.remove('hidden');
+        btn.classList.add('inline-flex');
+      }
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredPwaPrompt = null;
+      const btn = document.getElementById('btnPwaInstall');
+      if (btn) btn.classList.add('hidden');
+      showToast('✓ تم تثبيت لوحة التحكم كتطبيق بنجاح على جهازك!');
+    });
+
+    async function installDashboardPwa() {
+      if (!deferredPwaPrompt) {
+        showToast('لوحة التحكم مثبتة بالفعل أو يعمل جهازك عبر المتصفح مباشرة', 'info');
+        return;
+      }
+      try {
+        deferredPwaPrompt.prompt();
+        const choice = await deferredPwaPrompt.userChoice;
+        if (choice && choice.outcome === 'accepted') {
+          showToast('جاري تثبيت لوحة التحكم...');
+        }
+      } catch (e) {
+        console.warn('PWA install error:', e);
+      }
+      deferredPwaPrompt = null;
+    }
 
     // وظائف مساعدة
     function copyToClipboard(text) {
