@@ -1,0 +1,9 @@
+licenses.json
+*.backup.json
+*.backup-prev.json
+*.corrupt.*
+*.tmp.*
+backups/
+.env
+node_modules/
+scratch/
