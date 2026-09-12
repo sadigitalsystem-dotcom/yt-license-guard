@@ -1326,6 +1326,40 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    // مسارات ملفات PWA والأيقونات الثابتة
+    if (req.method === 'GET' && pathname === '/manifest.json') {
+      const manifestPath = path.join(__dirname, 'manifest.json');
+      if (fs.existsSync(manifestPath)) {
+        res.writeHead(200, { 'Content-Type': 'application/manifest+json; charset=utf-8' });
+        res.end(fs.readFileSync(manifestPath));
+      } else {
+        res.writeHead(404); res.end();
+      }
+      return;
+    }
+
+    if (req.method === 'GET' && pathname === '/sw.js') {
+      const swPath = path.join(__dirname, 'sw.js');
+      if (fs.existsSync(swPath)) {
+        res.writeHead(200, { 'Content-Type': 'application/javascript; charset=utf-8' });
+        res.end(fs.readFileSync(swPath));
+      } else {
+        res.writeHead(404); res.end();
+      }
+      return;
+    }
+
+    if (req.method === 'GET' && (pathname === '/app_icon.png' || pathname === '/favicon.ico')) {
+      const iconPath = path.join(__dirname, 'app_icon.png');
+      if (fs.existsSync(iconPath)) {
+        res.writeHead(200, { 'Content-Type': 'image/png' });
+        res.end(fs.readFileSync(iconPath));
+      } else {
+        res.writeHead(404); res.end();
+      }
+      return;
+    }
+
     // 2. تمويه وإخفاء المسارات التقليدية للمتطفلين والفضوليين (تحويل صامت للواجهة الرئيسية)
     if (req.method === 'GET' && (
       pathname === '/admin' || pathname === '/admin/' || 
