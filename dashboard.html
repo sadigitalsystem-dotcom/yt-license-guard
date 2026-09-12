@@ -1609,6 +1609,8 @@
       setTxt('thActions', t.thActions);
 
       renderLicenses();
+        updateBrowserAutoMirror();
+        checkAndPromptAutoRestore(allLicenses.length, (cachedEmployeesList || []).length);
     }
 
     function toggleLanguage() {
@@ -3860,6 +3862,95 @@ ${getSystemBaseUrl()}/
       };
       reader.readAsText(file);
     }
-  </script>
+  
+    // محرك المرآة السحابية بالمتصفح (Browser Auto-Mirror) لحماية البيانات من الحذف
+    function updateBrowserAutoMirror() {
+      if (!allLicenses || allLicenses.length === 0) return;
+      try {
+        const mirror = {
+          licenses: allLicenses,
+          employees: cachedEmployeesList || [],
+          settings: currentSettings,
+          saved_at: new Date().toISOString()
+        };
+        localStorage.setItem('yt_plus_admin_data_mirror', JSON.stringify(mirror));
+      } catch (e) {}
+    }
+
+    function checkAndPromptAutoRestore(serverLicensesCount, serverEmployeesCount) {
+      if (serverLicensesCount > 0 || serverEmployeesCount > 0) return;
+      const raw = localStorage.getItem('yt_plus_admin_data_mirror');
+      if (!raw) return;
+      try {
+        const mirror = JSON.parse(raw);
+        const licCount = (mirror.licenses || []).length;
+        const empCount = (mirror.employees || []).length;
+        if (licCount > 0 || empCount > 0) {
+          showAutoRestoreBanner(mirror, licCount, empCount);
+        }
+      } catch (e) {}
+    }
+
+    function showAutoRestoreBanner(mirror, licCount, empCount) {
+      let banner = document.getElementById('autoRestoreAlertBanner');
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'autoRestoreAlertBanner';
+        banner.className = 'bg-gradient-to-r from-amber-600/90 to-red-600/90 text-white p-4 rounded-2xl mb-6 border border-amber-400 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4 animate-bounce';
+        const mainContainer = document.querySelector('main') || document.body;
+        mainContainer.insertBefore(banner, mainContainer.firstChild);
+      }
+      banner.innerHTML = `
+        <div class="flex items-center gap-3 text-right">
+          <div class="w-10 h-10 rounded-xl bg-black/30 flex items-center justify-center text-xl shrink-0">
+            <i class="fa-solid fa-shield-halved text-amber-300"></i>
+          </div>
+          <div>
+            <h4 class="font-bold text-sm sm:text-base">تم رصد إعادة تشغيل لسيرفر Render المؤقت!</h4>
+            <p class="text-xs text-amber-100">توجد لديك مرآة محفوظة بمتصفحك تضم (${licCount} مفتاح و ${empCount} موظف). هل ترغب في استعادتها وتثبيتها فوراً؟</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <button onclick="executeAutoRestore()" class="bg-white text-zinc-900 hover:bg-zinc-100 font-extrabold text-xs px-4 py-2.5 rounded-xl shadow transition active:scale-95 flex items-center gap-1.5">
+            <i class="fa-solid fa-cloud-arrow-up text-amber-600"></i>
+            <span>استعادة البيانات فوراً ✓</span>
+          </button>
+          <button onclick="document.getElementById('autoRestoreAlertBanner').remove()" class="text-white/80 hover:text-white p-2 text-xs">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      `;
+      banner.classList.remove('hidden');
+    }
+
+    async function executeAutoRestore() {
+      const raw = localStorage.getItem('yt_plus_admin_data_mirror');
+      if (!raw) return;
+      const banner = document.getElementById('autoRestoreAlertBanner');
+      if (banner) {
+        banner.innerHTML = '<div class="py-2 text-center w-full font-bold text-sm"><i class="fa-solid fa-spinner fa-spin mr-2"></i> جاري استعادة ودمج البيانات بالسيرفر...</div>';
+      }
+      try {
+        const mirror = JSON.parse(raw);
+        const res = await fetch(`${API_BASE}/api/admin/import-backup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ backup_data: mirror })
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+          showToast('✓ تمت استعادة كافة الموظفين والمفاتيح بنجاح تام!');
+          if (banner) banner.remove();
+          await loadLicenses();
+          if (typeof loadEmployees === 'function') await loadEmployees();
+        } else {
+          showToast(data.message || 'فشلت الاستعادة التلقائية', 'error');
+        }
+      } catch (err) {
+        showToast('تعذر الاتصال بالسيرفر للاستعادة', 'error');
+      }
+    }
+
+</script>
 </body>
 </html>

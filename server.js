@@ -66,6 +66,63 @@ function parseDeviceType(ua = '', devId = '', explicitType = '') {
   return '📱 جهاز متصل';
 }
 
+
+// ========================================================
+// محرك المزامنة السحابية الدائم (Cloud Database Engine)
+// يدعم MongoDB Atlas السحابي المجاني مدى الحياة
+// ========================================================
+const MONGODB_URI = (process.env.MONGODB_URI || process.env.MONGO_URL || '').trim();
+let mongoClientInstance = null;
+let mongoDbInstance = null;
+let isMongoConnecting = false;
+
+async function initCloudDatabase(licenseDbInstance) {
+  if (!MONGODB_URI) {
+    console.log('ℹ️ لم يتم تحديد MONGODB_URI، العمل بوضع التخزين المحلي الآمن.');
+    return null;
+  }
+
+  if (mongoDbInstance || isMongoConnecting) return mongoDbInstance;
+  isMongoConnecting = true;
+
+  try {
+    const { MongoClient, ServerApiVersion } = await import('mongodb');
+    const client = new MongoClient(MONGODB_URI, {
+      serverApi: {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
+      },
+      connectTimeoutMS: 10000,
+      socketTimeoutMS: 20000
+    });
+
+    await client.connect();
+    console.log('☁️ [Cloud DB] تم الاتصال بنجاح بقاعدة البيانات السحابية الدائمة (MongoDB Atlas)!');
+    
+    let dbName = 'yt_plus';
+    if (MONGODB_URI.includes('.net/')) {
+      const parsed = MONGODB_URI.split('.net/')[1].split('?')[0].trim();
+      if (parsed) dbName = parsed;
+    }
+
+    mongoDbInstance = client.db(dbName);
+    mongoClientInstance = client;
+    isMongoConnecting = false;
+
+    if (licenseDbInstance) {
+      licenseDbInstance.mongoDb = mongoDbInstance;
+      await licenseDbInstance.syncFromCloud();
+    }
+
+    return mongoDbInstance;
+  } catch (err) {
+    isMongoConnecting = false;
+    console.error('⚠️ [Cloud DB] تعذر الاتصال بـ MongoDB Atlas، الاعتماد على التخزين المحلي:', err.message);
+    return null;
+  }
+}
+
 // إدارة قاعدة البيانات كملف JSON لضمان التوافقية بنسبة 100%
 class LicenseDB {
   constructor(filepath) {
@@ -75,6 +132,7 @@ class LicenseDB {
     if (!fs.existsSync(this.backupDir)) {
       try { fs.mkdirSync(this.backupDir, { recursive: true }); } catch (_) {}
     }
+    this.mongoDb = mongoDbInstance || null;
     this.data = { licenses: [], admin: null, settings: null, employees: [], family_groups: [] };
     this.load();
   }
@@ -301,6 +359,7 @@ class LicenseDB {
 
       // 4. حفظ اللقطة الدورية
       this.createPeriodicSnapshot();
+      this.syncToCloud();
     } catch (err) {
       console.error('Failed to write licenses file atomically, fallback direct:', err);
       try {
@@ -2750,7 +2809,10 @@ const server = http.createServer(async (req, res) => {
 
       return sendJson(res, 200, {
         status: 'success',
-        storage_type: isPersistent ? 'قرص تخزين دائم مخصص (Persistent Disk)' : 'تخزين محلي قياسي محمي بنسخ ذكي (Protected Standard)',
+        storage_type: Boolean(db.mongoDb) ? 'قاعدة بيانات سحابية دائمة (MongoDB Atlas Cloud DB ✓)' : (isPersistent ? 'قرص تخزين دائم مخصص (Persistent Disk)' : 'تخزين محلي قياسي محمي بنسخ ذكي (Protected Standard)'),
+        is_persistent: isPersistent || Boolean(db.mongoDb),
+        is_cloud_db: Boolean(db.mongoDb),
+        cloud_type: Boolean(db.mongoDb) ? 'MongoDB Atlas' : null,
         is_persistent: isPersistent,
         data_dir: DATA_DIR,
         db_path: DB_PATH,
@@ -2779,4 +2841,5 @@ server.listen(PORT, () => {
   console.log(`📡 نقطة التفعيل: http://localhost:${PORT}/api/activate`);
   console.log('=======================================================');
   startKeepAliveEngine();
+  initCloudDatabase(db);
 });
