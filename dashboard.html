@@ -1324,12 +1324,16 @@
         genBtn: 'توليد كود',
         newGroupBtn: 'مجموعة جديدة',
         statTotal: 'إجمالي الأكواد',
+        statDescTotal: 'كافة الاشتراكات الصادرة بالنظام',
         statTotalDesc: 'كافة الاشتراكات الصادرة بالنظام',
         statActive: 'الاشتراكات النشطة',
+        statDescActive: 'مفعلة وتعمل حالياً على الأجهزة',
         statActiveDesc: 'مفعلة وتعمل حالياً على الأجهزة',
         statPending: 'أكواد للتسليم',
+        statDescPending: 'جاهزة للتسليم بانتظار التفعيل',
         statPendingDesc: 'جاهزة للتسليم بانتظار التفعيل',
         statExpired: 'منتهي / محظور',
+        statDescExpired: 'منتهية الصلاحية أو محظورة',
         statExpiredDesc: 'منتهية الصلاحية أو محظورة',
         searchPlaceholder: 'بحث برقم السيريال، ملاحظة، واتساب، أو جهاز...',
         filterAllGroups: 'كافة المجموعات',
@@ -1364,12 +1368,16 @@
         genBtn: 'Generate Key',
         newGroupBtn: 'New Group',
         statTotal: 'Total Keys',
+        statDescTotal: 'All issued license keys',
         statTotalDesc: 'All issued license keys',
         statActive: 'Active Subscriptions',
+        statDescActive: 'Currently running on devices',
         statActiveDesc: 'Currently running on devices',
         statPending: 'Ready to Deliver',
+        statDescPending: 'Ready to deliver, pending activation',
         statPendingDesc: 'Ready to deliver, pending activation',
         statExpired: 'Expired / Blocked',
+        statDescExpired: 'Expired or suspended keys',
         statExpiredDesc: 'Expired or suspended keys',
         searchPlaceholder: 'Search serial, note, WhatsApp, or device...',
         filterAllGroups: 'All Groups',
@@ -1436,13 +1444,13 @@
       setTxt('langCurrentBadge', (lang || 'ar').toUpperCase());
 
       setTxt('statTitleTotal', t.statTotal);
-      setTxt('statDescTotal', t.statDescTotal);
+      setTxt('statDescTotal', t.statDescTotal || t.statTotalDesc || 'كافة الاشتراكات الصادرة بالنظام');
       setTxt('statTitleActive', t.statActive);
-      setTxt('statDescActive', t.statDescActive);
+      setTxt('statDescActive', t.statDescActive || t.statActiveDesc || 'مفعلة وتعمل حالياً على الأجهزة');
       setTxt('statTitlePending', t.statPending);
-      setTxt('statDescPending', t.statDescPending);
+      setTxt('statDescPending', t.statDescPending || t.statPendingDesc || 'جاهزة للتسليم بانتظار التفعيل');
       setTxt('statTitleExpired', t.statExpired);
-      setTxt('statDescExpired', t.statDescExpired);
+      setTxt('statDescExpired', t.statDescExpired || t.statExpiredDesc || 'منتهية الصلاحية أو محظورة');
 
       const sInput = document.getElementById('searchInput');
       if (sInput) sInput.setAttribute('placeholder', t.searchPlaceholder);
@@ -1464,10 +1472,13 @@
       applyLanguage(currentLang === 'ar' ? 'en' : 'ar');
     }
 
-    // بدء التشغيل وجلب البيانات
-    window.addEventListener('DOMContentLoaded', () => {
+    // بدء التشغيل وجلب البيانات بتسلسل منظم يضمن التعرف على هوية المستخدم وصلاحياته أولاً
+    window.addEventListener('DOMContentLoaded', async () => {
       applyLanguage(currentLang);
-      loadLicenses();
+      try {
+        await checkCurrentUser();
+      } catch (e) {}
+      await loadLicenses();
     });
 
     async function loadLicenses() {
@@ -3224,6 +3235,11 @@ ${getSystemBaseUrl()}/
             const genBtn = document.getElementById('btnGenModal');
             if (genBtn) genBtn.classList.remove('hidden');
           }
+
+          // إعادة توليد جدول المفاتيح لضمان ظهور كافة أزرار التحكم وأيقونات المدير العام فوراً
+          if (Array.isArray(allLicenses) && allLicenses.length > 0) {
+            renderLicenses();
+          }
         }
       } catch (e) {}
     }
@@ -3489,9 +3505,8 @@ ${getSystemBaseUrl()}/
       }
     }
 
-    // فحص هوية المستخدم عند بدء التشغيل وتفعيل إغلاق النوافذ بالخلفية
+    // تفعيل إغلاق النوافذ المنبثقة عند النقر على الخلفية المظلمة
     window.addEventListener('DOMContentLoaded', () => {
-      checkCurrentUser();
 
       // إغلاق أي نافذة منبثقة عند النقر على الخلفية المظلمة خارج الصندوق
       document.querySelectorAll('[id$="Modal"]').forEach(modal => {
