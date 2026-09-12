@@ -1,0 +1,28 @@
+{
+  "licenses": [],
+  "admin": {
+    "email": "sa.digitalsystem@gmail.com",
+    "password": "scrypt:8295965704f8b29c426572e54b26a143:42d646b39b89e68551ad444e25201f4080bd7a2bd33ae2434e66803536f6cb205b9d608676626f94dfd53f550d646a718e1a6e024427a65edd2fa5eb7cdffbbc"
+  },
+  "settings": {
+    "custom_groups": [
+      "عام",
+      "VIP",
+      "عائلي"
+    ],
+    "apk_drive_link": "",
+    "windows_drive_link": "",
+    "custom_domain": "https://plus.digitalsystemsa.com"
+  },
+  "employees": [],
+  "family_groups": [
+    {
+      "id": "fam-group-1",
+      "name": "مجموعة العائلة الأولى (Google Family 1)",
+      "max_slots": 5,
+      "created_at": "2026-09-09T06:31:06.208Z",
+      "invite_link": "https://families.google.com/familylink/",
+      "members": []
+    }
+  ]
+}
