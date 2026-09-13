@@ -75,6 +75,7 @@ const MONGODB_URI = (process.env.MONGODB_URI || process.env.MONGO_URL || '').tri
 let mongoClientInstance = null;
 let mongoDbInstance = null;
 let isMongoConnecting = false;
+let lastCloudDbError = null;
 
 async function initCloudDatabase(licenseDbInstance) {
   if (!MONGODB_URI) {
@@ -86,13 +87,15 @@ async function initCloudDatabase(licenseDbInstance) {
   isMongoConnecting = true;
 
   try {
-    const { MongoClient, ServerApiVersion } = await import('mongodb');
-    const client = new MongoClient(MONGODB_URI, {
-      serverApi: {
-        version: ServerApiVersion.v1,
-        strict: true,
-        deprecationErrors: true,
-      },
+    const { MongoClient } = await import('mongodb');
+
+    // ضمان توجيه المصادقة لـ admin database الخاص بمستخدمي Atlas إذا لم يكن محدداً
+    let connectionUri = MONGODB_URI;
+    if (!connectionUri.includes('authSource=')) {
+      connectionUri += (connectionUri.includes('?') ? '&' : '?') + 'authSource=admin';
+    }
+
+    const client = new MongoClient(connectionUri, {
       connectTimeoutMS: 10000,
       socketTimeoutMS: 20000
     });
@@ -103,11 +106,12 @@ async function initCloudDatabase(licenseDbInstance) {
     let dbName = 'yt_plus';
     if (MONGODB_URI.includes('.net/')) {
       const parsed = MONGODB_URI.split('.net/')[1].split('?')[0].trim();
-      if (parsed) dbName = parsed;
+      if (parsed && parsed !== '') dbName = parsed;
     }
 
     mongoDbInstance = client.db(dbName);
     mongoClientInstance = client;
+    lastCloudDbError = null;
     isMongoConnecting = false;
 
     if (licenseDbInstance) {
@@ -118,6 +122,7 @@ async function initCloudDatabase(licenseDbInstance) {
     return mongoDbInstance;
   } catch (err) {
     isMongoConnecting = false;
+    lastCloudDbError = err.message;
     console.error('⚠️ [Cloud DB] تعذر الاتصال بـ MongoDB Atlas، الاعتماد على التخزين المحلي:', err.message);
     return null;
   }
@@ -337,6 +342,60 @@ class LicenseDB {
     }
   }
 
+  async syncFromCloud() {
+    if (!this.mongoDb) return;
+    try {
+      const col = this.mongoDb.collection('system_state');
+      const doc = await col.findOne({ _id: 'master_data' });
+      if (doc && doc.data && typeof doc.data === 'object') {
+        const cloudData = doc.data;
+        const cloudKeys = Array.isArray(cloudData.licenses) ? cloudData.licenses : [];
+        const localKeys = Array.isArray(this.data.licenses) ? this.data.licenses : [];
+        
+        console.log(`☁️ [Cloud DB] فحص البيانات السحابية: ${cloudKeys.length} ترخيص، ${(cloudData.employees || []).length} موظف.`);
+        
+        if (cloudKeys.length >= localKeys.length) {
+          this.data = cloudData;
+          try {
+            fs.writeFileSync(this.filepath, JSON.stringify(this.data, null, 2), 'utf8');
+            fs.copyFileSync(this.filepath, `${this.filepath}.backup.json`);
+          } catch (_) {}
+          console.log('✅ [Cloud DB] تمت مزامنة واسترجاع كافة البيانات من السحابة بنجاح!');
+        } else {
+          // البيانات المحلية تحتوي على تراخيص أكثر، نرفعها لتحديث السحابة
+          await this.syncToCloud();
+        }
+      } else {
+        console.log('🌱 [Cloud DB] السحابة فارغة، تهيئة السحابة بالبيانات المحلية الحالية...');
+        await this.syncToCloud();
+      }
+    } catch (err) {
+      console.error('⚠️ [Cloud DB] خطأ أثناء syncFromCloud:', err.message);
+    }
+  }
+
+  async syncToCloud() {
+    if (!this.mongoDb) return;
+    try {
+      const col = this.mongoDb.collection('system_state');
+      await col.updateOne(
+        { _id: 'master_data' },
+        { 
+          $set: { 
+            data: this.data, 
+            updatedAt: new Date(),
+            total_licenses: (this.data.licenses || []).length,
+            total_employees: (this.data.employees || []).length
+          } 
+        },
+        { upsert: true }
+      );
+      console.log(`☁️ [Cloud DB] تم حفظ ${(this.data.licenses || []).length} ترخيصاً في السحابة الدائمة بنجاح.`);
+    } catch (err) {
+      console.error('⚠️ [Cloud DB] خطأ أثناء syncToCloud:', err.message);
+    }
+  }
+
   save() {
     try {
       const backupPath = `${this.filepath}.backup.json`;
@@ -357,9 +416,11 @@ class LicenseDB {
         fs.copyFileSync(this.filepath, backupPath);
       } catch (_) {}
 
-      // 4. حفظ اللقطة الدورية
+      // 4. حفظ اللقطة الدورية والمزامنة السحابية
       this.createPeriodicSnapshot();
-      this.syncToCloud();
+      if (this.mongoDb) {
+        this.syncToCloud().catch(err => console.warn('⚠️ syncToCloud background warning:', err.message));
+      }
     } catch (err) {
       console.error('Failed to write licenses file atomically, fallback direct:', err);
       try {
@@ -2813,7 +2874,7 @@ const server = http.createServer(async (req, res) => {
         is_persistent: isPersistent || Boolean(db.mongoDb),
         is_cloud_db: Boolean(db.mongoDb),
         cloud_type: Boolean(db.mongoDb) ? 'MongoDB Atlas' : null,
-        is_persistent: isPersistent,
+        cloud_error: lastCloudDbError,
         data_dir: DATA_DIR,
         db_path: DB_PATH,
         file_size_kb: fileSizeKb,
