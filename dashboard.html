@@ -12,6 +12,9 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <!-- مكتبات التصدير المعتمدة لـ Excel و PDF -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     body { font-family: 'Cairo', 'Inter', sans-serif; }
     .glass-card {
@@ -42,6 +45,23 @@
       background: rgba(255, 255, 255, 0.95) !important;
       border-color: rgba(0, 0, 0, 0.08) !important;
       color: #0f172a !important;
+    }
+    /* تنسيق خاص للطباعة وتصدير PDF */
+    @media print {
+      body * { visibility: hidden !important; }
+      #clientInvoicePrintWrapper, #clientInvoicePrintWrapper * { visibility: visible !important; }
+      #clientInvoicePrintWrapper {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 24px !important;
+        background: #09090b !important;
+        color: #ffffff !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+      }
     }
     body.light-theme header {
       background: rgba(255, 255, 255, 0.95) !important;
@@ -294,6 +314,12 @@
             <button onclick="openGroupModal()" class="bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0" title="إنشاء وإدارة المجموعات">
               <i class="fa-solid fa-folder-plus text-xs"></i>
               <span id="txtBtnNewGroup">مجموعة جديدة</span>
+            </button>
+
+            <!-- زر تصدير إكسل الشامل (متعدد الصفحات) -->
+            <button onclick="exportComprehensiveExcel()" class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-1.5 shrink-0 cursor-pointer shadow-sm" title="تصدير ملف Excel متعدد الصفحات (التراخيص، الموظفون، النسخ الشامل)">
+              <i class="fa-solid fa-file-excel text-sm text-emerald-400"></i>
+              <span id="txtBtnExportExcel">تصدير إكسل</span>
             </button>
 
             <!-- زر التحديث -->
@@ -779,6 +805,144 @@
         <button onclick="sendWhatsappDirect()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-bold transition text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30">
           <i class="fa-brands fa-whatsapp text-sm"></i>
           <span>فتح واتساب والإرسال الآن</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 7b. نافذة وثيقة تفاصيل اشتراك العميل وتصدير PDF ومشاركتها (Client Invoice & PDF Modal) -->
+  <!-- ========================================== -->
+  <div id="clientInvoiceModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center hidden p-3 sm:p-4 overflow-y-auto">
+    <div class="glass-card bg-zinc-900 rounded-3xl w-full max-w-xl p-5 sm:p-6 border border-zinc-700 shadow-2xl relative my-auto">
+      
+      <!-- شريط العنوان والإغلاق -->
+      <div class="flex items-center justify-between mb-4 border-b border-zinc-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400">
+            <i class="fa-solid fa-file-invoice text-lg"></i>
+          </div>
+          <div>
+            <h3 class="text-sm sm:text-base font-bold text-white">وثيقة تفاصيل اشتراك العميل</h3>
+            <p class="text-[11px] text-zinc-400">YouTube PLUS+ • النظام الرقمي</p>
+          </div>
+        </div>
+        <button onclick="closeClientInvoiceModal()" class="text-zinc-400 hover:text-white p-2 text-base cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- البطاقة القابلة للطباعة والتصدير كـ PDF -->
+      <div id="clientInvoicePrintWrapper" class="bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 p-4 sm:p-5 rounded-2xl border border-zinc-700/80 shadow-inner space-y-3.5">
+        
+        <!-- ترويسة البطاقة والشعار -->
+        <div class="flex items-center justify-between border-b border-zinc-800/80 pb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center shadow-lg shadow-red-600/30">
+              <i class="fa-brands fa-youtube text-white text-base"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-extrabold text-sm text-white tracking-wide">YouTube</span>
+                <span class="bg-red-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-sm tracking-wider uppercase">PLUS+</span>
+              </div>
+              <span class="text-[10px] text-zinc-400 block font-sans">وثيقة تفعيل اشتراك رسمي</span>
+            </div>
+          </div>
+          <div class="text-left">
+            <span id="invStatusBadge" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+              <i class="fa-solid fa-circle-check text-[9px]"></i>
+              <span id="invStatusText">نشط</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- تفاصيل العميل والطلب -->
+        <div class="grid grid-cols-2 gap-2.5 bg-zinc-900/90 p-3 rounded-xl border border-zinc-800 text-xs">
+          <div>
+            <span class="text-[10px] text-zinc-400 block mb-0.5 font-sans">اسم العميل / الملاحظة:</span>
+            <span id="invClientName" class="font-bold text-white text-xs sm:text-sm truncate block">--</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-zinc-400 block mb-0.5 font-sans">رقم جوال العميل:</span>
+            <span id="invClientPhone" class="font-mono font-bold text-emerald-400 text-xs sm:text-sm block">--</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-zinc-400 block mb-0.5 font-sans">رقم الطلب:</span>
+            <span id="invOrderId" class="font-mono font-bold text-indigo-300 text-xs block">--</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-zinc-400 block mb-0.5 font-sans">الأجهزة المدعومة:</span>
+            <span id="invSupportedDevices" class="font-bold text-zinc-200 text-xs block">جهاز واحد</span>
+          </div>
+        </div>
+
+        <!-- صندوق كود التفعيل البارز -->
+        <div class="bg-zinc-950 p-3 rounded-xl border border-red-500/40 text-center relative overflow-hidden shadow-md">
+          <div class="absolute top-0 right-0 left-0 h-0.5 bg-gradient-to-r from-red-600 via-amber-500 to-red-600"></div>
+          <span class="text-[10px] text-zinc-400 uppercase tracking-wider block mb-1 font-sans">مفتاح التنشيط الخاص بك (Activation Key)</span>
+          <div class="flex items-center justify-center gap-2">
+            <span id="invSerialKey" class="font-mono font-black text-sm sm:text-base text-white tracking-wider select-all">--</span>
+            <button onclick="copyCurrentInvoiceSerial()" class="text-zinc-400 hover:text-white p-1 text-xs transition cursor-pointer" title="نسخ الكود">
+              <i class="fa-regular fa-copy"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- شبكة تفاصيل مدة الاشتراك -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs font-mono">
+          <div class="bg-zinc-900/90 p-2 rounded-xl border border-zinc-800">
+            <span class="text-[10px] text-zinc-400 block font-sans mb-0.5">مدة الاشتراك</span>
+            <span id="invDuration" class="font-bold text-white text-xs">--</span>
+          </div>
+          <div class="bg-zinc-900/90 p-2 rounded-xl border border-zinc-800">
+            <span class="text-[10px] text-zinc-400 block font-sans mb-0.5">تاريخ البداية</span>
+            <span id="invStartDate" class="text-zinc-300 text-[11px]">--</span>
+          </div>
+          <div class="bg-zinc-900/90 p-2 rounded-xl border border-zinc-800">
+            <span class="text-[10px] text-zinc-400 block font-sans mb-0.5">تاريخ الانتهاء</span>
+            <span id="invExpiryDate" class="text-zinc-300 text-[11px]">--</span>
+          </div>
+          <div class="bg-zinc-900/90 p-2 rounded-xl border border-zinc-800">
+            <span class="text-[10px] text-zinc-400 block font-sans mb-0.5">الأيام المتبقية</span>
+            <span id="invDaysRemaining" class="font-bold text-amber-400 text-xs">--</span>
+          </div>
+        </div>
+
+        <!-- رابط المنصة وخطوات التشغيل -->
+        <div class="bg-zinc-900/70 p-3 rounded-xl border border-zinc-800/80 text-[11px] text-zinc-300 space-y-1 font-sans">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-bold text-zinc-200">🌐 رابط المشاهدة المباشر:</span>
+            <a href="https://plus.digitalsystemsa.com" target="_blank" class="font-mono text-sky-400 hover:underline">plus.digitalsystemsa.com</a>
+          </div>
+          <div class="text-[10px] text-zinc-400 leading-relaxed border-t border-zinc-800/60 pt-1">
+            <strong>طريقة التفعيل:</strong> 1. افتح الرابط بأي متصفح أو جهاز • 2. أدخل مفتاح التنشيط أعلاه • 3. استمتع بمشاهدة يوتيوب بلس بدون إعلانات وبالميزات الاحترافية.
+          </div>
+        </div>
+
+      </div>
+
+      <!-- أزرار الإجراءات والخيارات المطلوبة -->
+      <div class="mt-4 space-y-2">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <!-- الخيار الأول: تنزيل أو حفظ على الجهاز كـ PDF -->
+          <button onclick="downloadClientInvoicePdf()" class="w-full bg-rose-600 hover:bg-rose-500 text-white py-2.5 px-3 rounded-xl font-bold transition text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-rose-600/30 cursor-pointer">
+            <i class="fa-solid fa-file-arrow-down text-sm"></i>
+            <span>تنزيل أو حفظ PDF</span>
+          </button>
+
+          <!-- الخيار الثاني: إرسال تفاصيل الطلب للعميل عبر واتساب -->
+          <button onclick="sendClientInvoiceWhatsApp()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 px-3 rounded-xl font-bold transition text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 cursor-pointer">
+            <i class="fa-brands fa-whatsapp text-base"></i>
+            <span>إرسال تفاصيل الطلب للعميل</span>
+          </button>
+        </div>
+
+        <!-- زر نسخ النص الكامل بضغطة زر واحدة -->
+        <button onclick="copyClientInvoiceText()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 py-2 px-3 rounded-xl font-medium transition text-xs flex items-center justify-center gap-2 cursor-pointer border border-zinc-700/60">
+          <i class="fa-regular fa-copy text-zinc-400"></i>
+          <span>نسخ نص تفاصيل الطلب كاملاً (SMS / Email)</span>
         </button>
       </div>
 
@@ -2178,6 +2342,10 @@
                     <span>محمي</span>
                   </span>
                 ` : `
+                  <!-- زر وثيقة تفاصيل الطلب وتصدير PDF ومشاركتها -->
+                  <button type="button" onclick="openClientInvoiceModal('${l.id}')" class="p-2 rounded-xl bg-zinc-800 hover:bg-rose-500/20 text-rose-300 hover:text-rose-200 transition text-xs cursor-pointer" title="وثيقة تفاصيل الطلب / تصدير PDF للعميل">
+                    <i class="fa-solid fa-file-pdf"></i>
+                  </button>
                   ${(isMaster || empPerms.can_edit !== false) ? `
                     <button type="button" onclick="openEditModal('${l.id}')" class="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition text-xs cursor-pointer" title="تعديل الملاحظة / الواتساب / المجموعة">
                       <i class="fa-solid fa-pen-to-square"></i>
@@ -2331,6 +2499,10 @@
                     <span>محمي</span>
                   </span>
                 ` : `
+                  <!-- زر وثيقة تفاصيل الطلب وتصدير PDF ومشاركتها على الجوال -->
+                  <button onclick="openClientInvoiceModal('${l.id}')" class="p-2 rounded-xl bg-zinc-800 text-rose-400 hover:text-rose-200 text-xs cursor-pointer" title="وثيقة تفاصيل الطلب / تصدير PDF للعميل">
+                    <i class="fa-solid fa-file-pdf"></i>
+                  </button>
                   ${(isMaster || empPerms.can_edit !== false) ? `
                     <button onclick="openEditModal('${l.id}')" class="p-2 rounded-xl bg-zinc-800 text-zinc-300 hover:text-white text-xs cursor-pointer" title="تعديل">
                       <i class="fa-solid fa-pen-to-square"></i>
@@ -3949,6 +4121,335 @@ ${getSystemBaseUrl()}/
       } catch (err) {
         showToast('تعذر الاتصال بالسيرفر للاستعادة', 'error');
       }
+    }
+
+    // ========================================================
+    // 27. تصدير ملف Excel شامل متعدد الصفحات (Multi-Sheet Comprehensive Excel)
+    // ========================================================
+    async function exportComprehensiveExcel() {
+      if (typeof XLSX === 'undefined') {
+        showToast('جاري تحميل مكتبة إكسل، يرجى الانتظار ثانية...', 'info');
+        return;
+      }
+
+      showToast('جاري تجميع البيانات وتوليد ملف Excel الشامل...', 'info');
+
+      try {
+        const now = new Date();
+        const dateStr = now.toISOString().slice(0, 10);
+        const timeStr = now.toTimeString().slice(0, 8);
+
+        // 1. جلب قائمة الموظفين وإحصائيات المنظومة الحالية
+        let employees = cachedEmployeesList || [];
+        if (employees.length === 0) {
+          try {
+            const empRes = await fetch(`${API_BASE}/api/admin/employees`);
+            if (empRes.ok) {
+              const empData = await empRes.json();
+              if (Array.isArray(empData.employees)) employees = empData.employees;
+            }
+          } catch (_) {}
+        }
+
+        let storageInfo = {};
+        try {
+          const sRes = await fetch(`${API_BASE}/api/admin/storage-status`);
+          if (sRes.ok) storageInfo = await sRes.json();
+        } catch (_) {}
+
+        // ----------------------------------------------------
+        // الورقة 1: سجل المفاتيح والتراخيص (Licenses & Subscriptions)
+        // ----------------------------------------------------
+        const licensesToExport = (allLicenses && allLicenses.length > 0) ? allLicenses : [];
+        const sheet1Data = licensesToExport.map((l, index) => {
+          const isExpired = l.expiry_date && new Date(l.expiry_date) < now;
+          let statusStr = 'نشط';
+          if (!l.is_active) statusStr = 'محظور / موقوف';
+          else if (!l.activated_at) statusStr = 'بانتظار التفعيل';
+          else if (isExpired) statusStr = 'منتهي الصلاحية';
+
+          const devList = Array.isArray(l.device_ids) ? l.device_ids : (l.device_id ? [l.device_id] : []);
+          const devInfoList = Array.isArray(l.devices_info) ? l.devices_info : [];
+          const devicesDesc = devList.map(id => {
+            const info = devInfoList.find(d => d.id === id);
+            return info ? `${info.type} (${id})` : id;
+          }).join(' | ') || 'لم يُربط بعد';
+
+          let daysRemaining = '--';
+          if (l.expiry_date) {
+            const diffMs = new Date(l.expiry_date).getTime() - now.getTime();
+            daysRemaining = diffMs > 0 ? Math.ceil(diffMs / (1000 * 60 * 60 * 24)) : 0;
+          }
+
+          // تجميع سجل التدقيق والإنشاء والتحديثات بشكل منسق
+          const auditHistory = (l.audit_log || []).map(a => {
+            const atStr = a.at ? formatEnDate(a.at) : '--';
+            return `[${atStr}] ${a.detail || a.action} (بواسطة: ${a.by || 'المدير'})`;
+          }).join('\n') || `تم الإنشاء بواسطة ${l.created_by || 'المدير العام'} في ${formatEnDate(l.created_at)}`;
+
+          return {
+            'م': index + 1,
+            'رقم الطلب': l.order_id ? `#${l.order_id}` : '--',
+            'مفتاح التنشيط (Serial Key)': l.serial_key,
+            'حالة الاشتراك': statusStr,
+            'المجموعة': l.group || 'عام',
+            'مدة الاشتراك (يوم)': l.duration_days,
+            'اسم العميل / الملاحظة': l.note || '--',
+            'رقم جوال العميل (واتساب)': l.whatsapp || '--',
+            'بريد العميل': l.client_email || '--',
+            'الأجهزة المسموحة': l.max_devices || 1,
+            'الأجهزة المربوطة': devList.length,
+            'تفاصيل الأجهزة المتصلة': devicesDesc,
+            'تاريخ الإنشاء': formatEnDate(l.created_at),
+            'تاريخ أول تفعيل': l.activated_at ? formatEnDate(l.activated_at) : 'لم يفعل بعد',
+            'تاريخ الانتهاء': l.expiry_date ? formatEnDate(l.expiry_date) : 'عند التفعيل',
+            'الأيام المتبقية': daysRemaining,
+            'مسؤول التوليد': l.created_by || 'المدير العام',
+            'سجل الإنشاء والتحديثات الكامل (Audit Log)': auditHistory
+          };
+        });
+
+        // ----------------------------------------------------
+        // الورقة 2: فريق العمل والموظفون (Employees & Permissions)
+        // ----------------------------------------------------
+        const sheet2Data = employees.map((emp, index) => {
+          const p = emp.permissions || {};
+          const permsList = [];
+          if (p.can_generate !== false) permsList.push('توليد مفاتيح');
+          if (p.can_toggle !== false) permsList.push('إيقاف/تفعيل');
+          if (p.can_reset !== false) permsList.push('إعادة تعيين الأجهزة');
+          if (p.can_edit !== false) permsList.push('تعديل البيانات');
+          if (p.can_delete) permsList.push('حذف التراخيص');
+          if (p.can_view_stats) permsList.push('عرض الإحصائيات');
+          if (p.can_manage_groups) permsList.push('إدارة المجموعات');
+
+          return {
+            'م': index + 1,
+            'معرف الموظف': emp.id,
+            'اسم الموظف': emp.name,
+            'البريد الإلكتروني': emp.email,
+            'رقم الجوال': emp.phone || '--',
+            'الرتبة': emp.role === 'admin' ? 'مدير عام' : 'موظف مبيعات',
+            'حالة الحساب': emp.is_active !== false ? 'نشط' : 'موقوف',
+            'صلاحيات الحساب': permsList.join(' • ') || 'صلاحيات قياسية',
+            'تاريخ الإضافة': emp.created_at ? formatEnDate(emp.created_at) : '--'
+          };
+        });
+
+        // ----------------------------------------------------
+        // الورقة 3: النسخ الاحتياطي الشامل وملخص المنظومة (System Overview & Backup)
+        // ----------------------------------------------------
+        const activeCount = licensesToExport.filter(l => l.is_active && l.activated_at && new Date(l.expiry_date) >= now).length;
+        const pendingCount = licensesToExport.filter(l => l.is_active && !l.activated_at).length;
+        const expiredCount = licensesToExport.filter(l => !l.is_active || (l.expiry_date && new Date(l.expiry_date) < now)).length;
+
+        const sheet3Data = [
+          { 'البند': 'اسم المنظومة', 'القيمة / التفاصيل': 'YouTube PLUS+ Enterprise Data Engine' },
+          { 'البند': 'النطاق المخصص', 'القيمة / التفاصيل': 'https://plus.digitalsystemsa.com' },
+          { 'البند': 'تاريخ ووقت التصدير', 'القيمة / التفاصيل': `${dateStr} ${timeStr}` },
+          { 'البند': 'حالة قاعدة البيانات السحابية', 'القيمة / التفاصيل': storageInfo.storage_type || 'قاعدة بيانات سحابية دائمة (MongoDB Atlas Cloud DB ✓)' },
+          { 'البند': 'استقرار التخزين (Persistence)', 'القيمة / التفاصيل': storageInfo.is_persistent ? 'مفعل ودائم 100%' : 'محلي قياسي' },
+          { 'البند': 'إجمالي عدد المفاتيح المحمية', 'القيمة / التفاصيل': licensesToExport.length },
+          { 'البند': 'الاشتراكات النشطة حالياً', 'القيمة / التفاصيل': activeCount },
+          { 'البند': 'أكواد جاهزة للتسليم (معلقة)', 'القيمة / التفاصيل': pendingCount },
+          { 'البند': 'أكواد منتهية أو موقوفة', 'القيمة / التفاصيل': expiredCount },
+          { 'البند': 'إجمالي فريق العمل المسجل', 'القيمة / التفاصيل': employees.length },
+          { 'البند': 'المجموعات المخصصة', 'القيمة / التفاصيل': ((currentSettings && currentSettings.custom_groups) || ['عام', 'VIP', 'عائلي']).join(' • ') },
+          { 'البند': 'رابط تطبيق أندرويد (Google Drive)', 'القيمة / التفاصيل': (currentSettings && currentSettings.apk_drive_link) || '--' },
+          { 'البند': 'رابط تطبيق ويندوز (Google Drive)', 'القيمة / التفاصيل': (currentSettings && currentSettings.windows_drive_link) || '--' }
+        ];
+
+        // إنشاء المصنف وإضافة أوراق العمل
+        const wb = XLSX.utils.book_new();
+
+        // ورقة 1
+        const ws1 = XLSX.utils.json_to_sheet(sheet1Data.length > 0 ? sheet1Data : [{ 'تنبيه': 'لا توجد تراخيص مسجلة حالياً' }]);
+        ws1['!views'] = [{ rightToLeft: true }];
+        XLSX.utils.book_append_sheet(wb, ws1, 'سجل المفاتيح والتراخيص');
+
+        // ورقة 2
+        const ws2 = XLSX.utils.json_to_sheet(sheet2Data.length > 0 ? sheet2Data : [{ 'تنبيه': 'لا يوجد موظفون مضافون حالياً' }]);
+        ws2['!views'] = [{ rightToLeft: true }];
+        XLSX.utils.book_append_sheet(wb, ws2, 'فريق العمل والموظفين');
+
+        // ورقة 3
+        const ws3 = XLSX.utils.json_to_sheet(sheet3Data);
+        ws3['!views'] = [{ rightToLeft: true }];
+        XLSX.utils.book_append_sheet(wb, ws3, 'النسخ الشامل وملخص المنظومة');
+
+        // كتابة وتنزيل الملف بصيغة .xlsx
+        const fileName = `YouTube_PLUS_Master_Export_${dateStr}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+        showToast('تم تصدير ملف Excel الشامل بنجاح (3 صفحات كاملة) 📊', 'success');
+      } catch (err) {
+        console.error('Export Excel Error:', err);
+        showToast(`فشل تصدير ملف الإكسل: ${err.message}`, 'error');
+      }
+    }
+
+    // ========================================================
+    // 28. نافذة وثيقة تفاصيل الطلب وتصدير PDF ومشاركتها (Client Invoice & PDF Export)
+    // ========================================================
+    let currentInvoiceLicense = null;
+
+    function openClientInvoiceModal(licenseId) {
+      const l = (allLicenses || []).find(item => item.id === licenseId);
+      if (!l) {
+        showToast('تعذر العثور على المفتاح المحدد', 'error');
+        return;
+      }
+      currentInvoiceLicense = l;
+
+      const now = new Date();
+      const isExpired = l.expiry_date && new Date(l.expiry_date) < now;
+
+      // تحديث شارة الحالة
+      const badgeEl = document.getElementById('invStatusBadge');
+      const textEl = document.getElementById('invStatusText');
+      if (!l.is_active) {
+        textEl.innerText = 'محظور / موقوف';
+        badgeEl.className = 'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-500/15 text-red-400 border border-red-500/30';
+      } else if (!l.activated_at) {
+        textEl.innerText = 'بانتظار التفعيل';
+        badgeEl.className = 'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30';
+      } else if (isExpired) {
+        textEl.innerText = 'منتهي الصلاحية';
+        badgeEl.className = 'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-zinc-800 text-zinc-400 border border-zinc-700';
+      } else {
+        textEl.innerText = 'نشط وساري';
+        badgeEl.className = 'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30';
+      }
+
+      // ملء بيانات العميل والطلب
+      document.getElementById('invClientName').innerText = l.note || (l.client_email ? l.client_email.split('@')[0] : 'عميل يوتيوب بلس+');
+      document.getElementById('invClientPhone').innerText = l.whatsapp || '--';
+      document.getElementById('invOrderId').innerText = l.order_id ? `#${(l.order_id || '').toString().trim().replace(/^#/, '')}` : '--';
+      document.getElementById('invSupportedDevices').innerText = `${l.max_devices || 1} ${(l.max_devices || 1) === 1 ? 'جهاز واحد' : 'أجهزة'}`;
+
+      // كود التفعيل
+      document.getElementById('invSerialKey').innerText = l.serial_key;
+
+      // تفاصيل المدة والتواريخ
+      document.getElementById('invDuration').innerText = `${l.duration_days} يوم`;
+      document.getElementById('invStartDate').innerText = l.activated_at ? formatEnDate(l.activated_at, false) : 'عند التفعيل';
+      document.getElementById('invExpiryDate').innerText = l.expiry_date ? formatEnDate(l.expiry_date, false) : 'يحسب عند التفعيل';
+
+      // حساب الأيام المتبقية
+      if (l.expiry_date) {
+        const diffMs = new Date(l.expiry_date).getTime() - now.getTime();
+        const daysLeft = diffMs > 0 ? Math.ceil(diffMs / (1000 * 60 * 60 * 24)) : 0;
+        document.getElementById('invDaysRemaining').innerText = `${daysLeft} يوم`;
+      } else {
+        document.getElementById('invDaysRemaining').innerText = `${l.duration_days} يوم`;
+      }
+
+      showModal('clientInvoiceModal');
+    }
+
+    function closeClientInvoiceModal() {
+      hideModal('clientInvoiceModal');
+      currentInvoiceLicense = null;
+    }
+
+    function copyCurrentInvoiceSerial() {
+      if (currentInvoiceLicense && currentInvoiceLicense.serial_key) {
+        copyToClipboard(currentInvoiceLicense.serial_key);
+      }
+    }
+
+    // الخيار الأول: تنزيل أو حفظ كـ PDF على الجهاز
+    function downloadClientInvoicePdf() {
+      if (!currentInvoiceLicense) return;
+      const element = document.getElementById('clientInvoicePrintWrapper');
+      if (!element) return;
+
+      showToast('جاري إنشاء وتحميل ملف PDF للعميل...', 'info');
+
+      if (typeof html2pdf !== 'undefined') {
+        const opt = {
+          margin: [8, 8, 8, 8],
+          filename: `YouTube_PLUS_Subscription_${currentInvoiceLicense.serial_key}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, backgroundColor: '#09090b' },
+          jsPDF: { unit: 'mm', format: 'a5', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save().then(() => {
+          showToast('تم تحميل وثيقة PDF بنجاح 📄', 'success');
+        }).catch(err => {
+          console.warn('html2pdf fallback to print:', err);
+          window.print();
+        });
+      } else {
+        window.print();
+      }
+    }
+
+    // الخيار الثاني: إرسال تفاصيل الطلب للعميل عبر واتساب
+    function sendClientInvoiceWhatsApp() {
+      if (!currentInvoiceLicense) return;
+      const l = currentInvoiceLicense;
+      const clientName = l.note || (l.client_email ? l.client_email.split('@')[0] : 'عزيزنا العميل');
+      const orderIdStr = l.order_id ? `#${(l.order_id || '').toString().trim().replace(/^#/, '')}` : 'طلب اشتراك';
+      const cleanPhone = (l.whatsapp || '').replace(/[^0-9]/g, '');
+
+      const msg = `مرحباً بك يا ${clientName} 🌟
+يسعدنا تزويدك بتفاصيل اشتراكك الرسمي في YouTube PLUS+:
+
+📄 رقم الطلب: ${orderIdStr}
+🔑 مفتاح التنشيط: ${l.serial_key}
+⏱️ مدة الاشتراك: ${l.duration_days} يوم
+📱 الأجهزة المدعومة: ${l.max_devices || 1} جهاز
+
+🌐 رابط المشاهدة المباشر:
+https://plus.digitalsystemsa.com
+
+طريقة التفعيل السريعة:
+1. افتح الرابط بأي متصفح أو جهاز
+2. أدخل مفتاح التنشيط أعلاه واضغط دخول
+3. استمتع بمشاهدة يوتيوب بدون إعلانات وبكافة الميزات!
+
+شكراً لاختيارك النظام الرقمي ❤️`;
+
+      if (cleanPhone) {
+        window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+        showToast('تم فتح واتساب لإرسال تفاصيل الطلب 💬', 'success');
+      } else {
+        navigator.clipboard.writeText(msg).then(() => {
+          window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+          showToast('تم نسخ تفاصيل الطلب، يرجى اختيار جهة الاتصال في واتساب', 'info');
+        }).catch(() => {
+          window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        });
+      }
+    }
+
+    // زر نسخ نص تفاصيل الطلب كاملاً
+    function copyClientInvoiceText() {
+      if (!currentInvoiceLicense) return;
+      const l = currentInvoiceLicense;
+      const clientName = l.note || (l.client_email ? l.client_email.split('@')[0] : 'عزيزنا العميل');
+      const orderIdStr = l.order_id ? `#${(l.order_id || '').toString().trim().replace(/^#/, '')}` : 'طلب اشتراك';
+
+      const msg = `مرحباً بك يا ${clientName} 🌟
+تفاصيل اشتراكك الرسمي في YouTube PLUS+:
+
+📄 رقم الطلب: ${orderIdStr}
+🔑 مفتاح التنشيط: ${l.serial_key}
+⏱️ مدة الاشتراك: ${l.duration_days} يوم
+📱 الأجهزة المدعومة: ${l.max_devices || 1} جهاز
+
+🌐 رابط المشاهدة المباشر:
+https://plus.digitalsystemsa.com
+
+طريقة التفعيل:
+1. افتح الرابط بأي متصفح
+2. أدخل مفتاح التنشيط واضغط دخول
+3. استمتع بالتشغيل بدون إعلانات!
+
+النظام الرقمي ❤️`;
+
+      copyToClipboard(msg);
+      showToast('تم نسخ تفاصيل الطلب كاملة إلى الحافظة بنجاح 📋', 'success');
     }
 
 </script>
