@@ -1773,8 +1773,6 @@
       setTxt('thActions', t.thActions);
 
       renderLicenses();
-        updateBrowserAutoMirror();
-        checkAndPromptAutoRestore(allLicenses.length, (cachedEmployeesList || []).length);
     }
 
     function toggleLanguage() {
@@ -1788,7 +1786,23 @@
         await checkCurrentUser();
       } catch (e) {}
       await loadLicenses();
+      try {
+        await fetchEmployeesSilently();
+      } catch (e) {}
     });
+
+    async function fetchEmployeesSilently() {
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/employees`);
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data.employees)) {
+            cachedEmployeesList = data.employees;
+            updateBrowserAutoMirror();
+          }
+        }
+      } catch (e) {}
+    }
 
     async function loadLicenses() {
       try {
@@ -1806,6 +1820,13 @@
         updateGroupsDropdowns();
         updateStats();
         renderLicenses();
+
+        // إزالة أي شريط استعادة طارئة تلقائياً عند التأكد من وجود البيانات بالسيرفر
+        const banner = document.getElementById('autoRestoreAlertBanner');
+        if (banner && allLicenses.length > 0) {
+          banner.remove();
+        }
+        updateBrowserAutoMirror();
       } catch (err) {
         showToast('تعذر الاتصال بالخادم، جاري المحاولة...', 'error');
       }
@@ -3606,6 +3627,7 @@ ${getSystemBaseUrl()}/
           }
 
           cachedEmployeesList = data.employees;
+          updateBrowserAutoMirror();
           container.innerHTML = data.employees.map(emp => {
             const cleanPhone = (emp.phone || '').replace(/[^0-9]/g, '');
             const p = emp.permissions || {};
@@ -4050,7 +4072,11 @@ ${getSystemBaseUrl()}/
     }
 
     function checkAndPromptAutoRestore(serverLicensesCount, serverEmployeesCount) {
-      if (serverLicensesCount > 0 || serverEmployeesCount > 0) return;
+      if (serverLicensesCount > 0 || serverEmployeesCount > 0) {
+        const banner = document.getElementById('autoRestoreAlertBanner');
+        if (banner) banner.remove();
+        return;
+      }
       const raw = localStorage.getItem('yt_plus_admin_data_mirror');
       if (!raw) return;
       try {
