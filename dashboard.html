@@ -89,6 +89,15 @@
       border-color: #cbd5e1 !important;
       color: #0f172a !important;
     }
+    /* ضمان وضوح قوائم المجموعات والاختيار باللون الداكن مع نص أبيض واضح */
+    select {
+      color-scheme: dark !important;
+    }
+    select option {
+      background-color: #18181b !important;
+      color: #ffffff !important;
+      padding: 8px 12px !important;
+    }
   </style>
 </head>
 <body class="bg-zinc-950 text-zinc-100 min-h-screen flex flex-col selection:bg-red-500 selection:text-white">
@@ -241,52 +250,40 @@
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
       
       <!-- إجمالي الأكواد -->
-      <div id="statCardTotal" onclick="setStatusFilter('all')" class="glass-card rounded-2xl p-4 sm:p-5 cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] border border-transparent hover:border-zinc-700" title="عرض كافة الأكواد بدون استثناء">
+      <div id="statCardTotal" onclick="setStatusFilter('all')" class="glass-card rounded-2xl p-4 sm:p-5 cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] border border-transparent hover:border-zinc-700" title="عرض كافة الأكواد">
         <div class="flex items-center justify-between">
           <span id="statTitleTotal" class="text-zinc-400 text-xs sm:text-sm font-medium">إجمالي الأكواد</span>
-          <div class="flex items-center gap-1.5">
-            <span class="text-[10px] text-zinc-500 bg-zinc-800/80 px-1.5 py-0.5 rounded flex items-center gap-1 border border-zinc-700/50"><i class="fa-solid fa-filter text-[9px]"></i> <span class="hidden sm:inline">فلترة</span></span>
-            <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-400"><i class="fa-solid fa-key text-xs"></i></span>
-          </div>
+          <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-400"><i class="fa-solid fa-key text-xs"></i></span>
         </div>
         <div id="statTotal" class="text-2xl sm:text-3xl font-extrabold mt-2 text-white font-mono">0</div>
         <div id="statDescTotal" class="text-[10px] sm:text-xs text-zinc-500 mt-1">كافة السيريالات الصادرة</div>
       </div>
 
       <!-- الاشتراكات النشطة -->
-      <div id="statCardActive" onclick="setStatusFilter('active')" class="glass-card rounded-2xl p-4 sm:p-5 cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] border border-transparent hover:border-emerald-500/40" title="فلترة: عرض الاشتراكات النشطة فقط">
+      <div id="statCardActive" onclick="setStatusFilter('active')" class="glass-card rounded-2xl p-4 sm:p-5 cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] border border-transparent hover:border-emerald-500/40" title="عرض الاشتراكات النشطة فقط">
         <div class="flex items-center justify-between">
           <span id="statTitleActive" class="text-emerald-400 text-xs sm:text-sm font-medium">الاشتراكات النشطة</span>
-          <div class="flex items-center gap-1.5">
-            <span class="text-[10px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded flex items-center gap-1 border border-emerald-500/20"><i class="fa-solid fa-filter text-[9px]"></i> <span class="hidden sm:inline">فلترة</span></span>
-            <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400"><i class="fa-solid fa-circle-check text-xs"></i></span>
-          </div>
+          <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400"><i class="fa-solid fa-circle-check text-xs"></i></span>
         </div>
         <div id="statActive" class="text-2xl sm:text-3xl font-extrabold mt-2 text-emerald-400 font-mono">0</div>
         <div id="statDescActive" class="text-[10px] sm:text-xs text-zinc-500 mt-1">تعمل حالياً على الأجهزة</div>
       </div>
 
       <!-- أكواد جاهزة للتسليم -->
-      <div id="statCardPending" onclick="setStatusFilter('pending')" class="glass-card rounded-2xl p-4 sm:p-5 cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] border border-transparent hover:border-amber-500/40" title="فلترة: عرض الأكواد الجاهزة للتسليم (المعلقة) فقط">
+      <div id="statCardPending" onclick="setStatusFilter('pending')" class="glass-card rounded-2xl p-4 sm:p-5 cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] border border-transparent hover:border-amber-500/40" title="عرض الأكواد الجاهزة للتسليم فقط">
         <div class="flex items-center justify-between">
           <span id="statTitlePending" class="text-amber-400 text-xs sm:text-sm font-medium">أكواد للتسليم</span>
-          <div class="flex items-center gap-1.5">
-            <span class="text-[10px] text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded flex items-center gap-1 border border-amber-500/20"><i class="fa-solid fa-filter text-[9px]"></i> <span class="hidden sm:inline">فلترة</span></span>
-            <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400"><i class="fa-solid fa-clock text-xs"></i></span>
-          </div>
+          <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400"><i class="fa-solid fa-clock text-xs"></i></span>
         </div>
         <div id="statPending" class="text-2xl sm:text-3xl font-extrabold mt-2 text-amber-400 font-mono">0</div>
         <div id="statDescPending" class="text-[10px] sm:text-xs text-zinc-500 mt-1">لم تُربط بجهاز بعد</div>
       </div>
 
       <!-- منتهية أو محظورة -->
-      <div id="statCardExpired" onclick="setStatusFilter('expired')" class="glass-card rounded-2xl p-4 sm:p-5 cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] border border-transparent hover:border-red-500/40" title="فلترة: عرض الأكواد المنتهية أو المحظورة فقط">
+      <div id="statCardExpired" onclick="setStatusFilter('expired')" class="glass-card rounded-2xl p-4 sm:p-5 cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] border border-transparent hover:border-red-500/40" title="عرض الأكواد المنتهية أو المحظورة فقط">
         <div class="flex items-center justify-between">
           <span id="statTitleExpired" class="text-red-400 text-xs sm:text-sm font-medium">منتهية / محظورة</span>
-          <div class="flex items-center gap-1.5">
-            <span class="text-[10px] text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded flex items-center gap-1 border border-red-500/20"><i class="fa-solid fa-filter text-[9px]"></i> <span class="hidden sm:inline">فلترة</span></span>
-            <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-400"><i class="fa-solid fa-ban text-xs"></i></span>
-          </div>
+          <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-400"><i class="fa-solid fa-ban text-xs"></i></span>
         </div>
         <div id="statExpired" class="text-2xl sm:text-3xl font-extrabold mt-2 text-red-400 font-mono">0</div>
         <div id="statDescExpired" class="text-[10px] sm:text-xs text-zinc-500 mt-1">انتهت مدتها أو أوقفت</div>
@@ -317,15 +314,15 @@
             <!-- فلترة بالموظف -->
             <div class="flex items-center gap-1.5">
               <span class="text-xs text-zinc-400 hidden sm:inline">الموظف:</span>
-              <select id="employeeFilterSelect" onchange="filterLicenses()" class="bg-zinc-800 border border-zinc-700 text-xs text-zinc-200 rounded-xl px-2.5 py-2 focus:outline-none focus:border-purple-500 font-medium">
-                <option value="all">كافة الموظفين</option>
+              <select id="employeeFilterSelect" onchange="filterLicenses()" class="bg-zinc-800 border border-zinc-700 text-xs text-white rounded-xl px-2.5 py-2 focus:outline-none focus:border-purple-500 font-medium cursor-pointer">
+                <option value="all" class="bg-zinc-900 text-white">كافة الموظفين</option>
               </select>
             </div>
 
             <!-- دمج ذكي لفلترة وإدارة المجموعات (Smart Unified Group Control) -->
             <div class="flex items-center gap-1 bg-zinc-800 border border-zinc-700 rounded-xl p-0.5">
-              <select id="groupFilterSelect" onchange="filterLicenses()" class="bg-transparent border-0 text-xs text-zinc-200 px-2.5 py-1.5 focus:outline-none font-medium cursor-pointer">
-                <option value="all">كافة المجموعات</option>
+              <select id="groupFilterSelect" onchange="filterLicenses()" class="bg-zinc-800 border-0 text-xs text-white px-2.5 py-1.5 focus:outline-none font-medium cursor-pointer rounded-lg">
+                <option value="all" class="bg-zinc-900 text-white">كافة المجموعات</option>
               </select>
               <button onclick="openGroupModal()" class="bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 px-2 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 shrink-0 cursor-pointer" title="إدارة وإنشاء وتعديل المجموعات">
                 <i class="fa-solid fa-folder-gear text-xs"></i>
@@ -539,6 +536,8 @@
               </button>
             </div>
           </div>
+        </div>
+
         <!-- إسناد المفتاح للموظف (خاص بالمدير أو من يملك صلاحية الإسناد) -->
         <div id="genAssignEmployeeContainer">
           <label id="lblGenAssignEmployee" class="block text-xs font-bold text-zinc-300 mb-1 flex items-center justify-between">
@@ -1914,10 +1913,10 @@
       if (filterSel) {
         const curFilterVal = filterSel.value;
         const totalCount = (allLicenses || []).length;
-        let groupOpts = `<option value="all">${currentLang === 'ar' ? 'كافة المجموعات' : 'All Groups'} (${totalCount})</option>`;
+        let groupOpts = `<option value="all" class="bg-zinc-900 text-white font-medium">${currentLang === 'ar' ? 'كافة المجموعات' : 'All Groups'} (${totalCount})</option>`;
         groups.forEach(g => {
           const gCount = (allLicenses || []).filter(l => (l.group || 'عام') === g).length;
-          groupOpts += `<option value="${g}">${g} (${gCount})</option>`;
+          groupOpts += `<option value="${g}" class="bg-zinc-900 text-white font-medium">${g} (${gCount})</option>`;
         });
         filterSel.innerHTML = groupOpts;
         filterSel.value = curFilterVal || 'all';
@@ -1927,12 +1926,12 @@
       const empFilterSel = document.getElementById('employeeFilterSelect');
       if (empFilterSel) {
         const curEmpVal = empFilterSel.value || 'all';
-        let empOptions = `<option value="all">${currentLang === 'ar' ? 'كافة الموظفين' : 'All Employees'}</option>`;
+        let empOptions = `<option value="all" class="bg-zinc-900 text-white font-medium">${currentLang === 'ar' ? 'كافة الموظفين' : 'All Employees'}</option>`;
         const adminCount = (allLicenses || []).filter(l => !l.created_by || l.created_by === 'المدير العام' || l.created_by_id === 'admin').length;
-        empOptions += `<option value="المدير العام">المدير العام (${adminCount})</option>`;
+        empOptions += `<option value="المدير العام" class="bg-zinc-900 text-white font-medium">المدير العام (${adminCount})</option>`;
         (cachedEmployeesList || []).forEach(emp => {
           const empLicCount = (allLicenses || []).filter(l => (l.created_by && l.created_by.toLowerCase() === emp.name.toLowerCase()) || (l.created_by_id && l.created_by_id === emp.id)).length;
-          empOptions += `<option value="${emp.name}">${emp.name} (${empLicCount})</option>`;
+          empOptions += `<option value="${emp.name}" class="bg-zinc-900 text-white font-medium">${emp.name} (${empLicCount})</option>`;
         });
         empFilterSel.innerHTML = empOptions;
         empFilterSel.value = curEmpVal;
@@ -1942,8 +1941,8 @@
       const genSel = document.getElementById('genGroup');
       if (genSel) {
         const curGenVal = genSel.value;
-        genSel.innerHTML = groups.map(g => `<option value="${g}">${g}</option>`).join('') +
-          `<option value="__new__">➕ إنشاء مجموعة جديدة...</option>`;
+        genSel.innerHTML = groups.map(g => `<option value="${g}" class="bg-zinc-900 text-white font-medium">${g}</option>`).join('') +
+          `<option value="__new__" class="bg-zinc-900 text-emerald-400 font-bold">➕ إنشاء مجموعة جديدة...</option>`;
         if (groups.includes(curGenVal)) {
           genSel.value = curGenVal;
         } else {
@@ -1954,13 +1953,13 @@
       // 3. القائمة في نافذة التعديل
       const editSel = document.getElementById('editGroup');
       if (editSel) {
-        editSel.innerHTML = groups.map(g => `<option value="${g}">${g}</option>`).join('');
+        editSel.innerHTML = groups.map(g => `<option value="${g}" class="bg-zinc-900 text-white font-medium">${g}</option>`).join('');
       }
 
       // 4. القائمة في شريط العمليات الجماعية
       const bulkSel = document.getElementById('bulkGroupSelect');
       if (bulkSel) {
-        bulkSel.innerHTML = groups.map(g => `<option value="${g}">${g}</option>`).join('');
+        bulkSel.innerHTML = groups.map(g => `<option value="${g}" class="bg-zinc-900 text-white font-medium">${g}</option>`).join('');
       }
 
       // 5. القائمة في نافذة إدارة المجموعات
@@ -4026,7 +4025,7 @@ __________________
     window.addEventListener('DOMContentLoaded', () => {
 
       // إغلاق أي نافذة منبثقة عند النقر على الخلفية المظلمة خارج الصندوق
-      document.querySelectorAll('[id$="Modal"]').forEach(modal => {
+      document.querySelectorAll('div[id$="Modal"]').forEach(modal => {
         modal.addEventListener('click', (e) => {
           if (e.target === modal) {
             hideModal(modal.id);
