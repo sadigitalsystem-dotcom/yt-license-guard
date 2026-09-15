@@ -237,44 +237,56 @@
   <!-- ========================================== -->
   <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 flex-1 w-full">
     
-    <!-- بطاقات الإحصائيات بالأرقام الإنجليزية دائماً -->
+    <!-- بطاقات الإحصائيات بالأرقام الإنجليزية دائماً مع إمكانية الفلترة السريعة بالنقر -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
       
       <!-- إجمالي الأكواد -->
-      <div class="glass-card rounded-2xl p-4 sm:p-5">
+      <div id="statCardTotal" onclick="setStatusFilter('all')" class="glass-card rounded-2xl p-4 sm:p-5 cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] border border-transparent hover:border-zinc-700" title="عرض كافة الأكواد بدون استثناء">
         <div class="flex items-center justify-between">
           <span id="statTitleTotal" class="text-zinc-400 text-xs sm:text-sm font-medium">إجمالي الأكواد</span>
-          <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-400"><i class="fa-solid fa-key text-xs"></i></span>
+          <div class="flex items-center gap-1.5">
+            <span class="text-[10px] text-zinc-500 bg-zinc-800/80 px-1.5 py-0.5 rounded flex items-center gap-1 border border-zinc-700/50"><i class="fa-solid fa-filter text-[9px]"></i> <span class="hidden sm:inline">فلترة</span></span>
+            <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-400"><i class="fa-solid fa-key text-xs"></i></span>
+          </div>
         </div>
         <div id="statTotal" class="text-2xl sm:text-3xl font-extrabold mt-2 text-white font-mono">0</div>
         <div id="statDescTotal" class="text-[10px] sm:text-xs text-zinc-500 mt-1">كافة السيريالات الصادرة</div>
       </div>
 
       <!-- الاشتراكات النشطة -->
-      <div class="glass-card rounded-2xl p-4 sm:p-5">
+      <div id="statCardActive" onclick="setStatusFilter('active')" class="glass-card rounded-2xl p-4 sm:p-5 cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] border border-transparent hover:border-emerald-500/40" title="فلترة: عرض الاشتراكات النشطة فقط">
         <div class="flex items-center justify-between">
           <span id="statTitleActive" class="text-emerald-400 text-xs sm:text-sm font-medium">الاشتراكات النشطة</span>
-          <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400"><i class="fa-solid fa-circle-check text-xs"></i></span>
+          <div class="flex items-center gap-1.5">
+            <span class="text-[10px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded flex items-center gap-1 border border-emerald-500/20"><i class="fa-solid fa-filter text-[9px]"></i> <span class="hidden sm:inline">فلترة</span></span>
+            <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400"><i class="fa-solid fa-circle-check text-xs"></i></span>
+          </div>
         </div>
         <div id="statActive" class="text-2xl sm:text-3xl font-extrabold mt-2 text-emerald-400 font-mono">0</div>
         <div id="statDescActive" class="text-[10px] sm:text-xs text-zinc-500 mt-1">تعمل حالياً على الأجهزة</div>
       </div>
 
       <!-- أكواد جاهزة للتسليم -->
-      <div class="glass-card rounded-2xl p-4 sm:p-5">
+      <div id="statCardPending" onclick="setStatusFilter('pending')" class="glass-card rounded-2xl p-4 sm:p-5 cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] border border-transparent hover:border-amber-500/40" title="فلترة: عرض الأكواد الجاهزة للتسليم (المعلقة) فقط">
         <div class="flex items-center justify-between">
           <span id="statTitlePending" class="text-amber-400 text-xs sm:text-sm font-medium">أكواد للتسليم</span>
-          <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400"><i class="fa-solid fa-clock text-xs"></i></span>
+          <div class="flex items-center gap-1.5">
+            <span class="text-[10px] text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded flex items-center gap-1 border border-amber-500/20"><i class="fa-solid fa-filter text-[9px]"></i> <span class="hidden sm:inline">فلترة</span></span>
+            <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400"><i class="fa-solid fa-clock text-xs"></i></span>
+          </div>
         </div>
         <div id="statPending" class="text-2xl sm:text-3xl font-extrabold mt-2 text-amber-400 font-mono">0</div>
         <div id="statDescPending" class="text-[10px] sm:text-xs text-zinc-500 mt-1">لم تُربط بجهاز بعد</div>
       </div>
 
       <!-- منتهية أو محظورة -->
-      <div class="glass-card rounded-2xl p-4 sm:p-5">
+      <div id="statCardExpired" onclick="setStatusFilter('expired')" class="glass-card rounded-2xl p-4 sm:p-5 cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] border border-transparent hover:border-red-500/40" title="فلترة: عرض الأكواد المنتهية أو المحظورة فقط">
         <div class="flex items-center justify-between">
           <span id="statTitleExpired" class="text-red-400 text-xs sm:text-sm font-medium">منتهية / محظورة</span>
-          <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-400"><i class="fa-solid fa-ban text-xs"></i></span>
+          <div class="flex items-center gap-1.5">
+            <span class="text-[10px] text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded flex items-center gap-1 border border-red-500/20"><i class="fa-solid fa-filter text-[9px]"></i> <span class="hidden sm:inline">فلترة</span></span>
+            <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-400"><i class="fa-solid fa-ban text-xs"></i></span>
+          </div>
         </div>
         <div id="statExpired" class="text-2xl sm:text-3xl font-extrabold mt-2 text-red-400 font-mono">0</div>
         <div id="statDescExpired" class="text-[10px] sm:text-xs text-zinc-500 mt-1">انتهت مدتها أو أوقفت</div>
@@ -289,41 +301,46 @@
       <div class="p-4 sm:p-6 border-b border-zinc-800/80 flex flex-col gap-4">
         
         <!-- حقل البحث وأزرار التحكم -->
-        <div class="flex flex-col sm:flex-row gap-3 items-center justify-between">
-          <div class="relative w-full sm:w-96">
+        <div class="flex flex-col lg:flex-row gap-3 items-center justify-between">
+          <div class="relative w-full lg:w-96">
             <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-3.5 text-zinc-500 text-sm"></i>
             <input 
               type="text" 
               id="searchInput" 
               oninput="filterLicenses()" 
-              placeholder="بحث برقم السيريال، ملاحظة، واتساب، أو جهاز..." 
+              placeholder="بحث برقم السيريال، الطلب، الموظف، الملاحظة، واتساب..." 
               class="w-full bg-zinc-900 border border-zinc-700/70 rounded-xl pr-10 pl-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-red-500 transition"
             >
           </div>
 
-          <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
-            <!-- فلترة المجموعات المخصصة -->
+          <div class="flex items-center gap-2 w-full lg:w-auto justify-end flex-wrap">
+            <!-- فلترة بالموظف -->
             <div class="flex items-center gap-1.5">
-              <span id="lblFilterGroup" class="text-xs text-zinc-400 hidden sm:inline">المجموعة:</span>
-              <select id="groupFilterSelect" onchange="filterLicenses()" class="bg-zinc-800 border border-zinc-700 text-xs text-zinc-200 rounded-xl px-3 py-2 focus:outline-none focus:border-red-500">
-                <option value="all">كافة المجموعات</option>
+              <span class="text-xs text-zinc-400 hidden sm:inline">الموظف:</span>
+              <select id="employeeFilterSelect" onchange="filterLicenses()" class="bg-zinc-800 border border-zinc-700 text-xs text-zinc-200 rounded-xl px-2.5 py-2 focus:outline-none focus:border-purple-500 font-medium">
+                <option value="all">كافة الموظفين</option>
               </select>
             </div>
 
-            <!-- زر إنشاء مجموعة جديدة -->
-            <button onclick="openGroupModal()" class="bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0" title="إنشاء وإدارة المجموعات">
-              <i class="fa-solid fa-folder-plus text-xs"></i>
-              <span id="txtBtnNewGroup">مجموعة جديدة</span>
-            </button>
+            <!-- دمج ذكي لفلترة وإدارة المجموعات (Smart Unified Group Control) -->
+            <div class="flex items-center gap-1 bg-zinc-800 border border-zinc-700 rounded-xl p-0.5">
+              <select id="groupFilterSelect" onchange="filterLicenses()" class="bg-transparent border-0 text-xs text-zinc-200 px-2.5 py-1.5 focus:outline-none font-medium cursor-pointer">
+                <option value="all">كافة المجموعات</option>
+              </select>
+              <button onclick="openGroupModal()" class="bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 px-2 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 shrink-0 cursor-pointer" title="إدارة وإنشاء وتعديل المجموعات">
+                <i class="fa-solid fa-folder-gear text-xs"></i>
+                <span class="hidden sm:inline">إدارة</span>
+              </button>
+            </div>
 
-            <!-- زر تصدير إكسل الشامل (متعدد الصفحات) -->
-            <button onclick="exportComprehensiveExcel()" class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-1.5 shrink-0 cursor-pointer shadow-sm" title="تصدير ملف Excel متعدد الصفحات (التراخيص، الموظفون، النسخ الشامل)">
+            <!-- زر تصدير إكسل الشامل (متعدد الصفحات ويدعم الفلترة) -->
+            <button onclick="exportComprehensiveExcel()" class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-1.5 shrink-0 cursor-pointer shadow-sm" title="تصدير ملف Excel متعدد الصفحات (التراخيص، الموظفون، النسخ الشامل)">
               <i class="fa-solid fa-file-excel text-sm text-emerald-400"></i>
               <span id="txtBtnExportExcel">تصدير إكسل</span>
             </button>
 
             <!-- زر التحديث -->
-            <button onclick="loadLicenses()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-1.5 shrink-0">
+            <button onclick="loadLicenses()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-1.5 shrink-0 cursor-pointer">
               <i class="fa-solid fa-rotate text-xs"></i>
               <span id="txtBtnRefresh">تحديث</span>
             </button>
@@ -388,7 +405,7 @@
     </div>
 
     <div class="flex items-center gap-2 flex-wrap text-xs">
-      <!-- تغيير المجموعة -->
+      <!-- تغيير المجموعة وإمكانية إنشاء مجموعة جديدة فوراً -->
       <div class="flex items-center gap-1">
         <select id="bulkGroupSelect" class="bg-zinc-800 border border-zinc-700 text-zinc-200 rounded-xl px-2.5 py-1.5 text-xs focus:outline-none focus:border-indigo-500">
           <!-- يتم التعبئة بالمجموعات -->
@@ -396,6 +413,10 @@
         <button type="button" onclick="submitBulkMoveGroup()" class="bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/40 px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1 cursor-pointer" title="نقل المفاتيح المحددة للمجموعة">
           <i class="fa-solid fa-folder-arrow-up"></i>
           <span class="hidden sm:inline">نقل للمجموعة</span>
+        </button>
+        <button type="button" onclick="promptBulkNewGroup()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-2.5 py-1.5 rounded-xl font-bold transition flex items-center gap-1 cursor-pointer shadow-sm shadow-indigo-600/30" title="إنشاء مجموعة جديدة ونقل المفاتيح المحددة إليها فوراً">
+          <i class="fa-solid fa-folder-plus"></i>
+          <span class="hidden sm:inline">+ مجموعة جديدة</span>
         </button>
       </div>
 
@@ -426,13 +447,18 @@
         <i class="fa-solid fa-trash text-xs"></i>
         <span>حذف نهائي</span>
       </button>
-    </div>
 
-    <!-- زر إلغاء التحديد -->
-    <button type="button" onclick="clearBulkSelection()" class="text-zinc-400 hover:text-white p-1.5 ml-auto border-r border-zinc-700/80 pr-2 cursor-pointer" title="إلغاء التحديد">
-      <i class="fa-solid fa-xmark"></i>
-    </button>
+      <!-- زر إلغاء التحديد -->
+      <button type="button" onclick="clearBulkSelection()" class="text-zinc-400 hover:text-white p-1.5 mr-auto border-r border-zinc-700/80 pr-2 cursor-pointer" title="إلغاء التحديد">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
   </div>
+
+  <!-- زر العودة لأعلى الصفحة العائم (Scroll To Top) -->
+  <button id="btnScrollToTop" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })" class="fixed bottom-6 left-6 z-40 bg-zinc-900/95 hover:bg-zinc-800 text-white border border-zinc-700 shadow-2xl w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300 opacity-0 pointer-events-none hover:scale-110 active:scale-95 cursor-pointer backdrop-blur-md" title="العودة لأعلى الصفحة">
+    <i class="fa-solid fa-arrow-up text-sm text-red-400"></i>
+  </button>
 
   <!-- ========================================== -->
   <!-- 3. نافذة توليد أكواد جديدة (Generate Modal) -->
@@ -513,6 +539,15 @@
               </button>
             </div>
           </div>
+        <!-- إسناد المفتاح للموظف (خاص بالمدير أو من يملك صلاحية الإسناد) -->
+        <div id="genAssignEmployeeContainer">
+          <label id="lblGenAssignEmployee" class="block text-xs font-bold text-zinc-300 mb-1 flex items-center justify-between">
+            <span>إسناد المفتاح إلى الموظف:</span>
+            <span class="text-[10px] text-purple-400 font-normal">اختياري</span>
+          </label>
+          <select id="genAssignEmployee" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 focus:outline-none focus:border-purple-500 text-xs sm:text-sm">
+            <option value="">تلقائي (حسب المستخدم الحالي)</option>
+          </select>
         </div>
 
         <!-- رقم الطلب في المتجر twsaa.com مع زر الاستيراد المباشر -->
@@ -970,127 +1005,104 @@
 
       <div class="space-y-4 text-xs sm:text-sm">
         
-        <!-- 1. أندرويد وشاشات Android TV (رابط قوقل درايف مباشر) -->
-        <div class="bg-zinc-950/80 p-4 rounded-2xl border border-zinc-800">
-          <div class="flex items-center justify-between mb-2">
+        <!-- 1. أجهزة الأندرويد والشاشات (يتطلب تثبيت تطبيقين) -->
+        <div class="bg-zinc-950/80 p-4 rounded-2xl border border-zinc-800 space-y-3">
+          <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <i class="fa-brands fa-android text-emerald-400 text-lg"></i>
-              <h4 class="font-bold text-white">1. هواتف وتابلت أندرويد + شاشات Android TV</h4>
+              <h4 class="font-bold text-white">1. أجهزة الأندرويد والشاشات (Smart TV + Android)</h4>
             </div>
-            <span class="text-[10px] bg-emerald-500/10 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-500/20 font-bold">ملف APK مباشر</span>
+            <span class="text-[10px] bg-emerald-500/10 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-500/20 font-bold">*يتطلب تثبيت عدد 2 من التطبيقات*</span>
           </div>
-          <p class="text-zinc-400 text-xs mb-3">تطبيق يوتيوب بريميوم الرسمي المدمج مع قفل التراخيص التلقائي وتسجيل الدخول بحساب Google.</p>
-          <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-            <input type="text" readonly id="guideApkInput" class="flex-1 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300 transition focus:outline-none focus:border-amber-400">
-            <button onclick="copyLinkById('guideApkInput')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0" title="نسخ الرابط">
-              <i class="fa-solid fa-copy"></i>
-              <span>نسخ</span>
-            </button>
-            <button id="btnEditGuideApk" onclick="toggleEditGuideLink('guideApkInput', 'btnEditGuideApk', 'apk_drive_link')" class="bg-zinc-800 hover:bg-zinc-700 text-amber-400 hover:text-amber-300 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 border border-zinc-700" title="تعديل الرابط">
-              <i class="fa-solid fa-pen"></i>
-              <span>تعديل</span>
-            </button>
+
+          <!-- التطبيق الأول: GmsCore -->
+          <div class="bg-zinc-900/90 p-3 rounded-xl border border-zinc-800 space-y-1.5">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-zinc-200">1. الأول: تطبيق خدمات التشغيل "GmsCore.apk" لمرة واحدة (بديل ذكي لخدمات Google):</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="text" readonly value="https://github.com/ReVanced/GmsCore/releases/download/v0.3.13.2.250932/app.revanced.android.gms-250932004-signed.apk" id="guideGmsCoreLink" class="flex-1 bg-zinc-950 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300">
+              <button onclick="copyLinkById('guideGmsCoreLink')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0" title="نسخ الرابط">
+                <i class="fa-solid fa-copy"></i>
+                <span>نسخ</span>
+              </button>
+              <a href="https://github.com/ReVanced/GmsCore/releases/download/v0.3.13.2.250932/app.revanced.android.gms-250932004-signed.apk" target="_blank" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-1">
+                <i class="fa-solid fa-download"></i>
+                <span>تحميل</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- التطبيق الثاني: YouTube PLUS -->
+          <div class="bg-zinc-900/90 p-3 rounded-xl border border-zinc-800 space-y-1.5">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-zinc-200">2. الثاني: تطبيق يوتيوب بلس (YouTube_PLUS.apk):</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="text" readonly value="https://drive.google.com/open?id=1OMlu6O5krdLJYAxYjuzK4DBjuiSrKaw2&usp=drive_fs" id="guideYtPlusApkLink" class="flex-1 bg-zinc-950 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300">
+              <button onclick="copyLinkById('guideYtPlusApkLink')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0" title="نسخ الرابط">
+                <i class="fa-solid fa-copy"></i>
+                <span>نسخ</span>
+              </button>
+              <a href="https://drive.google.com/open?id=1OMlu6O5krdLJYAxYjuzK4DBjuiSrKaw2&usp=drive_fs" target="_blank" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-1">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                <span>فتح الدرايف</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- الخطوة 3: التفعيل -->
+          <div class="text-zinc-300 text-xs bg-zinc-900/40 p-2.5 rounded-xl border border-zinc-800/60 leading-relaxed">
+            <strong>3.</strong> افتح تطبيق يوتيوب بلس، وأدخل كود الاشتراك الخاص بك (<code class="text-red-400 font-mono">PLUS-XXXX-XXXX-XXXX</code>). سيعمل يوتيوب بلس فوراً بمزايا يوتيوب بريميوم الرسمية بدون إعلانات مع دعم التشغيل في الخلفية.
           </div>
         </div>
 
-        <!-- 2. أجهزة الكمبيوتر ويندوز (Windows Desktop App) -->
-        <div class="bg-zinc-950/80 p-4 rounded-2xl border border-zinc-800">
-          <div class="flex items-center justify-between mb-2">
+        <!-- 2. تطبيق الكمبيوتر (ويندوز + ماك) -->
+        <div class="bg-zinc-950/80 p-4 rounded-2xl border border-zinc-800 space-y-2">
+          <div class="flex items-center justify-between mb-1">
             <div class="flex items-center gap-2">
               <i class="fa-brands fa-windows text-blue-400 text-lg"></i>
-              <h4 class="font-bold text-white">2. أجهزة الكمبيوتر (Windows Desktop App)</h4>
+              <h4 class="font-bold text-white">2. تطبيق الكمبيوتر (ويندوز + ماك)</h4>
             </div>
-            <span class="text-[10px] bg-blue-500/10 text-blue-400 px-2.5 py-0.5 rounded-full border border-blue-500/20 font-bold">برنامج EXE مدمج</span>
+            <span class="text-[10px] bg-blue-500/10 text-blue-400 px-2.5 py-0.5 rounded-full border border-blue-500/20 font-bold">رابط مباشر</span>
           </div>
-          <p class="text-zinc-400 text-xs mb-3">برنامج مكتبي مستقل يشغل يوتيوب الرسمي بالكامل مع حجب الإعلانات وقفل المفتاح وشعار يوتيوب الموحد.</p>
           <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-            <input type="text" readonly id="guideWindowsInput" class="flex-1 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300 transition focus:outline-none focus:border-amber-400">
+            <input type="text" readonly value="https://drive.google.com/file/d/1Wl4OmIzUXocBEnRgnADK_Ey-pxbvw6Cl/view?usp=drive_link" id="guideWindowsInput" class="flex-1 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300 transition focus:outline-none focus:border-amber-400">
             <button onclick="copyLinkById('guideWindowsInput')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0" title="نسخ الرابط">
               <i class="fa-solid fa-copy"></i>
               <span>نسخ</span>
             </button>
-            <button id="btnEditGuideWin" onclick="toggleEditGuideLink('guideWindowsInput', 'btnEditGuideWin', 'windows_drive_link')" class="bg-zinc-800 hover:bg-zinc-700 text-amber-400 hover:text-amber-300 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 border border-zinc-700" title="تعديل الرابط">
-              <i class="fa-solid fa-pen"></i>
-              <span>تعديل</span>
-            </button>
+            <a href="https://drive.google.com/file/d/1Wl4OmIzUXocBEnRgnADK_Ey-pxbvw6Cl/view?usp=drive_link" target="_blank" class="bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-1">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+              <span>فتح الدرايف</span>
+            </a>
           </div>
         </div>
 
-        <!-- 3. أجهزة الآيفون والآيباد (iOS / iPadOS) -->
-        <div class="bg-zinc-950/80 p-4 rounded-2xl border border-zinc-800">
-          <div class="flex items-center justify-between mb-2">
+        <!-- 3. تطبيق الآيفون والآيباد (iOS / iPadOS) -->
+        <div class="bg-zinc-950/80 p-4 rounded-2xl border border-zinc-800 space-y-2">
+          <div class="flex items-center justify-between mb-1">
             <div class="flex items-center gap-2">
               <i class="fa-brands fa-apple text-zinc-200 text-lg"></i>
-              <h4 class="font-bold text-white">3. أجهزة الآيفون والآيباد (iOS / iPadOS)</h4>
+              <h4 class="font-bold text-white">3. تطبيق الآيفون والآيباد (iOS / iPadOS)</h4>
             </div>
-            <span class="text-[10px] bg-zinc-500/10 text-zinc-300 px-2.5 py-0.5 rounded-full border border-zinc-500/20 font-bold">تشغيل فوري سريع</span>
+            <span class="text-[10px] bg-zinc-500/10 text-zinc-300 px-2.5 py-0.5 rounded-full border border-zinc-500/20 font-bold">خطوات Safari</span>
           </div>
-          <p class="text-zinc-400 text-xs mb-2">يفتح العميل الرابط في Safari ثم يضغط (مشاركة > إضافة إلى الشاشة الرئيسية) للحصول على تطبيق يوتيوب بلس+ بدون إعلانات مع إمكانية الدخول بحساب Google:</p>
-          <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-            <input type="text" readonly value="" id="guideIosLink" class="flex-1 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300 transition focus:outline-none focus:border-amber-400">
+          <div class="bg-zinc-900/60 p-3 rounded-xl border border-zinc-800 text-xs text-zinc-300 space-y-1.5 leading-relaxed">
+            <p><strong>1.</strong> افتح متصفح Safari في الآيفون وادخل على: <code class="text-red-400 font-mono">https://plus.digitalsystemsa.com/</code></p>
+            <p><strong>2.</strong> اضغط على زر المشاركة (مربع بسهم للأعلى) في أسفل الشاشة، ثم اختر: <strong>"إضافة إلى الشاشة الرئيسية" (Add to Home Screen)</strong>.</p>
+            <p><strong>3.</strong> سيصبح لديك أيقونة لتطبيق YouTube PLUS+ تعمل فوراً كبرنامج مستقل بدون إعلانات وبجلسة دائمة!</p>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap pt-1">
+            <input type="text" readonly value="https://plus.digitalsystemsa.com/" id="guideIosLink" class="flex-1 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300 transition focus:outline-none focus:border-amber-400">
             <button onclick="copyLinkById('guideIosLink')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0" title="نسخ الرابط">
               <i class="fa-solid fa-copy"></i>
               <span>نسخ الرابط</span>
             </button>
-            <button id="btnEditGuideIos" onclick="toggleEditGuideLink('guideIosLink', 'btnEditGuideIos', 'custom_domain')" class="bg-zinc-800 hover:bg-zinc-700 text-amber-400 hover:text-amber-300 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 border border-zinc-700" title="تعديل الرابط المعتمد">
-              <i class="fa-solid fa-pen"></i>
-              <span>تعديل</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- 4. إضافة المتصفحات (Chrome / Edge / Brave / Mac) بضغطة زر -->
-        <div class="bg-zinc-950/80 p-4 rounded-2xl border border-zinc-800">
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center gap-2">
-              <i class="fa-brands fa-chrome text-amber-400 text-lg"></i>
-              <h4 class="font-bold text-white">4. إضافة المتصفحات (Chrome / Edge / Brave / Mac)</h4>
-            </div>
-            <span class="text-[10px] bg-amber-500/10 text-amber-400 px-2.5 py-0.5 rounded-full border border-amber-500/20 font-bold">بضغطة زر واحدة</span>
-          </div>
-          <p class="text-zinc-400 text-xs mb-3">تحول متصفح العميل إلى يوتيوب بريميوم رسمي مع حجب الإعلانات الجانبية والفيديو وقفل التراخيص التلقائي.</p>
-          <div class="flex items-center gap-3 flex-wrap">
-            <a href="/YouTube_PLUS_Browser_Extension.zip" download class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-amber-600/20 active:scale-95">
-              <i class="fa-solid fa-file-zipper text-sm"></i>
-              <span>تحميل حزمة الإضافة بضغطة زر (ZIP)</span>
+            <a href="https://plus.digitalsystemsa.com/" target="_blank" class="bg-zinc-700 hover:bg-zinc-600 text-white px-3 py-2 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-1">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+              <span>زيارة الموقع</span>
             </a>
-            <span class="text-zinc-400 text-xs">ثم فك الضغط واسحب المجلد المفكوك إلى قائمة ملحقات المتصفح (Extensions)</span>
-          </div>
-        </div>
-
-        <!-- 5. شاشات التلفزيون الذكية (مختصرة وسهلة جداً) -->
-        <div class="bg-zinc-950/80 p-4 rounded-2xl border border-zinc-800 space-y-3">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <i class="fa-solid fa-tv text-purple-400 text-lg"></i>
-              <h4 class="font-bold text-white">5. شاشات التلفزيون الذكية (سامسونج، LG، شاومي، سوني)</h4>
-            </div>
-            <span class="text-[10px] bg-purple-500/10 text-purple-400 px-2.5 py-0.5 rounded-full border border-purple-500/20 font-bold">خطوتان سريعتان</span>
-          </div>
-          
-          <!-- رابط Downloader المباشر لشاشات أندرويد -->
-          <div class="bg-zinc-900/90 p-3 rounded-xl border border-zinc-800">
-            <p class="text-xs text-zinc-300 mb-2 font-bold flex items-center gap-1.5">
-              <i class="fa-solid fa-download text-emerald-400"></i>
-              <span>شاشات أندرويد و Google TV (عبر تطبيق Downloader على الشاشة):</span>
-            </p>
-            <p class="text-[11px] text-zinc-400 mb-2">أدخل رابط الـ APK المباشر التالي في خانة البحث بتطبيق Downloader لتثبيت التطبيق بضغطة واحدة:</p>
-            <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-              <input type="text" readonly id="guideTvApkInput" class="flex-1 bg-zinc-950 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300 transition focus:outline-none focus:border-amber-400">
-              <button onclick="copyLinkById('guideTvApkInput')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0" title="نسخ رابط APK للشاشات">
-                <i class="fa-solid fa-copy"></i>
-                <span>نسخ</span>
-              </button>
-              <button id="btnEditGuideTvApk" onclick="toggleEditGuideLink('guideTvApkInput', 'btnEditGuideTvApk', 'apk_drive_link')" class="bg-zinc-800 hover:bg-zinc-700 text-amber-400 hover:text-amber-300 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 border border-zinc-700" title="تعديل رابط الـ APK">
-                <i class="fa-solid fa-pen"></i>
-                <span>تعديل</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- شاشات سامسونج و LG -->
-          <div class="text-zinc-300 text-xs space-y-1.5 leading-relaxed bg-zinc-900/50 p-3 rounded-xl border border-zinc-800/80">
-            <p><strong>• شاشات سامسونج (Tizen) و LG (webOS):</strong> افتح متصفح التلفزيون وادخل الرابط: <code id="guideTvLinkCode" class="text-red-400 font-mono"></code> واحفظه في المفضلة، أو استخدم زر البث المباشر (AirPlay / Cast) من الهاتف للشاشة فوراً.</p>
           </div>
         </div>
 
@@ -1798,6 +1810,7 @@
           const data = await res.json();
           if (Array.isArray(data.employees)) {
             cachedEmployeesList = data.employees;
+            updateGroupsDropdowns();
             updateBrowserAutoMirror();
           }
         }
@@ -1857,16 +1870,72 @@
       if (tvCode) tvCode.innerText = `${base}/`;
     }
 
+    let currentStatusFilter = 'all';
+
+    function setStatusFilter(status) {
+      if (currentStatusFilter === status && status !== 'all') {
+        currentStatusFilter = 'all';
+      } else {
+        currentStatusFilter = status;
+      }
+      updateStatusFilterUI();
+      renderLicenses();
+    }
+
+    function updateStatusFilterUI() {
+      const cards = {
+        all: document.getElementById('statCardTotal'),
+        active: document.getElementById('statCardActive'),
+        pending: document.getElementById('statCardPending'),
+        expired: document.getElementById('statCardExpired')
+      };
+      Object.keys(cards).forEach(key => {
+        const el = cards[key];
+        if (!el) return;
+        el.classList.remove('ring-2', 'ring-emerald-500', 'ring-amber-500', 'ring-red-500', 'ring-zinc-400', 'bg-zinc-800/80');
+      });
+
+      if (currentStatusFilter === 'active' && cards.active) {
+        cards.active.classList.add('ring-2', 'ring-emerald-500', 'bg-zinc-800/80');
+      } else if (currentStatusFilter === 'pending' && cards.pending) {
+        cards.pending.classList.add('ring-2', 'ring-amber-500', 'bg-zinc-800/80');
+      } else if (currentStatusFilter === 'expired' && cards.expired) {
+        cards.expired.classList.add('ring-2', 'ring-red-500', 'bg-zinc-800/80');
+      } else if (currentStatusFilter === 'all' && cards.all) {
+        cards.all.classList.add('ring-2', 'ring-zinc-400', 'bg-zinc-800/80');
+      }
+    }
+
     function updateGroupsDropdowns() {
       const groups = currentSettings.custom_groups || ['عام', 'VIP', 'عائلي'];
       
-      // 1. القائمة في شريط الفلترة
+      // 1. القائمة في شريط الفلترة مع عدد العملاء لكل مجموعة
       const filterSel = document.getElementById('groupFilterSelect');
       if (filterSel) {
         const curFilterVal = filterSel.value;
-        filterSel.innerHTML = `<option value="all">${currentLang === 'ar' ? 'كافة المجموعات' : 'All Groups'}</option>` + 
-          groups.map(g => `<option value="${g}">${g}</option>`).join('');
+        const totalCount = (allLicenses || []).length;
+        let groupOpts = `<option value="all">${currentLang === 'ar' ? 'كافة المجموعات' : 'All Groups'} (${totalCount})</option>`;
+        groups.forEach(g => {
+          const gCount = (allLicenses || []).filter(l => (l.group || 'عام') === g).length;
+          groupOpts += `<option value="${g}">${g} (${gCount})</option>`;
+        });
+        filterSel.innerHTML = groupOpts;
         filterSel.value = curFilterVal || 'all';
+      }
+
+      // 1.1 تحديث قائمة فلترة الموظفين في شريط الفلترة
+      const empFilterSel = document.getElementById('employeeFilterSelect');
+      if (empFilterSel) {
+        const curEmpVal = empFilterSel.value || 'all';
+        let empOptions = `<option value="all">${currentLang === 'ar' ? 'كافة الموظفين' : 'All Employees'}</option>`;
+        const adminCount = (allLicenses || []).filter(l => !l.created_by || l.created_by === 'المدير العام' || l.created_by_id === 'admin').length;
+        empOptions += `<option value="المدير العام">المدير العام (${adminCount})</option>`;
+        (cachedEmployeesList || []).forEach(emp => {
+          const empLicCount = (allLicenses || []).filter(l => (l.created_by && l.created_by.toLowerCase() === emp.name.toLowerCase()) || (l.created_by_id && l.created_by_id === emp.id)).length;
+          empOptions += `<option value="${emp.name}">${emp.name} (${empLicCount})</option>`;
+        });
+        empFilterSel.innerHTML = empOptions;
+        empFilterSel.value = curEmpVal;
       }
 
       // 2. القائمة في نافذة التوليد مع خيار إنشاء مجموعة جديدة
@@ -1973,15 +2042,15 @@
               <span class="bg-indigo-500/10 text-indigo-400 px-2.5 py-0.5 rounded-full font-mono font-bold">
                 ${count} ${currentLang === 'ar' ? 'عميل' : 'clients'}
               </span>
+              <button onclick="promptRenameGroup('${safeName}')" class="text-zinc-400 hover:text-amber-400 p-1.5 transition rounded-lg hover:bg-zinc-800 cursor-pointer" title="تعديل اسم المجموعة">
+                <i class="fa-solid fa-pen text-xs"></i>
+              </button>
               ${!isDefault ? `
-                <button onclick="promptRenameGroup('${safeName}')" class="text-zinc-400 hover:text-amber-400 p-1.5 transition rounded-lg hover:bg-zinc-800" title="تعديل اسم المجموعة">
-                  <i class="fa-solid fa-pen text-xs"></i>
-                </button>
-                <button onclick="confirmDeleteGroup('${safeName}')" class="text-zinc-400 hover:text-red-400 p-1.5 transition rounded-lg hover:bg-zinc-800" title="حذف المجموعة">
+                <button onclick="confirmDeleteGroup('${safeName}')" class="text-zinc-400 hover:text-red-400 p-1.5 transition rounded-lg hover:bg-zinc-800 cursor-pointer" title="حذف المجموعة">
                   <i class="fa-solid fa-trash text-xs"></i>
                 </button>
               ` : `
-                <span class="text-[10px] text-zinc-500 font-bold px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800">افتراضية</span>
+                <span class="text-[10px] text-zinc-500 font-bold px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800" title="المجموعة الأساسية بالنظام (يمكن تعديل اسمها)">افتراضية</span>
               `}
             </div>
           </div>
@@ -2029,25 +2098,78 @@
     }
 
     function getCurrentlyFilteredLicenses() {
-      const search = document.getElementById('searchInput').value.trim().toLowerCase();
-      const groupFilter = document.getElementById('groupFilterSelect').value;
+      const searchRaw = (document.getElementById('searchInput') ? document.getElementById('searchInput').value : '').trim().toLowerCase();
+      const searchClean = searchRaw.replace(/^#/, '').trim();
+      const groupFilter = document.getElementById('groupFilterSelect') ? document.getElementById('groupFilterSelect').value : 'all';
+      const empFilter = document.getElementById('employeeFilterSelect') ? document.getElementById('employeeFilterSelect').value : 'all';
+      const now = new Date();
+
       return allLicenses.filter(l => {
-        const matchesSearch = !search || 
-          l.serial_key.toLowerCase().includes(search) ||
-          (l.note && l.note.toLowerCase().includes(search)) ||
-          (l.whatsapp && l.whatsapp.includes(search)) ||
-          (l.order_id && l.order_id.toString().toLowerCase().includes(search)) ||
-          (l.client_email && l.client_email.toLowerCase().includes(search)) ||
-          (Array.isArray(l.device_ids) && l.device_ids.some(d => d.toLowerCase().includes(search)));
-
-        const matchesGroup = groupFilter === 'all' || (l.group || 'عام') === groupFilter;
-
-        let matchesDuration = true;
-        if (currentDurationFilter !== 'all') {
-          matchesDuration = l.duration_days === parseInt(currentDurationFilter, 10);
+        // 1. الفلترة حسب الحالة (Status Filter)
+        if (currentStatusFilter === 'active') {
+          const isAct = l.is_active && l.activated_at && (!l.expiry_date || new Date(l.expiry_date) >= now);
+          if (!isAct) return false;
+        } else if (currentStatusFilter === 'pending') {
+          const isPen = l.is_active && !l.activated_at;
+          if (!isPen) return false;
+        } else if (currentStatusFilter === 'expired') {
+          const isExp = !l.is_active || (l.expiry_date && new Date(l.expiry_date) < now);
+          if (!isExp) return false;
         }
 
-        return matchesSearch && matchesGroup && matchesDuration;
+        // 2. الفلترة حسب الموظف (Employee Filter)
+        if (empFilter !== 'all') {
+          const creator = (l.created_by || '').toLowerCase();
+          const creatorId = (l.created_by_id || '').toLowerCase();
+          const target = empFilter.toLowerCase();
+          const matchesEmp = (creator === target) || (creatorId === target) || creator.includes(target);
+          if (!matchesEmp) return false;
+        }
+
+        // 3. الفلترة حسب المجموعة
+        const matchesGroup = groupFilter === 'all' || (l.group || 'عام') === groupFilter;
+        if (!matchesGroup) return false;
+
+        // 4. الفلترة حسب المدة
+        if (currentDurationFilter !== 'all') {
+          if (l.duration_days !== parseInt(currentDurationFilter, 10)) return false;
+        }
+
+        // 5. محرك البحث الشامل (Comprehensive Search)
+        if (!searchRaw) return true;
+
+        const serialMatch = l.serial_key && l.serial_key.toLowerCase().includes(searchRaw);
+        const noteMatch = l.note && l.note.toLowerCase().includes(searchRaw);
+        const waMatch = l.whatsapp && (l.whatsapp.includes(searchRaw) || l.whatsapp.includes(searchClean));
+        const emailMatch = l.client_email && l.client_email.toLowerCase().includes(searchRaw);
+        const creatorMatch = l.created_by && l.created_by.toLowerCase().includes(searchRaw);
+        const groupMatch = l.group && l.group.toLowerCase().includes(searchRaw);
+
+        // فحص رقم الطلب بدقة (مع أو بدون #)
+        let orderMatch = false;
+        if (l.order_id) {
+          const ordStr = l.order_id.toString().toLowerCase().trim();
+          const ordClean = ordStr.replace(/^#/, '');
+          orderMatch = ordStr.includes(searchRaw) || 
+                       ordClean.includes(searchClean) || 
+                       ('#' + ordClean).includes(searchRaw) ||
+                       searchRaw.includes(ordClean);
+        }
+
+        // فحص الأجهزة المربوطة
+        const devIdMatch = Array.isArray(l.device_ids) && l.device_ids.some(d => d.toLowerCase().includes(searchRaw));
+        const devInfoMatch = Array.isArray(l.devices_info) && l.devices_info.some(d => 
+          (d.type && d.type.toLowerCase().includes(searchRaw)) || 
+          (d.id && d.id.toLowerCase().includes(searchRaw))
+        );
+
+        // فحص سجل الحركات والتدقيق
+        const auditMatch = Array.isArray(l.audit_log) && l.audit_log.some(a => 
+          (a.detail && a.detail.toLowerCase().includes(searchRaw)) ||
+          (a.by && a.by.toLowerCase().includes(searchRaw))
+        );
+
+        return serialMatch || noteMatch || waMatch || emailMatch || creatorMatch || groupMatch || orderMatch || devIdMatch || devInfoMatch || auditMatch;
       });
     }
 
@@ -2142,6 +2264,12 @@
       const group = document.getElementById('bulkGroupSelect').value;
       if (!group) return;
       submitBulkAction('move_group', group);
+    }
+
+    function promptBulkNewGroup() {
+      const newName = prompt('أدخل اسم المجموعة الجديدة لنقل المفاتيح المحددة إليها:');
+      if (!newName || !newName.trim()) return;
+      submitBulkAction('move_group', newName.trim());
     }
 
     async function toggleLicenseLock(id, state) {
@@ -2572,6 +2700,31 @@
 
     // توليد أكواد جديدة
     function openGenerateModal() {
+      // تهيئة وتعبئة قائمة إسناد المفتاح للموظفين
+      const assignContainer = document.getElementById('genAssignEmployeeContainer');
+      const assignSelect = document.getElementById('genAssignEmployee');
+      const isMaster = currentUserProfile && currentUserProfile.role === 'admin';
+      const canAssign = isMaster || (currentUserProfile && currentUserProfile.permissions && currentUserProfile.permissions.can_assign_employee !== false);
+
+      if (assignContainer) {
+        if (!canAssign) {
+          assignContainer.classList.add('hidden');
+        } else {
+          assignContainer.classList.remove('hidden');
+          if (assignSelect) {
+            let opts = '<option value="">تلقائي (حسب المستخدم الحالي)</option>';
+            opts += '<option value="المدير العام">👑 المدير العام</option>';
+            if (Array.isArray(cachedEmployeesList) && cachedEmployeesList.length > 0) {
+              cachedEmployeesList.forEach(emp => {
+                opts += `<option value="${emp.id}">👤 ${emp.name} (${emp.email})</option>`;
+              });
+            }
+            assignSelect.innerHTML = opts;
+            assignSelect.value = '';
+          }
+        }
+      }
+
       showModal('generateModal');
     }
     function closeGenerateModal() {
@@ -2608,6 +2761,7 @@
       const note = document.getElementById('genNote').value.trim();
       const whatsapp = document.getElementById('genWhatsapp').value.trim();
       const order_id = (document.getElementById('genOrderId') ? document.getElementById('genOrderId').value : '').trim();
+      const assigned_to = (document.getElementById('genAssignEmployee') ? document.getElementById('genAssignEmployee').value : '').trim();
       const count = document.getElementById('genCount').value;
 
       const btn = document.getElementById('btnSubmitGen');
@@ -2617,7 +2771,7 @@
         const res = await fetch(`${API_BASE}/api/admin/generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ days, max_devices: maxDevices, group, note, whatsapp, order_id, count })
+          body: JSON.stringify({ days, max_devices: maxDevices, group, note, whatsapp, order_id, count, assigned_to })
         });
         const data = await res.json();
         if (data.status === 'success') {
@@ -2626,6 +2780,7 @@
           document.getElementById('genNote').value = '';
           document.getElementById('genWhatsapp').value = '';
           if (document.getElementById('genOrderId')) document.getElementById('genOrderId').value = '';
+          if (document.getElementById('genAssignEmployee')) document.getElementById('genAssignEmployee').value = '';
           loadLicenses();
         } else {
           showToast(data.message || 'حدث خطأ أثناء التوليد', 'error');
@@ -3090,19 +3245,31 @@
       let msg = '';
       if (type === 'welcome') {
         document.getElementById('waTabWelcome').className = 'py-2 px-2 text-center rounded-xl bg-emerald-600 text-white font-bold transition text-[11px]';
-        msg = `مرحباً بك! 🎉
-يسعدنا انضمامك إلى خدمة YouTube PLUS+ - النظام الرقمي (بدون إعلانات وبأعلى دقة 4K).
+        msg = `*لتثبيت وتشغيل يوتيوب بلس بمزايا بريميوم الرسمية 100%:*
 
-🔑 كود التفعيل الخاص بك:
-${l.serial_key}
+أجهزة الاندرويد والشاشات:
+*يتطلب تثبيت عدد 2 من التطبيقات*
 
-⏳ مدة الاشتراك: ${l.duration_days} يوماً
-📱 عدد الأجهزة المسموحة: ${l.max_devices || 1} جهاز
+1. الأول قم بتثبيت تطبيق خدمات التشغيل "GmsCore.apk" لمرة واحدة فقط (ليعمل كبديل ذكي لخدمات قوقل في الخلفية)
+عبر الرابط التالي:https://github.com/ReVanced/GmsCore/releases/download/v0.3.13.2.250932/app.revanced.android.gms-250932004-signed.apk
 
-🌐 رابط تشغيل التطبيق للآيفون والكمبيوتر والشاشات:
-${getSystemBaseUrl()}/
+2. الثاني قم بتثبيت تطبيق يوتيوب بلس (YouTube_PLUS.apk) عبر الرابط التالي:
+https://drive.google.com/open?id=1OMlu6O5krdLJYAxYjuzK4DBjuiSrKaw2&usp=drive_fs
 
-نتمنى لك مشاهدة ممتعة ومميزة دائماً!`;
+3. افتح تطبيق يوتيوب بلس، وأدخل كود الاشتراك الخاص بك (${l.serial_key}). سيعمل يوتيوب بلس فوراً بمزايا يوتيوب بريميوم الرسمية بدون إعلانات مع دعم التشغيل في الخلفية.
+_________________
+
+تطبيق الكمبيوتر (ويندوز + ماك)
+https://drive.google.com/file/d/1Wl4OmIzUXocBEnRgnADK_Ey-pxbvw6Cl/view?usp=drive_link
+__________________
+
+تطبيق الايفون والآيباد
+
+1. افتح متصفح Safari في الآيفون وادخل على:
+   👉 https://plus.digitalsystemsa.com/
+2. اضغط على زر المشاركة (مربع بسهم للأعلى) في أسفل الشاشة، ثم اختر:
+   "إضافة إلى الشاشة الرئيسية" (Add to Home Screen).
+3. سيصبح لديك أيقونة لتطبيق YouTube PLUS+ تعمل فوراً كبرنامج مستقل بدون إعلانات وبجلسة دائمة!`;
       } else if (type === 'reminder') {
         document.getElementById('waTabReminder').className = 'py-2 px-2 text-center rounded-xl bg-amber-600 text-white font-bold transition text-[11px]';
         msg = `مرحباً بك، تذكير باشتراكك في YouTube PLUS+ - النظام الرقمي ⏳
@@ -3268,7 +3435,8 @@ ${getSystemBaseUrl()}/
       { key: 'can_view_stats', label: 'مشاهدة تقارير الإحصائيات', default: true, icon: 'fa-chart-pie' },
       { key: 'can_view_guide', label: 'مشاهدة دليل الأجهزة والروابط', default: true, icon: 'fa-book-open' },
       { key: 'can_manage_groups', label: 'إدارة وإنشاء المجموعات', default: false, icon: 'fa-users-gear' },
-      { key: 'can_import_orders', label: 'استيراد طلبات منصة توسعة', default: true, icon: 'fa-cart-shopping' }
+      { key: 'can_import_orders', label: 'استيراد طلبات منصة توسعة', default: true, icon: 'fa-cart-shopping' },
+      { key: 'can_assign_employee', label: 'إسناد المفاتيح للموظفين', default: true, icon: 'fa-user-tag' }
     ];
 
     const PERM_BADGE_CONFIG = {
@@ -3283,7 +3451,8 @@ ${getSystemBaseUrl()}/
       can_view_stats: { label: 'إحصائيات', class: 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20' },
       can_view_guide: { label: 'دليل الأجهزة', class: 'bg-orange-500/10 text-orange-300 border border-orange-500/20' },
       can_manage_groups: { label: 'مجموعات', class: 'bg-teal-500/10 text-teal-300 border border-teal-500/20' },
-      can_import_orders: { label: 'استيراد توسعة', class: 'bg-sky-500/10 text-sky-300 border border-sky-500/20' }
+      can_import_orders: { label: 'استيراد توسعة', class: 'bg-sky-500/10 text-sky-300 border border-sky-500/20' },
+      can_assign_employee: { label: 'إسناد موظفين', class: 'bg-fuchsia-500/10 text-fuchsia-300 border border-fuchsia-500/20' }
     };
 
     function renderPermissionsCheckboxes(containerId, prefix, existingPerms = null) {
@@ -3866,6 +4035,19 @@ ${getSystemBaseUrl()}/
       });
     });
 
+    // إظهار/إخفاء زر العودة لأعلى الصفحة العائم
+    window.addEventListener('scroll', () => {
+      const btn = document.getElementById('btnScrollToTop');
+      if (!btn) return;
+      if (window.scrollY > 300) {
+        btn.classList.remove('opacity-0', 'pointer-events-none');
+        btn.classList.add('opacity-100', 'pointer-events-auto');
+      } else {
+        btn.classList.add('opacity-0', 'pointer-events-none');
+        btn.classList.remove('opacity-100', 'pointer-events-auto');
+      }
+    });
+
     // ==========================================
     // دعم تثبيت لوحة التحكم كتطبيق ويب تقدمي (PWA)
     // ==========================================
@@ -4184,9 +4366,11 @@ ${getSystemBaseUrl()}/
         } catch (_) {}
 
         // ----------------------------------------------------
-        // الورقة 1: سجل المفاتيح والتراخيص (Licenses & Subscriptions)
+        // الورقة 1: سجل المفاتيح والتراخيص (Licenses & Subscriptions) - يدعم الفلترة الحالية
         // ----------------------------------------------------
-        const licensesToExport = (allLicenses && allLicenses.length > 0) ? allLicenses : [];
+        const filteredLicenses = typeof getCurrentlyFilteredLicenses === 'function' ? getCurrentlyFilteredLicenses() : (allLicenses || []);
+        const isFiltered = filteredLicenses.length !== (allLicenses || []).length;
+        const licensesToExport = isFiltered ? filteredLicenses : ((allLicenses && allLicenses.length > 0) ? allLicenses : []);
         const sheet1Data = licensesToExport.map((l, index) => {
           const isExpired = l.expiry_date && new Date(l.expiry_date) < now;
           let statusStr = 'نشط';
@@ -4291,7 +4475,8 @@ ${getSystemBaseUrl()}/
         // ورقة 1
         const ws1 = XLSX.utils.json_to_sheet(sheet1Data.length > 0 ? sheet1Data : [{ 'تنبيه': 'لا توجد تراخيص مسجلة حالياً' }]);
         ws1['!views'] = [{ rightToLeft: true }];
-        XLSX.utils.book_append_sheet(wb, ws1, 'سجل المفاتيح والتراخيص');
+        const sheet1Name = isFiltered ? `المفاتيح المفلترة (${licensesToExport.length})` : 'سجل المفاتيح والتراخيص';
+        XLSX.utils.book_append_sheet(wb, ws1, sheet1Name);
 
         // ورقة 2
         const ws2 = XLSX.utils.json_to_sheet(sheet2Data.length > 0 ? sheet2Data : [{ 'تنبيه': 'لا يوجد موظفون مضافون حالياً' }]);
@@ -4304,9 +4489,9 @@ ${getSystemBaseUrl()}/
         XLSX.utils.book_append_sheet(wb, ws3, 'النسخ الشامل وملخص المنظومة');
 
         // كتابة وتنزيل الملف بصيغة .xlsx
-        const fileName = `YouTube_PLUS_Master_Export_${dateStr}.xlsx`;
+        const fileName = isFiltered ? `YouTube_PLUS_Filtered_${dateStr}.xlsx` : `YouTube_PLUS_Master_Export_${dateStr}.xlsx`;
         XLSX.writeFile(wb, fileName);
-        showToast('تم تصدير ملف Excel الشامل بنجاح (3 صفحات كاملة) 📊', 'success');
+        showToast(`تم تصدير ملف Excel بنجاح (${licensesToExport.length} مفتاح ${isFiltered ? 'مفلتر' : 'شامل'} - 3 صفحات كاملة) 📊`, 'success');
       } catch (err) {
         console.error('Export Excel Error:', err);
         showToast(`فشل تصدير ملف الإكسل: ${err.message}`, 'error');

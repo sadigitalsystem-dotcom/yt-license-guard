@@ -504,7 +504,6 @@ class LicenseDB {
     const cleanOld = (oldName || '').trim();
     const cleanNew = (newName || '').trim();
     if (!cleanOld || !cleanNew) throw new Error('اسم المجموعة مطلوب');
-    if (cleanOld === 'عام') throw new Error('لا يمكن تعديل اسم المجموعة الأساسية (عام)');
     const settings = this.getSettings();
     if (settings.custom_groups.includes(cleanNew) && cleanNew !== cleanOld) {
       throw new Error('يوجد مجموعة أخرى بنفس هذا الاسم');
@@ -565,11 +564,15 @@ class LicenseDB {
     });
   }
 
-  create(durationDays, note = '', maxDevices = 1, group = 'عام', whatsapp = '', createdBy = 'المدير العام', createdById = 'admin', orderId = '') {
+  create(durationDays, note = '', maxDevices = 1, group = 'عام', whatsapp = '', createdBy = 'المدير العام', createdById = 'admin', orderId = '', actualGeneratedBy = null) {
     const randomHex = () => crypto.randomBytes(3).toString('hex').toUpperCase();
     const key = `PLUS-${randomHex()}-${randomHex()}-${randomHex()}`;
     const nowIso = new Date().toISOString();
     const cleanOrderId = (orderId || '').toString().trim().replace(/^#/, '');
+    let detailText = cleanOrderId ? `توليد المفتاح (طلب #${cleanOrderId})` : 'توليد المفتاح';
+    if (actualGeneratedBy && actualGeneratedBy !== createdBy) {
+      detailText += ` وإسناده للموظف: ${createdBy} (بواسطة ${actualGeneratedBy})`;
+    }
     const newEntry = {
       id: crypto.randomUUID(),
       serial_key: key,
@@ -592,9 +595,9 @@ class LicenseDB {
       audit_log: [
         {
           action: 'create',
-          by: createdBy,
+          by: actualGeneratedBy || createdBy,
           at: nowIso,
-          detail: cleanOrderId ? `توليد المفتاح (طلب #${cleanOrderId})` : 'توليد المفتاح'
+          detail: detailText
         }
       ]
     };
@@ -652,7 +655,8 @@ class LicenseDB {
         can_view_stats: permissions?.can_view_stats !== false,
         can_view_guide: permissions?.can_view_guide !== false,
         can_manage_groups: permissions?.can_manage_groups === true,
-        can_import_orders: permissions?.can_import_orders !== false
+        can_import_orders: permissions?.can_import_orders !== false,
+        can_assign_employee: permissions?.can_assign_employee !== false
       }
     };
     this.data.employees.push(emp);
@@ -709,9 +713,18 @@ class LicenseDB {
 
       if (action === 'delete') {
         affected.push(l.id);
-      } else if (action === 'change_group') {
-        l.group = (value || 'عام').trim();
+      } else if (action === 'change_group' || action === 'move_group') {
+        const targetGroup = (value || 'عام').trim();
+        if (targetGroup) this.addGroup(targetGroup);
+        l.group = targetGroup;
         affected.push(l.id);
+        if (!Array.isArray(l.audit_log)) l.audit_log = [];
+        l.audit_log.push({
+          action: 'bulk_change_group',
+          by: user,
+          at: new Date().toISOString(),
+          detail: `نقل المفتاح إلى مجموعة: ${targetGroup}`
+        });
       } else if (action === 'toggle_status') {
         l.is_active = !!value;
         affected.push(l.id);
@@ -1632,7 +1645,8 @@ const server = http.createServer(async (req, res) => {
             can_view_all: true,
             can_view_stats: true,
             can_view_guide: true,
-            can_manage_groups: false
+            can_manage_groups: false,
+            can_assign_employee: true
           }
         };
         activeSessions.set(sessionToken, sessionData);
@@ -1697,6 +1711,7 @@ const server = http.createServer(async (req, res) => {
           can_view_stats: true,
           can_view_guide: true,
           can_manage_groups: true,
+          can_assign_employee: true,
           is_master: true
         };
       }
@@ -2238,12 +2253,29 @@ const server = http.createServer(async (req, res) => {
       const whatsapp = body.whatsapp || '';
       const order_id = (body.order_id || '').toString().trim();
 
-      const creatorName = session.name || 'المدير العام';
-      const creatorId = session.id || 'admin';
+      let creatorName = session.name || 'المدير العام';
+      let creatorId = session.id || 'admin';
+      const actualGeneratedBy = session.name || 'المدير العام';
+
+      // إسناد المفتاح لموظف محدد (للمدير العام أو موظف يملك صلاحية الإسناد)
+      if (body.assigned_to) {
+        const canAssign = session.role === 'admin' || (session.role === 'employee' && session.permissions?.can_assign_employee !== false);
+        if (canAssign) {
+          const empList = db.getEmployees();
+          const targetEmp = empList.find(e => e.id === body.assigned_to || e.name === body.assigned_to || e.email === body.assigned_to);
+          if (targetEmp) {
+            creatorName = targetEmp.name;
+            creatorId = targetEmp.id;
+          } else if (body.assigned_to === 'admin' || body.assigned_to === 'المدير العام') {
+            creatorName = 'المدير العام';
+            creatorId = 'admin';
+          }
+        }
+      }
 
       const generated = [];
       for (let i = 0; i < count; i++) {
-        generated.push(db.create(days, note, maxDevices, group, whatsapp, creatorName, creatorId, order_id));
+        generated.push(db.create(days, note, maxDevices, group, whatsapp, creatorName, creatorId, order_id, actualGeneratedBy));
       }
 
       return sendJson(res, 200, { status: 'success', count: generated.length, licenses: generated });
