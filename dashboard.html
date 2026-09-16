@@ -868,10 +868,10 @@
       </div>
 
       <!-- البطاقة القابلة للطباعة والتصدير كـ PDF -->
-      <div id="clientInvoicePrintWrapper" class="bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 p-4 sm:p-5 rounded-2xl border border-zinc-700/80 shadow-inner space-y-3.5">
+      <div id="clientInvoicePrintWrapper" class="bg-zinc-950 p-4 sm:p-5 rounded-2xl border border-zinc-700/80 shadow-inner space-y-3.5" style="background-color: #0c0c11 !important;">
         
         <!-- ترويسة البطاقة والشعار -->
-        <div class="flex items-center justify-between border-b border-zinc-800/80 pb-3">
+        <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
           <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center shadow-lg shadow-red-600/30">
               <i class="fa-brands fa-youtube text-white text-base"></i>
@@ -893,7 +893,7 @@
         </div>
 
         <!-- تفاصيل العميل والطلب -->
-        <div class="grid grid-cols-2 gap-2.5 bg-zinc-900/90 p-3 rounded-xl border border-zinc-800 text-xs">
+        <div class="grid grid-cols-2 gap-2.5 bg-zinc-900 p-3 rounded-xl border border-zinc-800 text-xs">
           <div>
             <span class="text-[10px] text-zinc-400 block mb-0.5 font-sans">اسم العميل / الملاحظة:</span>
             <span id="invClientName" class="font-bold text-white text-xs sm:text-sm truncate block">--</span>
@@ -926,31 +926,31 @@
 
         <!-- شبكة تفاصيل مدة الاشتراك -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs font-mono">
-          <div class="bg-zinc-900/90 p-2 rounded-xl border border-zinc-800">
+          <div class="bg-zinc-900 p-2 rounded-xl border border-zinc-800">
             <span class="text-[10px] text-zinc-400 block font-sans mb-0.5">مدة الاشتراك</span>
             <span id="invDuration" class="font-bold text-white text-xs">--</span>
           </div>
-          <div class="bg-zinc-900/90 p-2 rounded-xl border border-zinc-800">
+          <div class="bg-zinc-900 p-2 rounded-xl border border-zinc-800">
             <span class="text-[10px] text-zinc-400 block font-sans mb-0.5">تاريخ البداية</span>
             <span id="invStartDate" class="text-zinc-300 text-[11px]">--</span>
           </div>
-          <div class="bg-zinc-900/90 p-2 rounded-xl border border-zinc-800">
+          <div class="bg-zinc-900 p-2 rounded-xl border border-zinc-800">
             <span class="text-[10px] text-zinc-400 block font-sans mb-0.5">تاريخ الانتهاء</span>
             <span id="invExpiryDate" class="text-zinc-300 text-[11px]">--</span>
           </div>
-          <div class="bg-zinc-900/90 p-2 rounded-xl border border-zinc-800">
+          <div class="bg-zinc-900 p-2 rounded-xl border border-zinc-800">
             <span class="text-[10px] text-zinc-400 block font-sans mb-0.5">الأيام المتبقية</span>
             <span id="invDaysRemaining" class="font-bold text-amber-400 text-xs">--</span>
           </div>
         </div>
 
         <!-- رابط المنصة وخطوات التشغيل -->
-        <div class="bg-zinc-900/70 p-3 rounded-xl border border-zinc-800/80 text-[11px] text-zinc-300 space-y-1 font-sans">
+        <div class="bg-zinc-900 p-3 rounded-xl border border-zinc-800 text-[11px] text-zinc-300 space-y-1 font-sans">
           <div class="flex items-center justify-between text-xs">
             <span class="font-bold text-zinc-200">🌐 رابط المشاهدة المباشر:</span>
             <a href="https://plus.digitalsystemsa.com" target="_blank" class="font-mono text-sky-400 hover:underline">plus.digitalsystemsa.com</a>
           </div>
-          <div class="text-[10px] text-zinc-400 leading-relaxed border-t border-zinc-800/60 pt-1">
+          <div class="text-[10px] text-zinc-400 leading-relaxed border-t border-zinc-800/80 pt-1">
             <strong>طريقة التفعيل:</strong> 1. افتح الرابط بأي متصفح أو جهاز • 2. أدخل مفتاح التنشيط أعلاه • 3. استمتع بمشاهدة يوتيوب بلس بدون إعلانات وبالميزات الاحترافية.
           </div>
         </div>
@@ -1002,16 +1002,34 @@
         <button onclick="closeGuideModal()" class="text-zinc-400 hover:text-white p-2 text-sm"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
+      <!-- شريط الإجراءات السريعة لدليل الأجهزة -->
+      <div class="flex items-center justify-between bg-zinc-950/90 border border-zinc-800 rounded-2xl p-3 mb-4 flex-wrap gap-2">
+        <span class="text-xs text-zinc-400 flex items-center gap-1.5">
+          <i class="fa-solid fa-circle-info text-amber-400 text-sm"></i>
+          يمكنك نسخ شرح أي جهاز كرسالة جاهزة ومنسقة للعميل بضغطة زر واحدة.
+        </span>
+        <button onclick="copyGuideDeviceText('all', this)" class="bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 border border-amber-500/30 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm" title="نسخ رسالة كاملة تحتوي على دليل جميع الأجهزة">
+          <i class="fa-regular fa-copy"></i>
+          <span>نسخ الدليل الشامل لكافة الأجهزة</span>
+        </button>
+      </div>
+
       <div class="space-y-4 text-xs sm:text-sm">
         
         <!-- 1. أجهزة الأندرويد والشاشات (يتطلب تثبيت تطبيقين) -->
         <div class="bg-zinc-950/80 p-4 rounded-2xl border border-zinc-800 space-y-3">
-          <div class="flex items-center justify-between">
+          <div class="flex items-center justify-between flex-wrap gap-2">
             <div class="flex items-center gap-2">
               <i class="fa-brands fa-android text-emerald-400 text-lg"></i>
               <h4 class="font-bold text-white">1. أجهزة الأندرويد والشاشات (Smart TV + Android)</h4>
             </div>
-            <span class="text-[10px] bg-emerald-500/10 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-500/20 font-bold">*يتطلب تثبيت عدد 2 من التطبيقات*</span>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-[10px] bg-emerald-500/10 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-500/20 font-bold">*يتطلب تثبيت عدد 2 من التطبيقات*</span>
+              <button onclick="copyGuideDeviceText('android', this)" class="bg-emerald-600/20 hover:bg-emerald-600/35 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm" title="نسخ هذا الشرح كرسالة منسقة ومنظمة للعميل">
+                <i class="fa-regular fa-copy"></i>
+                <span>نسخ الشرح للعميل</span>
+              </button>
+            </div>
           </div>
 
           <!-- التطبيق الأول: GmsCore -->
@@ -1058,12 +1076,18 @@
 
         <!-- 2. تطبيق الكمبيوتر (ويندوز + ماك) -->
         <div class="bg-zinc-950/80 p-4 rounded-2xl border border-zinc-800 space-y-2">
-          <div class="flex items-center justify-between mb-1">
+          <div class="flex items-center justify-between flex-wrap gap-2 mb-1">
             <div class="flex items-center gap-2">
               <i class="fa-brands fa-windows text-blue-400 text-lg"></i>
               <h4 class="font-bold text-white">2. تطبيق الكمبيوتر (ويندوز + ماك)</h4>
             </div>
-            <span class="text-[10px] bg-blue-500/10 text-blue-400 px-2.5 py-0.5 rounded-full border border-blue-500/20 font-bold">رابط مباشر</span>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-[10px] bg-blue-500/10 text-blue-400 px-2.5 py-0.5 rounded-full border border-blue-500/20 font-bold">رابط مباشر</span>
+              <button onclick="copyGuideDeviceText('pc', this)" class="bg-blue-600/20 hover:bg-blue-600/35 text-blue-400 border border-blue-500/30 px-2.5 py-1 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm" title="نسخ هذا الشرح كرسالة منسقة ومنظمة للعميل">
+                <i class="fa-regular fa-copy"></i>
+                <span>نسخ الشرح للعميل</span>
+              </button>
+            </div>
           </div>
           <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
             <input type="text" readonly value="https://drive.google.com/file/d/1Wl4OmIzUXocBEnRgnADK_Ey-pxbvw6Cl/view?usp=drive_link" id="guideWindowsInput" class="flex-1 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300 transition focus:outline-none focus:border-amber-400">
@@ -1078,14 +1102,56 @@
           </div>
         </div>
 
-        <!-- 3. تطبيق الآيفون والآيباد (iOS / iPadOS) -->
+        <!-- 3. إضافة المتصفحات (Chrome / Edge / Brave / Mac / Windows) -->
+        <div class="bg-zinc-950/80 p-4 rounded-2xl border border-zinc-800 space-y-3">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2">
+              <i class="fa-brands fa-chrome text-amber-400 text-lg"></i>
+              <h4 class="font-bold text-white">3. إضافة المتصفحات (Chrome / Edge / Brave / Mac / Windows)</h4>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-[10px] bg-amber-500/10 text-amber-400 px-2.5 py-0.5 rounded-full border border-amber-500/20 font-bold">بضغطة زر واحدة</span>
+              <button onclick="copyGuideDeviceText('browser', this)" class="bg-amber-600/20 hover:bg-amber-600/35 text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm" title="نسخ هذا الشرح كرسالة منسقة ومنظمة للعميل">
+                <i class="fa-regular fa-copy"></i>
+                <span>نسخ الشرح للعميل</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-zinc-900/60 p-3 rounded-xl border border-zinc-800 text-xs text-zinc-300 space-y-1.5 leading-relaxed">
+            <p><strong>1.</strong> قم بتحميل ملف الإضافة (ZIP) من الزر أدناه وفك الضغط عنه في جهازك.</p>
+            <p><strong>2.</strong> في متصفحك (Chrome أو Edge)، ادخل على صفحة الملحقات (<code class="text-amber-400 font-mono">chrome://extensions</code> أو <code class="text-amber-400 font-mono">edge://extensions</code>) وفعّل <strong>"وضع المطور" (Developer mode)</strong> في أعلى الصفحة.</p>
+            <p><strong>3.</strong> اضغط على <strong>"تحميل حزمة مفكوكة" (Load unpacked)</strong> واختر مجلد الإضافة المفكوك.</p>
+            <p><strong>4.</strong> افتح موقع <code class="text-red-400 font-mono">www.youtube.com</code> وسيعمل معك يوتيوب بلس بكافة مزايا بريميوم وبدون إعلانات فوراً!</p>
+          </div>
+
+          <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap pt-1">
+            <input type="text" readonly value="https://plus.digitalsystemsa.com/YouTube_PLUS_Browser_Extension.zip" id="guideBrowserExtLink" class="flex-1 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300 transition focus:outline-none focus:border-amber-400">
+            <button onclick="copyLinkById('guideBrowserExtLink')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0" title="نسخ رابط الإضافة">
+              <i class="fa-solid fa-copy"></i>
+              <span>نسخ</span>
+            </button>
+            <a href="/YouTube_PLUS_Browser_Extension.zip" download class="bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-1.5 shadow-sm">
+              <i class="fa-solid fa-file-zipper"></i>
+              <span>تحميل الإضافة (ZIP)</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- 4. تطبيق الآيفون والآيباد (iOS / iPadOS) -->
         <div class="bg-zinc-950/80 p-4 rounded-2xl border border-zinc-800 space-y-2">
-          <div class="flex items-center justify-between mb-1">
+          <div class="flex items-center justify-between flex-wrap gap-2 mb-1">
             <div class="flex items-center gap-2">
               <i class="fa-brands fa-apple text-zinc-200 text-lg"></i>
-              <h4 class="font-bold text-white">3. تطبيق الآيفون والآيباد (iOS / iPadOS)</h4>
+              <h4 class="font-bold text-white">4. تطبيق الآيفون والآيباد (iOS / iPadOS)</h4>
             </div>
-            <span class="text-[10px] bg-zinc-500/10 text-zinc-300 px-2.5 py-0.5 rounded-full border border-zinc-500/20 font-bold">خطوات Safari</span>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-[10px] bg-zinc-500/10 text-zinc-300 px-2.5 py-0.5 rounded-full border border-zinc-500/20 font-bold">خطوات Safari</span>
+              <button onclick="copyGuideDeviceText('ios', this)" class="bg-zinc-700 hover:bg-zinc-600 text-white border border-zinc-600 px-2.5 py-1 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm" title="نسخ هذا الشرح كرسالة منسقة ومنظمة للعميل">
+                <i class="fa-regular fa-copy"></i>
+                <span>نسخ الشرح للعميل</span>
+              </button>
+            </div>
           </div>
           <div class="bg-zinc-900/60 p-3 rounded-xl border border-zinc-800 text-xs text-zinc-300 space-y-1.5 leading-relaxed">
             <p><strong>1.</strong> افتح متصفح Safari في الآيفون وادخل على: <code class="text-red-400 font-mono">https://plus.digitalsystemsa.com/</code></p>
@@ -1867,6 +1933,9 @@
       }
       const tvCode = document.getElementById('guideTvLinkCode');
       if (tvCode) tvCode.innerText = `${base}/`;
+
+      const extInput = document.getElementById('guideBrowserExtLink');
+      if (extInput) extInput.value = `${base}/YouTube_PLUS_Browser_Extension.zip`;
     }
 
     let currentStatusFilter = 'all';
@@ -3214,6 +3283,120 @@
     function openLinkFromInput(inputId) {
       const url = document.getElementById(inputId).value;
       if (url) window.open(url, '_blank');
+    }
+
+    // نسخ رسائل دليل الأجهزة المنسقة والمختصرة للعميل (واتساب / SMS)
+    function copyGuideDeviceText(device, btn) {
+      const base = typeof getSystemBaseUrl === 'function' ? getSystemBaseUrl() : 'https://plus.digitalsystemsa.com';
+      const webUrl = currentSettings.custom_domain ? (currentSettings.custom_domain.startsWith('http') ? currentSettings.custom_domain : 'https://' + currentSettings.custom_domain) : `${base}/`;
+      const extUrl = `${base}/YouTube_PLUS_Browser_Extension.zip`;
+      const gmscoreUrl = document.getElementById('guideGmsCoreLink')?.value || 'https://github.com/ReVanced/GmsCore/releases/download/v0.3.13.2.250932/app.revanced.android.gms-250932004-signed.apk';
+      const ytPlusApkUrl = document.getElementById('guideYtPlusApkLink')?.value || 'https://drive.google.com/open?id=1OMlu6O5krdLJYAxYjuzK4DBjuiSrKaw2&usp=drive_fs';
+      const windowsUrl = document.getElementById('guideWindowsInput')?.value || 'https://drive.google.com/file/d/1Wl4OmIzUXocBEnRgnADK_Ey-pxbvw6Cl/view?usp=drive_link';
+
+      let text = '';
+
+      if (device === 'android') {
+        text = `📱 *طريقة تشغيل YouTube PLUS+ (أجهزة الأندرويد والشاشات الذكية)*
+
+⚠️ *ملاحظة هامة:* يتطلب تشغيل النظام تثبيت تطبيقين بالترتيب التالي:
+
+1️⃣ *أولاً:* تطبيق خدمات التشغيل "GmsCore":
+(بديل ذكي لخدمات Google لتسجيل الدخول والتشغيل في الخلفية)
+🔗 رابط التحميل المباشر:
+${gmscoreUrl}
+
+2️⃣ *ثانياً:* تطبيق يوتيوب بلس (YouTube PLUS):
+🔗 رابط التحميل من قوقل درايف:
+${ytPlusApkUrl}
+
+3️⃣ *التفعيل والاستمتاع:*
+افتح تطبيق يوتيوب بلس، وأدخل كود الاشتراك الخاص بك (PLUS-XXXX-XXXX-XXXX). سيعمل يوتيوب بلس فوراً بمزايا يوتيوب بريميوم الرسمية بدون إعلانات مع دعم التشغيل في الخلفية وأعلى دقة 4K! 🌟`;
+      } else if (device === 'pc') {
+        text = `💻 *طريقة تشغيل YouTube PLUS+ (أجهزة الكمبيوتر والماك)*
+
+1️⃣ *تحميل برنامج يوتيوب بلس الرسمي للكمبيوتر والماك:*
+🔗 رابط التحميل المباشر من قوقل درايف:
+${windowsUrl}
+
+2️⃣ *التثبيت والتفعيل:*
+- ثبّت البرنامج بضغطة زر.
+- افتح البرنامج، وأدخل كود الاشتراك الخاص بك (PLUS-XXXX-XXXX-XXXX).
+- سيعمل البرنامج فوراً بواجهة يوتيوب الأصلية الرسمية وبدون أي إعلانات مع دعم تسجيل الدخول بحساب Google الرسمي! 🌟`;
+      } else if (device === 'browser') {
+        text = `🌐 *طريقة تشغيل YouTube PLUS+ عبر إضافة المتصفح (Chrome / Edge / Brave / Mac / Windows)*
+
+1️⃣ *تحميل ملف الإضافة:*
+🔗 رابط التحميل المباشر لحزمة الإضافة (ZIP):
+${extUrl}
+
+2️⃣ *خطوات التثبيت السريعة:*
+- قم بفك الضغط عن الملف المحمّل في جهازك.
+- في متصفحك (Chrome أو Edge)، افتح صفحة الملحقات:
+  Chrome: chrome://extensions
+  Edge: edge://extensions
+- فعّل خيار "وضع المطور" (Developer mode) في أعلى الصفحة.
+- اضغط على "تحميل حزمة مفكوكة" (Load unpacked) واختر مجلد الإضافة المفكوك.
+
+3️⃣ *التفعيل:*
+افتح موقع www.youtube.com وأدخل كود التفعيل الخاص بك ليعمل معك يوتيوب بريميوم بدون إعلانات وبكافة الميزات الاحترافية! 🌟`;
+      } else if (device === 'ios') {
+        text = `🍏 *طريقة تشغيل YouTube PLUS+ (أجهزة الآيفون والآيباد iOS)*
+
+1️⃣ افتح متصفح Safari في الآيفون وادخل على الرابط:
+🔗 ${webUrl}
+
+2️⃣ اضغط على زر "المشاركة" (أيقونة المربع مع السهم للأعلى) في شريط المتصفح السفلي.
+
+3️⃣ اختر من القائمة: "إضافة إلى الشاشة الرئيسية" (Add to Home Screen).
+
+4️⃣ ستظهر أيقونة تطبيق YouTube PLUS+ على شاشة جهازك كبرنامج مستقل؛ افتحه وأدخل كود التفعيل الخاص بك (PLUS-XXXX-XXXX-XXXX) واستمتع بالمشاهدة بدون إعلانات وبجلسة دائمة! 🌟`;
+      } else if (device === 'all') {
+        text = `🌟 *دليل تشغيل YouTube PLUS+ الشامل لكافة الأجهزة* 🌟
+
+📱 *1. أجهزة الأندرويد والشاشات الذكية (Android & Smart TV):*
+- تطبيق خدمات التشغيل (GmsCore):
+${gmscoreUrl}
+- تطبيق يوتيوب بلس (YouTube PLUS):
+${ytPlusApkUrl}
+
+💻 *2. تطبيق الكمبيوتر والماك (Windows & Mac):*
+- رابط التحميل المباشر:
+${windowsUrl}
+
+🌐 *3. إضافة المتصفحات (Chrome / Edge / Brave / Mac):*
+- رابط تحميل حزمة الإضافة (ZIP):
+${extUrl}
+
+🍏 *4. أجهزة الآيفون والآيباد (iOS):*
+- افتح متصفح Safari وادخل على الرابط: ${webUrl}
+- اختر من خيارات المشاركة: إضافة إلى الشاشة الرئيسية (Add to Home Screen).
+
+🔑 *طريقة التفعيل:* أدخل كود الاشتراك الخاص بك ليعمل يوتيوب بلس فوراً بمزايا يوتيوب بريميوم وبدون أي إعلانات! ❤️`;
+      }
+
+      const finishCopy = () => {
+        showToast('تم نسخ شرح الجهاز كرسالة منسقة وجاهزة للعميل 📋', 'success');
+        if (btn) {
+          const origHtml = btn.innerHTML;
+          btn.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> <span class="text-emerald-400">تم النسخ!</span>';
+          btn.classList.add('border-emerald-500');
+          setTimeout(() => {
+            btn.innerHTML = origHtml;
+            btn.classList.remove('border-emerald-500');
+          }, 2000);
+        }
+      };
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(finishCopy).catch(() => {
+          copyToClipboard(text);
+          finishCopy();
+        });
+      } else {
+        copyToClipboard(text);
+        finishCopy();
+      }
     }
 
     // رسائل الواتساب وقوالبها التلقائية (مع مسمى النظام الرقمي بدون أقواس)
@@ -4567,29 +4750,85 @@ __________________
       }
     }
 
-    // الخيار الأول: تنزيل أو حفظ كـ PDF على الجهاز
+    // الخيار الأول: تنزيل أو حفظ كـ PDF على الجهاز (حل جذري بدون أي شاشات سوداء وبأعلى دقة)
     function downloadClientInvoicePdf() {
       if (!currentInvoiceLicense) return;
       const element = document.getElementById('clientInvoicePrintWrapper');
       if (!element) return;
 
-      showToast('جاري إنشاء وتحميل ملف PDF للعميل...', 'info');
+      showToast('جاري إنشاء وتحميل وثيقة PDF للعميل...', 'info');
+
+      // حفظ موضع التمرير الحالي
+      const prevScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+      const prevScrollX = window.pageXOffset || document.documentElement.scrollLeft || 0;
+
+      // التمرير مؤقتاً لأعلى الصفحة لمنع أي إزاحة أو فراغ أسود من مكتبة الرسم
+      window.scrollTo(0, 0);
+
+      // إنشاء حاوية معزولة ومستقلة مباشرة في الـ body لتجنب مشاكل النوافذ المنبثقة
+      const tempWrapper = document.createElement('div');
+      tempWrapper.id = 'tempPdfRenderWrapper';
+      tempWrapper.style.position = 'fixed';
+      tempWrapper.style.top = '0';
+      tempWrapper.style.left = '0';
+      tempWrapper.style.width = '530px';
+      tempWrapper.style.maxWidth = '530px';
+      tempWrapper.style.zIndex = '9999999';
+      tempWrapper.style.backgroundColor = '#0b0b10';
+      tempWrapper.style.color = '#ffffff';
+      tempWrapper.style.padding = '18px';
+      tempWrapper.style.boxSizing = 'border-box';
+      tempWrapper.style.direction = 'rtl';
+      tempWrapper.style.fontFamily = "'Cairo', system-ui, -apple-system, sans-serif";
+
+      const clone = element.cloneNode(true);
+      clone.style.width = '100%';
+      clone.style.margin = '0';
+      clone.style.boxShadow = 'none';
+      clone.style.backgroundColor = '#111116';
+      clone.style.border = '1px solid #27272a';
+      // إزالة أزرار النسخ التفاعلية داخل الوثيقة المطبوعة
+      clone.querySelectorAll('button').forEach(b => b.remove());
+
+      tempWrapper.appendChild(clone);
+      document.body.appendChild(tempWrapper);
+
+      const clientSafe = (currentInvoiceLicense.note || currentInvoiceLicense.serial_key || 'Subscription').replace(/[/\\?%*:|"<>]/g, '_').trim();
+      const filename = `YouTube_PLUS_${clientSafe}.pdf`;
 
       if (typeof html2pdf !== 'undefined') {
         const opt = {
-          margin: [8, 8, 8, 8],
-          filename: `YouTube_PLUS_Subscription_${currentInvoiceLicense.serial_key}.pdf`,
+          margin: [6, 6, 6, 6],
+          filename: filename,
           image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true, backgroundColor: '#09090b' },
+          html2canvas: {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            scrollY: 0,
+            scrollX: 0,
+            windowWidth: 560,
+            backgroundColor: '#0b0b10'
+          },
           jsPDF: { unit: 'mm', format: 'a5', orientation: 'portrait' }
         };
-        html2pdf().set(opt).from(element).save().then(() => {
+
+        html2pdf().set(opt).from(tempWrapper).save().then(() => {
           showToast('تم تحميل وثيقة PDF بنجاح 📄', 'success');
         }).catch(err => {
           console.warn('html2pdf fallback to print:', err);
           window.print();
+        }).finally(() => {
+          if (tempWrapper && tempWrapper.parentNode) {
+            tempWrapper.parentNode.removeChild(tempWrapper);
+          }
+          window.scrollTo(prevScrollX, prevScrollY);
         });
       } else {
+        if (tempWrapper && tempWrapper.parentNode) {
+          tempWrapper.parentNode.removeChild(tempWrapper);
+        }
+        window.scrollTo(prevScrollX, prevScrollY);
         window.print();
       }
     }
