@@ -12,9 +12,10 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <!-- مكتبات التصدير المعتمدة لـ Excel و PDF -->
+  <!-- مكتبات التصدير المعتمدة لـ Excel و PDF عالية الدقة -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <style>
     body { font-family: 'Cairo', 'Inter', sans-serif; }
     .glass-card {
@@ -3427,13 +3428,26 @@ ${extUrl}
       let msg = '';
       if (type === 'welcome') {
         document.getElementById('waTabWelcome').className = 'py-2 px-2 text-center rounded-xl bg-emerald-600 text-white font-bold transition text-[11px]';
-        msg = `*لتثبيت وتشغيل يوتيوب بلس بمزايا بريميوم الرسمية 100%:*
+        const devCount = l.max_devices || 1;
+        const devText = devCount === 1 ? 'جهاز واحد' : `${devCount} أجهزة`;
+
+        msg = `مرحباً بك! 🎉
+يسعدنا انضمامك إلى خدمة YouTube PLUS+ - النظام الرقمي (بدون إعلانات وبأعلى دقة 4K).
+
+🔑 كود التفعيل الخاص بك:
+${l.serial_key}
+
+⏳ مدة الاشتراك: ${l.duration_days} يوماً
+📱 عدد الأجهزة المسموحة: ${devText}
+
+*لتثبيت وتشغيل يوتيوب بلس بمزايا بريميوم الرسمية 100%:*
 
 أجهزة الاندرويد والشاشات:
 *يتطلب تثبيت عدد 2 من التطبيقات*
 
 1. الأول قم بتثبيت تطبيق خدمات التشغيل "GmsCore.apk" لمرة واحدة فقط (ليعمل كبديل ذكي لخدمات قوقل في الخلفية)
-عبر الرابط التالي:https://github.com/ReVanced/GmsCore/releases/download/v0.3.13.2.250932/app.revanced.android.gms-250932004-signed.apk
+عبر الرابط التالي:
+https://github.com/ReVanced/GmsCore/releases/download/v0.3.13.2.250932/app.revanced.android.gms-250932004-signed.apk
 
 2. الثاني قم بتثبيت تطبيق يوتيوب بلس (YouTube_PLUS.apk) عبر الرابط التالي:
 https://drive.google.com/open?id=1OMlu6O5krdLJYAxYjuzK4DBjuiSrKaw2&usp=drive_fs
@@ -3441,17 +3455,23 @@ https://drive.google.com/open?id=1OMlu6O5krdLJYAxYjuzK4DBjuiSrKaw2&usp=drive_fs
 3. افتح تطبيق يوتيوب بلس، وأدخل كود الاشتراك الخاص بك (${l.serial_key}). سيعمل يوتيوب بلس فوراً بمزايا يوتيوب بريميوم الرسمية بدون إعلانات مع دعم التشغيل في الخلفية.
 _________________
 
-تطبيق الكمبيوتر (ويندوز + ماك)
+تطبيق الكمبيوتر (ويندوز + ماك):
 https://drive.google.com/file/d/1Wl4OmIzUXocBEnRgnADK_Ey-pxbvw6Cl/view?usp=drive_link
-__________________
+_________________
 
-تطبيق الايفون والآيباد
+إضافة المتصفحات (Chrome / Edge / Mac):
+https://plus.digitalsystemsa.com/YouTube_PLUS_Browser_Extension.zip
+_________________
+
+تطبيق الايفون والآيباد:
 
 1. افتح متصفح Safari في الآيفون وادخل على:
    👉 https://plus.digitalsystemsa.com/
 2. اضغط على زر المشاركة (مربع بسهم للأعلى) في أسفل الشاشة، ثم اختر:
    "إضافة إلى الشاشة الرئيسية" (Add to Home Screen).
-3. سيصبح لديك أيقونة لتطبيق YouTube PLUS+ تعمل فوراً كبرنامج مستقل بدون إعلانات وبجلسة دائمة!`;
+3. سيصبح لديك أيقونة لتطبيق YouTube PLUS+ تعمل فوراً كبرنامج مستقل بدون إعلانات وبجلسة دائمة!
+
+نتمنى لك مشاهدة ممتعة ومميزة دائماً! ❤️`;
       } else if (type === 'reminder') {
         document.getElementById('waTabReminder').className = 'py-2 px-2 text-center rounded-xl bg-amber-600 text-white font-bold transition text-[11px]';
         msg = `مرحباً بك، تذكير باشتراكك في YouTube PLUS+ - النظام الرقمي ⏳
@@ -4750,85 +4770,81 @@ __________________
       }
     }
 
-    // الخيار الأول: تنزيل أو حفظ كـ PDF على الجهاز (حل جذري بدون أي شاشات سوداء وبأعلى دقة)
-    function downloadClientInvoicePdf() {
+    // الخيار الأول: تنزيل أو حفظ كـ PDF على الجهاز (مباشر عبر html2canvas + jsPDF بدقة عالية وبدون شاشات بيضاء)
+    async function downloadClientInvoicePdf() {
       if (!currentInvoiceLicense) return;
       const element = document.getElementById('clientInvoicePrintWrapper');
       if (!element) return;
 
       showToast('جاري إنشاء وتحميل وثيقة PDF للعميل...', 'info');
 
-      // حفظ موضع التمرير الحالي
-      const prevScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
-      const prevScrollX = window.pageXOffset || document.documentElement.scrollLeft || 0;
-
-      // التمرير مؤقتاً لأعلى الصفحة لمنع أي إزاحة أو فراغ أسود من مكتبة الرسم
-      window.scrollTo(0, 0);
-
-      // إنشاء حاوية معزولة ومستقلة مباشرة في الـ body لتجنب مشاكل النوافذ المنبثقة
-      const tempWrapper = document.createElement('div');
-      tempWrapper.id = 'tempPdfRenderWrapper';
-      tempWrapper.style.position = 'fixed';
-      tempWrapper.style.top = '0';
-      tempWrapper.style.left = '0';
-      tempWrapper.style.width = '530px';
-      tempWrapper.style.maxWidth = '530px';
-      tempWrapper.style.zIndex = '9999999';
-      tempWrapper.style.backgroundColor = '#0b0b10';
-      tempWrapper.style.color = '#ffffff';
-      tempWrapper.style.padding = '18px';
-      tempWrapper.style.boxSizing = 'border-box';
-      tempWrapper.style.direction = 'rtl';
-      tempWrapper.style.fontFamily = "'Cairo', system-ui, -apple-system, sans-serif";
-
-      const clone = element.cloneNode(true);
-      clone.style.width = '100%';
-      clone.style.margin = '0';
-      clone.style.boxShadow = 'none';
-      clone.style.backgroundColor = '#111116';
-      clone.style.border = '1px solid #27272a';
-      // إزالة أزرار النسخ التفاعلية داخل الوثيقة المطبوعة
-      clone.querySelectorAll('button').forEach(b => b.remove());
-
-      tempWrapper.appendChild(clone);
-      document.body.appendChild(tempWrapper);
-
       const clientSafe = (currentInvoiceLicense.note || currentInvoiceLicense.serial_key || 'Subscription').replace(/[/\\?%*:|"<>]/g, '_').trim();
       const filename = `YouTube_PLUS_${clientSafe}.pdf`;
 
-      if (typeof html2pdf !== 'undefined') {
-        const opt = {
-          margin: [6, 6, 6, 6],
-          filename: filename,
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: {
+      const modalEl = document.getElementById('clientInvoiceModal');
+      const prevModalScroll = modalEl ? modalEl.scrollTop : 0;
+      const prevScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+      const prevScrollX = window.pageXOffset || document.documentElement.scrollLeft || 0;
+      const innerButtons = element.querySelectorAll('button');
+
+      try {
+        const jsPDFClass = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : (typeof jsPDF !== 'undefined' ? jsPDF : null);
+
+        if (typeof html2canvas !== 'undefined' && jsPDFClass) {
+          // إخفاء مؤقت لأزرار النسخ الصغيرة داخل البطاقة أثناء التصوير
+          innerButtons.forEach(b => b.style.visibility = 'hidden');
+
+          // تصفير التمرير لضمان تطابق كامل في الإحداثيات
+          if (modalEl) modalEl.scrollTop = 0;
+          window.scrollTo(0, 0);
+
+          const canvas = await html2canvas(element, {
             scale: 2,
             useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#0c0c11',
             logging: false,
-            scrollY: 0,
             scrollX: 0,
-            windowWidth: 560,
-            backgroundColor: '#0b0b10'
-          },
-          jsPDF: { unit: 'mm', format: 'a5', orientation: 'portrait' }
-        };
+            scrollY: 0
+          });
 
-        html2pdf().set(opt).from(tempWrapper).save().then(() => {
-          showToast('تم تحميل وثيقة PDF بنجاح 📄', 'success');
-        }).catch(err => {
-          console.warn('html2pdf fallback to print:', err);
-          window.print();
-        }).finally(() => {
-          if (tempWrapper && tempWrapper.parentNode) {
-            tempWrapper.parentNode.removeChild(tempWrapper);
-          }
+          // استعادة ظهور الأزرار وإعادة موضع التمرير فوراً
+          innerButtons.forEach(b => b.style.visibility = 'visible');
           window.scrollTo(prevScrollX, prevScrollY);
-        });
-      } else {
-        if (tempWrapper && tempWrapper.parentNode) {
-          tempWrapper.parentNode.removeChild(tempWrapper);
+          if (modalEl) modalEl.scrollTop = prevModalScroll;
+
+          const imgData = canvas.toDataURL('image/png');
+
+          const pdf = new jsPDFClass({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a5'
+          });
+
+          const pageWidth = pdf.internal.pageSize.getWidth();
+          const pageHeight = pdf.internal.pageSize.getHeight();
+          const margin = 8;
+          const imgWidth = pageWidth - (margin * 2);
+          const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+          // توسيط عمودي متناسق على الصفحة A5
+          const yPos = imgHeight < (pageHeight - (margin * 2))
+            ? margin + ((pageHeight - (margin * 2) - imgHeight) / 3)
+            : margin;
+
+          pdf.addImage(imgData, 'PNG', margin, yPos, imgWidth, imgHeight);
+          pdf.save(filename);
+          showToast('تم تحميل وثيقة PDF بنجاح 📄', 'success');
+          return;
         }
+
+        // خطة بديلة: نافذة الطباعة المباشرة
+        window.print();
+      } catch (err) {
+        console.warn('PDF export error, falling back to print:', err);
+        innerButtons.forEach(b => b.style.visibility = 'visible');
         window.scrollTo(prevScrollX, prevScrollY);
+        if (modalEl) modalEl.scrollTop = prevModalScroll;
         window.print();
       }
     }
@@ -4837,17 +4853,21 @@ __________________
     function sendClientInvoiceWhatsApp() {
       if (!currentInvoiceLicense) return;
       const l = currentInvoiceLicense;
-      const clientName = l.note || (l.client_email ? l.client_email.split('@')[0] : 'عزيزنا العميل');
-      const orderIdStr = l.order_id ? `#${(l.order_id || '').toString().trim().replace(/^#/, '')}` : 'طلب اشتراك';
+      const clientName = l.note || (l.client_email ? l.client_email.split('@')[0] : '');
+      const greeting = clientName ? `مرحباً بك يا ${clientName}! 🎉` : 'مرحباً بك! 🎉';
+      const orderIdStr = l.order_id ? `#${(l.order_id || '').toString().trim().replace(/^#/, '')}` : '';
       const cleanPhone = (l.whatsapp || '').replace(/[^0-9]/g, '');
+      const devCount = l.max_devices || 1;
+      const devText = devCount === 1 ? 'جهاز واحد' : `${devCount} أجهزة`;
 
-      const msg = `مرحباً بك يا ${clientName} 🌟
-يسعدنا تزويدك بتفاصيل اشتراكك الرسمي في YouTube PLUS+:
+      const msg = `${greeting}
+يسعدنا انضمامك إلى خدمة YouTube PLUS+ - النظام الرقمي (بدون إعلانات وبأعلى دقة 4K).
+${orderIdStr ? `\n📄 رقم الطلب: ${orderIdStr}` : ''}
+🔑 كود التفعيل الخاص بك:
+${l.serial_key}
 
-📄 رقم الطلب: ${orderIdStr}
-🔑 مفتاح التنشيط: ${l.serial_key}
-⏱️ مدة الاشتراك: ${l.duration_days} يوم
-📱 الأجهزة المدعومة: ${l.max_devices || 1} جهاز
+⏳ مدة الاشتراك: ${l.duration_days} يوماً
+📱 عدد الأجهزة المسموحة: ${devText}
 
 🌐 رابط المشاهدة المباشر:
 https://plus.digitalsystemsa.com
@@ -4857,7 +4877,7 @@ https://plus.digitalsystemsa.com
 2. أدخل مفتاح التنشيط أعلاه واضغط دخول
 3. استمتع بمشاهدة يوتيوب بدون إعلانات وبكافة الميزات!
 
-شكراً لاختيارك النظام الرقمي ❤️`;
+نتمنى لك مشاهدة ممتعة ومميزة دائماً! ❤️`;
 
       if (cleanPhone) {
         window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
@@ -4876,26 +4896,30 @@ https://plus.digitalsystemsa.com
     function copyClientInvoiceText() {
       if (!currentInvoiceLicense) return;
       const l = currentInvoiceLicense;
-      const clientName = l.note || (l.client_email ? l.client_email.split('@')[0] : 'عزيزنا العميل');
-      const orderIdStr = l.order_id ? `#${(l.order_id || '').toString().trim().replace(/^#/, '')}` : 'طلب اشتراك';
+      const clientName = l.note || (l.client_email ? l.client_email.split('@')[0] : '');
+      const greeting = clientName ? `مرحباً بك يا ${clientName}! 🎉` : 'مرحباً بك! 🎉';
+      const orderIdStr = l.order_id ? `#${(l.order_id || '').toString().trim().replace(/^#/, '')}` : '';
+      const devCount = l.max_devices || 1;
+      const devText = devCount === 1 ? 'جهاز واحد' : `${devCount} أجهزة`;
 
-      const msg = `مرحباً بك يا ${clientName} 🌟
-تفاصيل اشتراكك الرسمي في YouTube PLUS+:
+      const msg = `${greeting}
+يسعدنا انضمامك إلى خدمة YouTube PLUS+ - النظام الرقمي (بدون إعلانات وبأعلى دقة 4K).
+${orderIdStr ? `\n📄 رقم الطلب: ${orderIdStr}` : ''}
+🔑 كود التفعيل الخاص بك:
+${l.serial_key}
 
-📄 رقم الطلب: ${orderIdStr}
-🔑 مفتاح التنشيط: ${l.serial_key}
-⏱️ مدة الاشتراك: ${l.duration_days} يوم
-📱 الأجهزة المدعومة: ${l.max_devices || 1} جهاز
+⏳ مدة الاشتراك: ${l.duration_days} يوماً
+📱 عدد الأجهزة المسموحة: ${devText}
 
 🌐 رابط المشاهدة المباشر:
 https://plus.digitalsystemsa.com
 
 طريقة التفعيل:
 1. افتح الرابط بأي متصفح
-2. أدخل مفتاح التنشيط واضغط دخول
-3. استمتع بالتشغيل بدون إعلانات!
+2. أدخل كود التفعيل واضغط دخول
+3. استمتع بالتشغيل بدون إعلانات وبأعلى دقة!
 
-النظام الرقمي ❤️`;
+نتمنى لك مشاهدة ممتعة ومميزة دائماً! ❤️`;
 
       copyToClipboard(msg);
       showToast('تم نسخ تفاصيل الطلب كاملة إلى الحافظة بنجاح 📋', 'success');
