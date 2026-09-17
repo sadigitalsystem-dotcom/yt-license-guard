@@ -83,6 +83,174 @@
       width: 24px;
       text-align: center;
     }
+
+    /* أنماط وضع الشاشات والتلفزيون (10-Foot Spatial UI & TV Focus Ring) */
+    body.tv-mode {
+      font-size: 16px;
+    }
+    body.tv-mode .tv-focused {
+      outline: 4px solid #ef4444 !important;
+      outline-offset: 4px !important;
+      transform: scale(1.05) !important;
+      box-shadow: 0 0 35px rgba(239, 68, 68, 0.7) !important;
+      transition: transform 0.18s cubic-bezier(0.2, 0, 0, 1), outline 0.18s ease !important;
+      z-index: 40 !important;
+    }
+    body.tv-mode .yt-chip {
+      padding: 8px 18px;
+      font-size: 15px;
+    }
+
+    /* أنماط المشغل المصغر العائم (Floating Mini-Player) */
+    .watch-mini-container {
+      position: fixed !important;
+      bottom: 64px !important;
+      right: 12px !important;
+      left: 12px !important;
+      max-width: 400px !important;
+      margin-right: auto !important;
+      z-index: 45 !important;
+      background: #18181b !important;
+      border-radius: 20px !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.85) !important;
+      padding: 8px !important;
+      animation: miniSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    @media (min-width: 768px) {
+      .watch-mini-container {
+        left: auto !important;
+        right: 24px !important;
+        bottom: 20px !important;
+        width: 360px !important;
+      }
+    }
+    @keyframes miniSlideUp {
+      from { transform: translateY(100px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* تموج التقديم والترجيع بالنقر المزدوج (Double-Tap Ripple) */
+    .seek-ripple {
+      animation: rippleFade 0.75s ease-out forwards;
+    }
+    @keyframes rippleFade {
+      0% { opacity: 0; transform: scale(0.6); }
+      40% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(1.15); }
+    }
+
+    /* ======================================================== */
+    /* محرك التنسيقات المدمج للتلفزيونات الذكية (Samsung Tizen / LG webOS Fallback CSS) */
+    /* يضمن حماية التنسيق وإخفاء القوائم حتى لو تعطلت مكتبة Tailwind في متصفح التلفزيون */
+    /* ======================================================== */
+    .hidden, [hidden],
+    #notificationsDropdown.hidden, #userDropdown.hidden, #mobileSearchBar.hidden,
+    #pwaInstallBanner.hidden, #unactivatedWatchBanner.hidden, #channelPageSection.hidden,
+    #watchPageSection.hidden, #loginModal.hidden, #registerModal.hidden, #editEmailModal.hidden,
+    #deviceLimitModal.hidden, #deviceGuideModal.hidden, #customViewSection.hidden {
+      display: none !important;
+    }
+
+    header {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      height: 56px !important;
+      background-color: #0f0f0f !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+      position: sticky !important;
+      top: 0 !important;
+      z-index: 50 !important;
+      padding: 0 16px !important;
+    }
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .items-center { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .justify-center { justify-content: center; }
+    .relative { position: relative; }
+    .absolute { position: absolute; }
+    .fixed { position: fixed; }
+    .shrink-0 { flex-shrink: 0; }
+    .grow { flex-grow: 1; }
+    .w-full { width: 100%; }
+    .h-full { height: 100%; }
+
+    #videoGrid {
+      display: grid !important;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important;
+      gap: 16px !important;
+    }
+    @media (min-width: 1024px) {
+      #videoGrid {
+        grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)) !important;
+        gap: 20px !important;
+      }
+    }
+
+    #sidebar {
+      background-color: #0f0f0f !important;
+    }
+    @media (max-width: 1024px) {
+      #sidebar {
+        position: fixed !important;
+        top: 56px !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        z-index: 40 !important;
+      }
+    }
+
+    #notificationsDropdown, #userDropdown {
+      position: absolute !important;
+      top: 48px !important;
+      left: 0 !important;
+      background: #282828 !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      border-radius: 16px !important;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.9) !important;
+      z-index: 9999 !important;
+    }
+
+    #loginModal, #registerModal, #editEmailModal, #deviceLimitModal, #deviceGuideModal {
+      position: fixed !important;
+      inset: 0 !important;
+      background: rgba(0, 0, 0, 0.85) !important;
+      z-index: 99999 !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    #loginModal:not(.hidden), #registerModal:not(.hidden), #editEmailModal:not(.hidden),
+    #deviceLimitModal:not(.hidden), #deviceGuideModal:not(.hidden) {
+      display: flex !important;
+    }
+
+    body.tv-mode header {
+      height: 68px !important;
+      padding: 0 28px !important;
+    }
+    body.tv-mode #sidebar {
+      width: 220px !important;
+    }
+    body.tv-mode .sidebar-item {
+      font-size: 16px !important;
+      padding: 12px 16px !important;
+      margin-bottom: 4px !important;
+    }
+    body.tv-mode #videoGrid {
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
+      gap: 24px !important;
+      padding: 12px 20px !important;
+    }
+    body.tv-mode .tv-focused {
+      outline: 5px solid #ef4444 !important;
+      outline-offset: 4px !important;
+      transform: scale(1.06) !important;
+      box-shadow: 0 10px 40px rgba(239, 68, 68, 0.75) !important;
+      transition: all 0.15s ease-out !important;
+      z-index: 100 !important;
+    }
   </style>
 </head>
 <body class="min-h-screen bg-[#0f0f0f] text-[#f1f1f1] flex flex-col overflow-x-hidden">
@@ -142,6 +310,28 @@
 
     <!-- الجانب الأيسر: الإشعارات وزر تسجيل الدخول / حساب المستخدم الرسمي -->
     <div class="flex items-center gap-2 sm:gap-3">
+      <!-- زر تثبيت التطبيق الموحد الرسمي لجميع الأجهزة -->
+      <button 
+        id="topInstallBtn" 
+        onclick="triggerPwaInstall()" 
+        class="bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-bold text-[11px] sm:text-xs px-2.5 sm:px-3 py-1.5 rounded-full shadow-lg transition flex items-center gap-1.5 cursor-pointer animate-pulse" 
+        title="تثبيت تطبيق YouTube PLUS+ كبرنامج مستقل"
+      >
+        <i class="fa-solid fa-download text-xs"></i>
+        <span class="hidden sm:inline">تثبيت التطبيق</span>
+      </button>
+
+      <!-- زر تفعيل وضع الشاشات الذكية (TV Mode) -->
+      <button 
+        id="tvModeBtn" 
+        onclick="toggleTvMode()" 
+        class="p-2 rounded-full hover:bg-white/10 text-zinc-300 hover:text-white transition flex items-center gap-1 cursor-pointer" 
+        title="وضع الشاشات الذكية (التحكم بالريموت)"
+      >
+        <i class="fa-solid fa-tv text-sm sm:text-base"></i>
+        <span id="tvModeLabel" class="hidden md:inline text-[11px] font-medium text-zinc-400">وضع الشاشة</span>
+      </button>
+
       <!-- زر البحث للهواتف -->
       <button onclick="openMobileSearch()" class="sm:hidden p-2 rounded-full hover:bg-white/10 text-white transition">
         <i class="fa-solid fa-magnifying-glass text-base"></i>
@@ -207,6 +397,29 @@
 
     </div>
   </header>
+
+  <!-- شريط التثبيت السريع بضغطة زر المعتمد لجميع الأجهزة (PWA & WebAPK Install Banner) -->
+  <div id="pwaInstallBanner" class="hidden fixed top-16 left-3 right-3 sm:left-auto sm:right-6 sm:max-w-md bg-gradient-to-r from-[#18181b] via-[#202024] to-[#18181b] border border-red-500/50 rounded-2xl p-3 shadow-2xl z-40 flex items-center justify-between gap-3 backdrop-blur-xl animate-fadeIn">
+    <div class="flex items-center gap-2.5 min-w-0">
+      <img src="/app_icon.png" class="w-10 h-10 rounded-xl shadow-lg border border-white/10 shrink-0">
+      <div class="min-w-0">
+        <h4 class="text-xs font-bold text-white truncate flex items-center gap-1.5">
+          <span>YouTube PLUS+</span>
+          <span class="bg-red-600 text-white text-[9px] font-black px-1.5 py-0.2 rounded tracking-wider uppercase">تطبيق رسمي</span>
+        </h4>
+        <p class="text-[10px] text-zinc-300 truncate">تثبيت التطبيق الموحد بدون إعلانات وبجلسة دائمة</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+      <button onclick="triggerPwaInstall()" class="bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow-lg shadow-red-600/30 transition whitespace-nowrap cursor-pointer flex items-center gap-1">
+        <i class="fa-solid fa-download text-[11px]"></i>
+        <span>تثبيت 📲</span>
+      </button>
+      <button onclick="dismissPwaBanner()" class="text-zinc-400 hover:text-white p-1 transition cursor-pointer" title="إغلاق">
+        <i class="fa-solid fa-xmark text-xs"></i>
+      </button>
+    </div>
+  </div>
 
   <!-- شريط البحث السريع للهواتف (يظهر عند الضغط على عدسة البحث في الهاتف) -->
   <div id="mobileSearchBar" class="hidden sm:hidden bg-[#181818] p-2 border-b border-white/10 flex items-center gap-2 sticky top-14 z-40">
@@ -307,11 +520,44 @@
       <!-- مشغل الفيديو الرسمي (Watch Page) -->
       <div id="watchPageSection" class="hidden w-full bg-[#0f0f0f] border-b border-white/10 pb-6">
         <div class="max-w-6xl mx-auto px-2 sm:px-4 pt-2">
-          <!-- المشغل -->
-          <div id="iframeContainer" class="w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl relative">
+          <!-- شريط التحكم العلوي للمشغل (تصغير، صورة داخل صورة، إغلاق) -->
+          <div class="flex items-center justify-between pb-2 px-1 text-xs">
+            <button onclick="toggleWatchMini()" class="text-zinc-300 hover:text-white flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl hover:bg-white/10 transition cursor-pointer" title="تصغير المشغل للمتابعة أثناء التصفح">
+              <i class="fa-solid fa-chevron-down text-xs"></i>
+              <span class="text-[11px] font-bold hidden sm:inline">تصغير المشغل 🔽</span>
+            </button>
+            <div class="flex items-center gap-1.5">
+              <button onclick="triggerPiPMode()" class="text-zinc-300 hover:text-white px-2.5 py-1.5 rounded-xl hover:bg-white/10 transition flex items-center gap-1.5 cursor-pointer" title="صورة داخل صورة (PiP) / الاستماع بالخلفية">
+                <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+                <span class="text-[11px] font-bold hidden sm:inline">نافذة عائمة (PiP)</span>
+              </button>
+              <button onclick="closeWatchPage()" class="text-zinc-400 hover:text-white p-1.5 rounded-xl hover:bg-white/10 transition cursor-pointer" title="إغلاق المشغل">
+                <i class="fa-solid fa-xmark text-sm"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- المشغل مع أجنحة النقر المزدوج للتقديم والترجيع -->
+          <div id="iframeContainer" class="w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl relative select-none">
+            <!-- جناح الترجيع 10 ثوانٍ (يسار) -->
+            <div class="absolute top-0 bottom-14 left-0 w-1/4 z-20 cursor-pointer flex items-center justify-center pointer-events-auto" onclick="handleTapZone('left', event)">
+              <div id="seekRippleLeft" class="hidden px-4 py-3 rounded-2xl bg-black/60 backdrop-blur-sm border border-white/20 text-white text-center font-bold text-xs seek-ripple shadow-2xl">
+                <i class="fa-solid fa-backward text-2xl text-red-500 mb-1 block"></i>
+                <span>-10 ثوانٍ</span>
+              </div>
+            </div>
+
+            <!-- جناح التقديم 10 ثوانٍ (يمين) -->
+            <div class="absolute top-0 bottom-14 right-0 w-1/4 z-20 cursor-pointer flex items-center justify-center pointer-events-auto" onclick="handleTapZone('right', event)">
+              <div id="seekRippleRight" class="hidden px-4 py-3 rounded-2xl bg-black/60 backdrop-blur-sm border border-white/20 text-white text-center font-bold text-xs seek-ripple shadow-2xl">
+                <i class="fa-solid fa-forward text-2xl text-red-500 mb-1 block"></i>
+                <span>+10 ثوانٍ</span>
+              </div>
+            </div>
+
             <iframe 
               id="activeIframe" 
-              class="w-full h-full" 
+              class="w-full h-full relative z-10" 
               src="about:blank" 
               title="YouTube Player" 
               frameborder="0" 
@@ -709,6 +955,63 @@
     let currentActiveCategory = 'all';
 
     // =====================================================
+    // 0. محرك تثبيت التطبيق الموحد الشامل (PWA / WebAPK Engine)
+    // =====================================================
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+
+    let deferredInstallPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      if (!isAppInstalled() && !sessionStorage.getItem('yt_pwa_dismissed')) {
+        document.getElementById('pwaInstallBanner')?.classList.remove('hidden');
+        document.getElementById('topInstallBtn')?.classList.remove('hidden');
+      }
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredInstallPrompt = null;
+      document.getElementById('pwaInstallBanner')?.classList.add('hidden');
+      document.getElementById('topInstallBtn')?.classList.add('hidden');
+      showToast('✓ تم تثبيت تطبيق YouTube PLUS+ بنجاح على جهازك 🎉');
+    });
+
+    function isAppInstalled() {
+      return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    }
+
+    function dismissPwaBanner() {
+      document.getElementById('pwaInstallBanner')?.classList.add('hidden');
+      sessionStorage.setItem('yt_pwa_dismissed', '1');
+    }
+
+    async function triggerPwaInstall() {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        const choice = await deferredInstallPrompt.userChoice;
+        if (choice && choice.outcome === 'accepted') {
+          deferredInstallPrompt = null;
+          document.getElementById('pwaInstallBanner')?.classList.add('hidden');
+          document.getElementById('topInstallBtn')?.classList.add('hidden');
+        }
+      } else {
+        openInstallGuideModal();
+      }
+    }
+
+    function openInstallGuideModal() {
+      document.getElementById('installGuideModal')?.classList.remove('hidden');
+    }
+
+    function closeInstallGuideModal() {
+      document.getElementById('installGuideModal')?.classList.add('hidden');
+    }
+
+    // =====================================================
     // 1. قاعدة بيانات الحساب التفاعلي المحلي والمزامنة السحابية
     // =====================================================
     const UserDB = {
@@ -982,6 +1285,233 @@
       });
     }
 
+    // =====================================================
+    // 2.2 محرك التصفح بالريموت كنترول للشاشات الذكية (Smart TV Spatial Navigation)
+    // =====================================================
+    let isTvMode = false;
+    let currentTvFocusEl = null;
+
+    function initTvNavigation() {
+      const { type } = detectDevice();
+      if (type.includes('TV') || type.includes('شاشة')) {
+        enableTvMode(true);
+      }
+    }
+
+    function toggleTvMode() {
+      enableTvMode(!isTvMode);
+    }
+
+    function enableTvMode(enable) {
+      isTvMode = enable;
+      const label = document.getElementById('tvModeLabel');
+      if (isTvMode) {
+        document.body.classList.add('tv-mode');
+        if (label) label.innerText = 'نشط 📺';
+        showToast('📺 تم تفعيل وضع الشاشات الذكية (التحكم بالريموت كنترول)');
+        focusFirstTvElement();
+      } else {
+        document.body.classList.remove('tv-mode');
+        if (label) label.innerText = 'وضع الشاشة';
+        clearTvFocus();
+        showToast('تم إيقاف وضع الشاشة');
+      }
+    }
+
+    function clearTvFocus() {
+      if (currentTvFocusEl) {
+        currentTvFocusEl.classList.remove('tv-focused');
+        currentTvFocusEl = null;
+      }
+    }
+
+    function focusFirstTvElement() {
+      const focusables = getTvFocusables();
+      if (focusables.length > 0) {
+        setTvFocus(focusables[0]);
+      }
+    }
+
+    function setTvFocus(el) {
+      if (!el) return;
+      clearTvFocus();
+      currentTvFocusEl = el;
+      el.classList.add('tv-focused');
+      el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+    }
+
+    function getTvFocusables() {
+      const selector = 'button:not([disabled]):not(.hidden), input:not([disabled]):not(.hidden), .yt-chip:not(.hidden), .sidebar-item:not(.hidden), #videoGrid > div, [tabindex="0"]';
+      return Array.from(document.querySelectorAll(selector)).filter(el => {
+        const rect = el.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0 && window.getComputedStyle(el).visibility !== 'hidden';
+      });
+    }
+
+    function findClosestSpatialElement(current, candidates, direction) {
+      if (!current) return candidates[0] || null;
+      const curRect = current.getBoundingClientRect();
+      const curCenter = { x: curRect.left + curRect.width / 2, y: curRect.top + curRect.height / 2 };
+
+      let closest = null;
+      let minDistance = Infinity;
+
+      for (const el of candidates) {
+        if (el === current) continue;
+        const r = el.getBoundingClientRect();
+        const c = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+
+        let valid = false;
+        if (direction === 'down' && c.y > curCenter.y + 15) valid = true;
+        if (direction === 'up' && c.y < curCenter.y - 15) valid = true;
+        if (direction === 'right' && c.x > curCenter.x + 15) valid = true;
+        if (direction === 'left' && c.x < curCenter.x - 15) valid = true;
+
+        if (valid) {
+          const dx = c.x - curCenter.x;
+          const dy = c.y - curCenter.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < minDistance) {
+            minDistance = dist;
+            closest = el;
+          }
+        }
+      }
+      return closest;
+    }
+
+    function handleTvSpatialNav(e) {
+      const focusables = getTvFocusables();
+      if (!focusables.length) return;
+
+      let idx = focusables.indexOf(currentTvFocusEl);
+      if (idx === -1) idx = 0;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const next = findClosestSpatialElement(currentTvFocusEl, focusables, 'down');
+        if (next) setTvFocus(next);
+        else if (idx + 1 < focusables.length) setTvFocus(focusables[idx + 1]);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const prev = findClosestSpatialElement(currentTvFocusEl, focusables, 'up');
+        if (prev) setTvFocus(prev);
+        else if (idx - 1 >= 0) setTvFocus(focusables[idx - 1]);
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        const nextR = findClosestSpatialElement(currentTvFocusEl, focusables, 'right');
+        if (nextR) setTvFocus(nextR);
+        else if (idx + 1 < focusables.length) setTvFocus(focusables[idx + 1]);
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        const nextL = findClosestSpatialElement(currentTvFocusEl, focusables, 'left');
+        if (nextL) setTvFocus(nextL);
+        else if (idx - 1 >= 0) setTvFocus(focusables[idx - 1]);
+      } else if (e.key === 'Enter' || e.keyCode === 13 || e.keyCode === 29443) {
+        if (currentTvFocusEl) {
+          e.preventDefault();
+          currentTvFocusEl.click();
+        }
+      }
+    }
+
+    // =====================================================
+    // 2.3 محرك المشغل المصغر العائم والتقديم السريع (Mini Player & Seeking)
+    // =====================================================
+    let isWatchMini = false;
+    let isPlaybackPaused = false;
+    let lastLeftTap = 0;
+    let lastRightTap = 0;
+
+    function toggleWatchMini() {
+      const section = document.getElementById('watchPageSection');
+      const miniBar = document.getElementById('miniPlayerBar');
+      if (!currentActiveVideo || section.classList.contains('hidden')) return;
+
+      isWatchMini = !isWatchMini;
+      if (isWatchMini) {
+        section.classList.add('hidden');
+        if (miniBar) {
+          document.getElementById('miniPlayerThumb').src = currentActiveVideo.thumb || `https://i.ytimg.com/vi/${currentActiveVideo.id}/hqdefault.jpg`;
+          document.getElementById('miniPlayerTitle').innerText = currentActiveVideo.title || 'تشغيل يوتيوب بلس';
+          document.getElementById('miniPlayerChannel').innerText = currentActiveVideo.channel || 'YouTube';
+          miniBar.classList.remove('hidden');
+        }
+        showToast('تم تصغير المشغل للمتابعة أثناء التصفح 🔽');
+      } else {
+        restoreWatchFromMini();
+      }
+    }
+
+    function restoreWatchFromMini() {
+      isWatchMini = false;
+      const section = document.getElementById('watchPageSection');
+      const miniBar = document.getElementById('miniPlayerBar');
+      if (miniBar) miniBar.classList.add('hidden');
+      if (section) {
+        section.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    function closeMiniPlayer(event) {
+      if (event) event.stopPropagation();
+      isWatchMini = false;
+      const miniBar = document.getElementById('miniPlayerBar');
+      if (miniBar) miniBar.classList.add('hidden');
+      closeWatchPage();
+    }
+
+    function toggleMiniPlayerPlayPause(event) {
+      if (event) event.stopPropagation();
+      togglePlaybackPlayPause();
+    }
+
+    function togglePlaybackPlayPause() {
+      isPlaybackPaused = !isPlaybackPaused;
+      const icon = document.getElementById('miniPlayerPlayIcon');
+      if (isPlaybackPaused) {
+        sendIframeMsg('pauseVideo');
+        if (icon) icon.className = 'fa-solid fa-play text-xs';
+        if (bgAudioCarrier && bgAudioCarrier.src) bgAudioCarrier.pause();
+        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
+      } else {
+        sendIframeMsg('playVideo');
+        if (icon) icon.className = 'fa-solid fa-pause text-xs';
+        if (bgAudioCarrier && bgAudioCarrier.src) bgAudioCarrier.play().catch(() => {});
+        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
+      }
+    }
+
+    function handleTapZone(side, event) {
+      const now = Date.now();
+      if (side === 'left') {
+        if (now - lastLeftTap < 350) {
+          sendIframeMsg('seekTo', -10);
+          showSeekRipple('left');
+          lastLeftTap = 0;
+        } else {
+          lastLeftTap = now;
+        }
+      } else if (side === 'right') {
+        if (now - lastRightTap < 350) {
+          sendIframeMsg('seekTo', 10);
+          showSeekRipple('right');
+          lastRightTap = 0;
+        } else {
+          lastRightTap = now;
+        }
+      }
+    }
+
+    function showSeekRipple(side) {
+      const el = document.getElementById(side === 'left' ? 'seekRippleLeft' : 'seekRippleRight');
+      if (el) {
+        el.classList.remove('hidden');
+        setTimeout(() => el.classList.add('hidden'), 700);
+      }
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
       const devEl = document.getElementById('dispDeviceId');
       if (devEl) devEl.innerText = DEVICE_ID;
@@ -990,6 +1520,13 @@
 
       initAppSession();
       initBackgroundAudioCarrier();
+      initTvNavigation();
+
+      // إخفاء زر التثبيت إذا كان التطبيق مثبتًا بالفعل
+      if (isAppInstalled()) {
+        document.getElementById('topInstallBtn')?.classList.add('hidden');
+        document.getElementById('pwaInstallBanner')?.classList.add('hidden');
+      }
     });
 
     async function initAppSession() {
@@ -1723,6 +2260,12 @@
       };
 
       currentActiveVideo = v;
+      isWatchMini = false;
+      isPlaybackPaused = false;
+      const miniBar = document.getElementById('miniPlayerBar');
+      if (miniBar) miniBar.classList.add('hidden');
+      const miniPlayIcon = document.getElementById('miniPlayerPlayIcon');
+      if (miniPlayIcon) miniPlayIcon.className = 'fa-solid fa-pause text-xs';
 
       // إضافة تلقائية إلى سجل المشاهدة الحقيقي
       UserDB.addToHistory(v);
@@ -2578,11 +3121,63 @@
 
     function closeWatchPage() {
       const section = document.getElementById('watchPageSection');
-      section.classList.add('hidden');
+      if (section) section.classList.add('hidden');
+      const miniBar = document.getElementById('miniPlayerBar');
+      if (miniBar) miniBar.classList.add('hidden');
+      isWatchMini = false;
       const iframe = document.getElementById('activeIframe');
-      iframe.src = 'about:blank';
+      if (iframe) iframe.src = 'about:blank';
       if (bgAudioCarrier) bgAudioCarrier.pause();
+      if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'none';
     }
+
+    // معالج أزرار لوحة المفاتيح والريموت كنترول للشاشات (Keyboard & TV Remote Listener)
+    window.addEventListener('keydown', (e) => {
+      const key = e.key;
+      const code = e.keyCode;
+
+      // زر المسافة أو K للإيقاف والتشغيل عندما لا يكون التركيز داخل حقل نصي
+      if ((key === ' ' || key === 'k' || key === 'K') && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
+        if (currentActiveVideo) {
+          e.preventDefault();
+          togglePlaybackPlayPause();
+          return;
+        }
+      }
+
+      // اختصار التقديم والترجيع عبر J و L
+      if ((key === 'j' || key === 'J') && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
+        if (currentActiveVideo) {
+          e.preventDefault();
+          sendIframeMsg('seekTo', -10);
+          showSeekRipple('left');
+          return;
+        }
+      }
+      if ((key === 'l' || key === 'L') && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
+        if (currentActiveVideo) {
+          e.preventDefault();
+          sendIframeMsg('seekTo', 10);
+          showSeekRipple('right');
+          return;
+        }
+      }
+
+      // أزرار الرجوع في ريموت التلفزيونات الذكية (سامسونج، إل جي، أندرويد تي في)
+      if (code === 10009 || code === 461 || key === 'Escape') {
+        const watchSec = document.getElementById('watchPageSection');
+        if (watchSec && !watchSec.classList.contains('hidden')) {
+          e.preventDefault();
+          toggleWatchMini();
+          return;
+        }
+      }
+
+      // في حال كان وضع التلفزيون نشطاً يتم تمرير الحدث لمحرك التصفح الفضائي
+      if (isTvMode) {
+        handleTvSpatialNav(e);
+      }
+    });
 
     // =====================================================
     // 8. محرك البحث الذكي الصوتي واقتراحات البحث التلقائية
@@ -3004,6 +3599,86 @@
           </button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- الشريط المصغر للمشغل (Floating Mini-Player Bar) -->
+  <div id="miniPlayerBar" class="hidden fixed bottom-16 md:bottom-4 left-3 right-3 md:left-auto md:right-6 md:w-96 bg-[#18181b]/95 border border-white/15 rounded-2xl shadow-2xl z-40 flex items-center p-2 gap-3 backdrop-blur-xl transition-all duration-300">
+    <div class="relative w-16 h-10 rounded-lg overflow-hidden shrink-0 bg-black cursor-pointer shadow" onclick="restoreWatchFromMini()">
+      <img id="miniPlayerThumb" src="" class="w-full h-full object-cover">
+      <div class="absolute inset-0 bg-black/30 flex items-center justify-center hover:bg-black/10 transition">
+        <i class="fa-solid fa-up-right-and-down-left-from-center text-white text-xs"></i>
+      </div>
+    </div>
+    <div class="flex-1 min-w-0 cursor-pointer" onclick="restoreWatchFromMini()">
+      <h4 id="miniPlayerTitle" class="text-xs font-bold text-white truncate">--</h4>
+      <p id="miniPlayerChannel" class="text-[10px] text-zinc-400 truncate">YouTube</p>
+    </div>
+    <div class="flex items-center gap-1 shrink-0">
+      <button onclick="toggleMiniPlayerPlayPause(event)" class="w-8 h-8 rounded-full hover:bg-white/15 flex items-center justify-center text-white transition cursor-pointer" title="تشغيل / إيقاف">
+        <i id="miniPlayerPlayIcon" class="fa-solid fa-pause text-xs"></i>
+      </button>
+      <button onclick="closeMiniPlayer(event)" class="w-8 h-8 rounded-full hover:bg-white/15 flex items-center justify-center text-zinc-400 hover:text-white transition cursor-pointer" title="إغلاق المشغل">
+        <i class="fa-solid fa-xmark text-xs"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- النافذة الإرشادية الشاملة لتثبيت التطبيق الموحد على أي جهاز (Universal Install Guide Modal) -->
+  <div id="installGuideModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-[#18181b] border border-zinc-700/80 rounded-3xl p-6 max-w-md w-full shadow-2xl text-right relative">
+      <button onclick="closeInstallGuideModal()" class="absolute left-4 top-4 text-zinc-400 hover:text-white p-2 transition cursor-pointer">
+        <i class="fa-solid fa-xmark text-base"></i>
+      </button>
+      
+      <div class="text-center mb-5">
+        <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-tr from-red-600 to-amber-600 flex items-center justify-center text-white text-2xl shadow-lg">
+          <i class="fa-solid fa-download"></i>
+        </div>
+        <h3 class="text-base font-bold text-white">تثبيت تطبيق YouTube PLUS+ الموحد</h3>
+        <p class="text-xs text-zinc-400 mt-1">تطبيق مستقل واحد لكافة أجهزتك بدون إعلانات وبجلسة دائمة</p>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <!-- خيار آيفون وآيباد -->
+        <div class="bg-zinc-900/90 p-3.5 rounded-2xl border border-zinc-800">
+          <div class="flex items-center gap-2 font-bold text-white mb-1">
+            <i class="fa-brands fa-apple text-base text-zinc-300"></i>
+            <span>أجهزة الآيفون والآيباد (iOS):</span>
+          </div>
+          <p class="text-zinc-300 text-[11px] leading-relaxed">
+            1. افتح الرابط في متصفح Safari.<br>
+            2. اضغط على زر المشاركة أسفل الشاشة <span class="bg-zinc-800 px-1.5 py-0.5 rounded text-white font-mono">⎋</span>.<br>
+            3. اختر <strong>"إضافة إلى الشاشة الرئيسية" (Add to Home Screen)</strong> ليثبت فوراً كتطبيق رسمي دائم.
+          </p>
+        </div>
+
+        <!-- خيار أندرويد والشاشات -->
+        <div class="bg-zinc-900/90 p-3.5 rounded-2xl border border-zinc-800">
+          <div class="flex items-center gap-2 font-bold text-white mb-1">
+            <i class="fa-brands fa-android text-base text-emerald-400"></i>
+            <span>هواتف الأندرويد والشاشات الذكية:</span>
+          </div>
+          <p class="text-zinc-300 text-[11px] leading-relaxed">
+            اضغط على زر <strong>(تثبيت الآن)</strong> بالأعلى، أو افتح خيارات المتصفح (⋮) واختر <strong>(تثبيت التطبيق)</strong> ليصبح برنامجاً رسمياً بجهازك.
+          </p>
+        </div>
+
+        <!-- خيار الكمبيوتر والماك -->
+        <div class="bg-zinc-900/90 p-3.5 rounded-2xl border border-zinc-800">
+          <div class="flex items-center gap-2 font-bold text-white mb-1">
+            <i class="fa-solid fa-desktop text-base text-sky-400"></i>
+            <span>أجهزة الكمبيوتر والماك (PC & Mac):</span>
+          </div>
+          <p class="text-zinc-300 text-[11px] leading-relaxed">
+            في متصفح Chrome أو Edge اضغط على أيقونة التثبيت في شريط العنوان بالأعلى لتشغيله كنافذة برنامج مستقل.
+          </p>
+        </div>
+      </div>
+
+      <button onclick="closeInstallGuideModal()" class="w-full mt-5 bg-red-600 hover:bg-red-500 text-white font-bold text-xs py-2.5 rounded-xl shadow transition cursor-pointer">
+        حسناً، فهمت ذلك ✓
+      </button>
     </div>
   </div>
 
