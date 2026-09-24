@@ -1003,16 +1003,31 @@
         <button onclick="closeGuideModal()" class="text-zinc-400 hover:text-white p-2 text-sm"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
-      <!-- شريط الإجراءات السريعة لدليل الأجهزة -->
-      <div class="flex items-center justify-between bg-zinc-950/90 border border-zinc-800 rounded-2xl p-3 mb-4 flex-wrap gap-2">
-        <span class="text-xs text-zinc-400 flex items-center gap-1.5">
-          <i class="fa-solid fa-circle-info text-amber-400 text-sm"></i>
-          يمكنك نسخ شرح أي جهاز كرسالة جاهزة ومنسقة للعميل بضغطة زر واحدة.
-        </span>
-        <button onclick="copyGuideDeviceText('all', this)" class="bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 border border-amber-500/30 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm" title="نسخ رسالة كاملة تحتوي على دليل جميع الأجهزة">
-          <i class="fa-regular fa-copy"></i>
-          <span>نسخ الدليل الشامل لكافة الأجهزة</span>
-        </button>
+      <!-- شريط الإجراءات والتحكم في روابط الدليل -->
+      <div class="bg-zinc-950/90 border border-zinc-800 rounded-2xl p-3 mb-4 space-y-2.5">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <span class="text-xs text-zinc-300 flex items-center gap-1.5 font-bold">
+            <i class="fa-solid fa-pen-to-square text-amber-400 text-sm"></i>
+            <span>تخصيص روابط التحميل لجميع الأجهزة:</span>
+          </span>
+          <div class="flex items-center gap-2 flex-wrap">
+            <button onclick="saveCustomGuideLinks()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-md shadow-emerald-600/20 active:scale-95 cursor-pointer" title="حفظ التعديلات على الروابط">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span>حفظ الروابط المعدلة</span>
+            </button>
+            <button onclick="resetDefaultGuideLinks()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 active:scale-95 cursor-pointer" title="استعادة الروابط الأصلية">
+              <i class="fa-solid fa-rotate-left"></i>
+              <span>استعادة الافتراضية</span>
+            </button>
+            <button onclick="copyGuideDeviceText('all', this)" class="bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 border border-amber-500/30 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm" title="نسخ رسالة كاملة تحتوي على دليل جميع الأجهزة">
+              <i class="fa-regular fa-copy"></i>
+              <span>نسخ الدليل الشامل</span>
+            </button>
+          </div>
+        </div>
+        <p class="text-[11px] text-zinc-400 leading-relaxed">
+          💡 يمكنك الآن تعديل أو لصق أي رابط مخصص في الحقول أدناه مباشرة، والضغط على <strong>"حفظ الروابط المعدلة"</strong> ليتم اعتمادها تلقائياً في أزرار التحميل ورسائل الواتساب المرسلة للعملاء.
+        </p>
       </div>
 
       <div class="space-y-4 text-xs sm:text-sm">
@@ -1037,14 +1052,15 @@
           <div class="bg-zinc-900/90 p-3 rounded-xl border border-zinc-800 space-y-1.5">
             <div class="flex items-center justify-between text-xs">
               <span class="font-bold text-zinc-200">1. الأول: تطبيق خدمات التشغيل "GmsCore.apk" لمرة واحدة (بديل ذكي لخدمات Google):</span>
+              <span class="text-[10px] text-amber-400/80 flex items-center gap-1"><i class="fa-solid fa-pen text-[9px]"></i> قابل للتعديل</span>
             </div>
             <div class="flex items-center gap-2">
-              <input type="text" readonly value="https://github.com/ReVanced/GmsCore/releases/download/v0.3.13.2.250932/app.revanced.android.gms-250932004-signed.apk" id="guideGmsCoreLink" class="flex-1 bg-zinc-950 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300">
-              <button onclick="copyLinkById('guideGmsCoreLink')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0" title="نسخ الرابط">
+              <input type="text" id="guideGmsCoreLink" oninput="updateGuideButtons()" placeholder="ضع رابط تحميل GmsCore المخصص هنا..." value="https://github.com/ReVanced/GmsCore/releases/download/v0.3.13.2.250932/app.revanced.android.gms-250932004-signed.apk" class="flex-1 bg-zinc-950 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition">
+              <button onclick="copyLinkById('guideGmsCoreLink')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0 cursor-pointer" title="نسخ الرابط">
                 <i class="fa-solid fa-copy"></i>
                 <span>نسخ</span>
               </button>
-              <a href="https://github.com/ReVanced/GmsCore/releases/download/v0.3.13.2.250932/app.revanced.android.gms-250932004-signed.apk" target="_blank" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-1">
+              <a id="guideGmsCoreDownloadBtn" href="https://github.com/ReVanced/GmsCore/releases/download/v0.3.13.2.250932/app.revanced.android.gms-250932004-signed.apk" target="_blank" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-1">
                 <i class="fa-solid fa-download"></i>
                 <span>تحميل</span>
               </a>
@@ -1055,16 +1071,17 @@
           <div class="bg-zinc-900/90 p-3 rounded-xl border border-zinc-800 space-y-1.5">
             <div class="flex items-center justify-between text-xs">
               <span class="font-bold text-zinc-200">2. الثاني: تطبيق يوتيوب بلس (YouTube_PLUS.apk):</span>
+              <span class="text-[10px] text-amber-400/80 flex items-center gap-1"><i class="fa-solid fa-pen text-[9px]"></i> قابل للتعديل</span>
             </div>
             <div class="flex items-center gap-2">
-              <input type="text" readonly value="https://drive.google.com/open?id=1OMlu6O5krdLJYAxYjuzK4DBjuiSrKaw2&usp=drive_fs" id="guideYtPlusApkLink" class="flex-1 bg-zinc-950 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300">
-              <button onclick="copyLinkById('guideYtPlusApkLink')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0" title="نسخ الرابط">
+              <input type="text" id="guideYtPlusApkLink" oninput="updateGuideButtons()" placeholder="ضع رابط تحميل YouTube_PLUS.apk المخصص هنا..." value="https://drive.google.com/open?id=1OMlu6O5krdLJYAxYjuzK4DBjuiSrKaw2&usp=drive_fs" class="flex-1 bg-zinc-950 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition">
+              <button onclick="copyLinkById('guideYtPlusApkLink')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0 cursor-pointer" title="نسخ الرابط">
                 <i class="fa-solid fa-copy"></i>
                 <span>نسخ</span>
               </button>
-              <a href="https://drive.google.com/open?id=1OMlu6O5krdLJYAxYjuzK4DBjuiSrKaw2&usp=drive_fs" target="_blank" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-1">
+              <a id="guideYtPlusApkDownloadBtn" href="https://drive.google.com/open?id=1OMlu6O5krdLJYAxYjuzK4DBjuiSrKaw2&usp=drive_fs" target="_blank" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-1">
                 <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                <span>فتح الدرايف</span>
+                <span>فتح الرابط</span>
               </a>
             </div>
           </div>
@@ -1091,14 +1108,14 @@
             </div>
           </div>
           <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-            <input type="text" readonly value="https://drive.google.com/file/d/1Wl4OmIzUXocBEnRgnADK_Ey-pxbvw6Cl/view?usp=drive_link" id="guideWindowsInput" class="flex-1 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300 transition focus:outline-none focus:border-amber-400">
-            <button onclick="copyLinkById('guideWindowsInput')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0" title="نسخ الرابط">
+            <input type="text" id="guideWindowsInput" oninput="updateGuideButtons()" placeholder="ضع رابط تحميل تطبيق الكمبيوتر هنا..." value="https://drive.google.com/file/d/1Wl4OmIzUXocBEnRgnADK_Ey-pxbvw6Cl/view?usp=drive_link" class="flex-1 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300 transition focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
+            <button onclick="copyLinkById('guideWindowsInput')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0 cursor-pointer" title="نسخ الرابط">
               <i class="fa-solid fa-copy"></i>
               <span>نسخ</span>
             </button>
-            <a href="https://drive.google.com/file/d/1Wl4OmIzUXocBEnRgnADK_Ey-pxbvw6Cl/view?usp=drive_link" target="_blank" class="bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-1">
+            <a id="guideWindowsDownloadBtn" href="https://drive.google.com/file/d/1Wl4OmIzUXocBEnRgnADK_Ey-pxbvw6Cl/view?usp=drive_link" target="_blank" class="bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-1">
               <i class="fa-solid fa-arrow-up-right-from-square"></i>
-              <span>فتح الدرايف</span>
+              <span>فتح الرابط</span>
             </a>
           </div>
         </div>
@@ -1127,12 +1144,12 @@
           </div>
 
           <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap pt-1">
-            <input type="text" readonly value="https://plus.digitalsystemsa.com/YouTube_PLUS_Browser_Extension.zip" id="guideBrowserExtLink" class="flex-1 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300 transition focus:outline-none focus:border-amber-400">
-            <button onclick="copyLinkById('guideBrowserExtLink')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0" title="نسخ رابط الإضافة">
+            <input type="text" id="guideBrowserExtLink" oninput="updateGuideButtons()" placeholder="ضع رابط تحميل حزمة الإضافة هنا..." value="https://plus.digitalsystemsa.com/YouTube_PLUS_Browser_Extension.zip" class="flex-1 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300 transition focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400">
+            <button onclick="copyLinkById('guideBrowserExtLink')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0 cursor-pointer" title="نسخ رابط الإضافة">
               <i class="fa-solid fa-copy"></i>
               <span>نسخ</span>
             </button>
-            <a href="/YouTube_PLUS_Browser_Extension.zip" download class="bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-1.5 shadow-sm">
+            <a id="guideBrowserExtDownloadBtn" href="/YouTube_PLUS_Browser_Extension.zip" download class="bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-1.5 shadow-sm">
               <i class="fa-solid fa-file-zipper"></i>
               <span>تحميل الإضافة (ZIP)</span>
             </a>
@@ -1160,12 +1177,12 @@
             <p><strong>3.</strong> سيصبح لديك أيقونة لتطبيق YouTube PLUS+ تعمل فوراً كبرنامج مستقل بدون إعلانات وبجلسة دائمة!</p>
           </div>
           <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap pt-1">
-            <input type="text" readonly value="https://plus.digitalsystemsa.com/" id="guideIosLink" class="flex-1 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300 transition focus:outline-none focus:border-amber-400">
-            <button onclick="copyLinkById('guideIosLink')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0" title="نسخ الرابط">
+            <input type="text" id="guideIosLink" oninput="updateGuideButtons()" placeholder="ضع رابط مشغل الويب للآيفون هنا..." value="https://plus.digitalsystemsa.com/" class="flex-1 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300 transition focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400">
+            <button onclick="copyLinkById('guideIosLink')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0 cursor-pointer" title="نسخ الرابط">
               <i class="fa-solid fa-copy"></i>
               <span>نسخ الرابط</span>
             </button>
-            <a href="https://plus.digitalsystemsa.com/" target="_blank" class="bg-zinc-700 hover:bg-zinc-600 text-white px-3 py-2 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-1">
+            <a id="guideIosDownloadBtn" href="https://plus.digitalsystemsa.com/" target="_blank" class="bg-zinc-700 hover:bg-zinc-600 text-white px-3 py-2 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-1">
               <i class="fa-solid fa-arrow-up-right-from-square"></i>
               <span>زيارة الموقع</span>
             </a>
@@ -1860,6 +1877,9 @@
     // بدء التشغيل وجلب البيانات بتسلسل منظم يضمن التعرف على هوية المستخدم وصلاحياته أولاً
     window.addEventListener('DOMContentLoaded', async () => {
       applyLanguage(currentLang);
+      try {
+        loadCustomGuideLinks();
+      } catch (e) {}
       try {
         await checkCurrentUser();
       } catch (e) {}
@@ -3269,12 +3289,121 @@
       }
     }
 
+    // ========================================================
+    // إدارة الروابط المخصصة لدليل الأجهزة (Custom Device Guide Links)
+    // ========================================================
+    const DEFAULT_GUIDE_LINKS = {
+      gmscore: 'https://github.com/ReVanced/GmsCore/releases/download/v0.3.13.2.250932/app.revanced.android.gms-250932004-signed.apk',
+      ytplus_apk: 'https://drive.google.com/open?id=1OMlu6O5krdLJYAxYjuzK4DBjuiSrKaw2&usp=drive_fs',
+      windows: 'https://drive.google.com/file/d/1Wl4OmIzUXocBEnRgnADK_Ey-pxbvw6Cl/view?usp=drive_link',
+      browser_ext: 'https://plus.digitalsystemsa.com/YouTube_PLUS_Browser_Extension.zip',
+      ios: 'https://plus.digitalsystemsa.com/'
+    };
+
+    function loadCustomGuideLinks() {
+      try {
+        let saved = localStorage.getItem('yt_custom_guide_links');
+        let links = saved ? JSON.parse(saved) : (currentSettings.guide_links || {});
+
+        const gmsEl = document.getElementById('guideGmsCoreLink');
+        const ytEl = document.getElementById('guideYtPlusApkLink');
+        const winEl = document.getElementById('guideWindowsInput');
+        const extEl = document.getElementById('guideBrowserExtLink');
+        const iosEl = document.getElementById('guideIosLink');
+
+        if (gmsEl) gmsEl.value = links.gmscore || DEFAULT_GUIDE_LINKS.gmscore;
+        if (ytEl) ytEl.value = links.ytplus_apk || currentSettings.apk_drive_link || DEFAULT_GUIDE_LINKS.ytplus_apk;
+        if (winEl) winEl.value = links.windows || currentSettings.windows_drive_link || DEFAULT_GUIDE_LINKS.windows;
+        if (extEl) extEl.value = links.browser_ext || DEFAULT_GUIDE_LINKS.browser_ext;
+        if (iosEl) iosEl.value = links.ios || (currentSettings.custom_domain ? (currentSettings.custom_domain.startsWith('http') ? currentSettings.custom_domain : 'https://' + currentSettings.custom_domain) : DEFAULT_GUIDE_LINKS.ios);
+
+        updateGuideButtons();
+      } catch (e) {
+        console.warn('loadCustomGuideLinks error:', e);
+      }
+    }
+
+    function updateGuideButtons() {
+      const gmsVal = document.getElementById('guideGmsCoreLink')?.value?.trim();
+      const ytVal = document.getElementById('guideYtPlusApkLink')?.value?.trim();
+      const winVal = document.getElementById('guideWindowsInput')?.value?.trim();
+      const extVal = document.getElementById('guideBrowserExtLink')?.value?.trim();
+      const iosVal = document.getElementById('guideIosLink')?.value?.trim();
+
+      const gmsBtn = document.getElementById('guideGmsCoreDownloadBtn');
+      const ytBtn = document.getElementById('guideYtPlusApkDownloadBtn');
+      const winBtn = document.getElementById('guideWindowsDownloadBtn');
+      const extBtn = document.getElementById('guideBrowserExtDownloadBtn');
+      const iosBtn = document.getElementById('guideIosDownloadBtn');
+
+      if (gmsBtn && gmsVal) gmsBtn.href = gmsVal;
+      if (ytBtn && ytVal) ytBtn.href = ytVal;
+      if (winBtn && winVal) winBtn.href = winVal;
+      if (extBtn && extVal) extBtn.href = extVal;
+      if (iosBtn && iosVal) iosBtn.href = iosVal;
+    }
+
+    async function saveCustomGuideLinks() {
+      const links = {
+        gmscore: document.getElementById('guideGmsCoreLink')?.value?.trim() || DEFAULT_GUIDE_LINKS.gmscore,
+        ytplus_apk: document.getElementById('guideYtPlusApkLink')?.value?.trim() || DEFAULT_GUIDE_LINKS.ytplus_apk,
+        windows: document.getElementById('guideWindowsInput')?.value?.trim() || DEFAULT_GUIDE_LINKS.windows,
+        browser_ext: document.getElementById('guideBrowserExtLink')?.value?.trim() || DEFAULT_GUIDE_LINKS.browser_ext,
+        ios: document.getElementById('guideIosLink')?.value?.trim() || DEFAULT_GUIDE_LINKS.ios
+      };
+
+      localStorage.setItem('yt_custom_guide_links', JSON.stringify(links));
+      updateGuideButtons();
+
+      // مزامنة مع السيرفر إن أمكن
+      try {
+        const token = localStorage.getItem('token') || '';
+        if (token) {
+          await fetch(`${API_BASE}/api/admin/settings`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              apk_drive_link: links.ytplus_apk,
+              windows_drive_link: links.windows,
+              guide_links: links
+            })
+          });
+        }
+      } catch (e) {}
+
+      showToast('✓ تم حفظ كافة الروابط وتحديث أزرار التحميل ورسائل الواتساب بنجاح!');
+    }
+
+    function resetDefaultGuideLinks() {
+      if (!confirm('هل أنت متأكد من استعادة كافة روابط الدليل الافتراضية؟')) return;
+
+      localStorage.removeItem('yt_custom_guide_links');
+      const gmsEl = document.getElementById('guideGmsCoreLink');
+      const ytEl = document.getElementById('guideYtPlusApkLink');
+      const winEl = document.getElementById('guideWindowsInput');
+      const extEl = document.getElementById('guideBrowserExtLink');
+      const iosEl = document.getElementById('guideIosLink');
+
+      if (gmsEl) gmsEl.value = DEFAULT_GUIDE_LINKS.gmscore;
+      if (ytEl) ytEl.value = DEFAULT_GUIDE_LINKS.ytplus_apk;
+      if (winEl) winEl.value = DEFAULT_GUIDE_LINKS.windows;
+      if (extEl) extEl.value = DEFAULT_GUIDE_LINKS.browser_ext;
+      if (iosEl) iosEl.value = DEFAULT_GUIDE_LINKS.ios;
+
+      updateGuideButtons();
+      showToast('✓ تم استعادة روابط التحميل الافتراضية بنجاح!');
+    }
+
     // دليل الأجهزة
     function openGuideModal() {
       try {
         updateSettingsUI();
+        loadCustomGuideLinks();
       } catch (e) {
-        console.warn('updateSettingsUI error:', e);
+        console.warn('openGuideModal error:', e);
       }
       showModal('guideModal');
     }
@@ -3440,19 +3569,24 @@ ${l.serial_key}
 ⏳ مدة الاشتراك: ${l.duration_days} يوماً
 📱 عدد الأجهزة المسموحة: ${devText}
 
-*لتثبيت وتشغيل يوتيوب بلس بمزايا بريميوم الرسمية 100%:*
+🌐 رابط تطبيقك الموحد الشامل (يعمل ويثبت على جميع الأجهزة):
+👉 https://plus.digitalsystemsa.com
+
+*طريقة التثبيت السريعة بضغطة زر واحدة:*
+📱 للآيفون والآيباد: افتح الرابط في Safari ➔ اضغط زر المشاركة (⎋) أسفل الشاشة ➔ اختر "إضافة إلى الشاشة الرئيسية" (Add to Home Screen).
+🤖 للأندرويد والشاشات الذكية: افتح الرابط ➔ اضغط زر "تثبيت التطبيق 📲" بالأعلى ليثبت فوراً كبرنامج مستقل بجهازك.
+💻 للكمبيوتر والماك: افتح الرابط ➔ اضغط أيقونة التثبيت في شريط العنوان بالمتصفح.
+
+*ثم أدخل كود التفعيل أعلاه واستمتع فوراً بمزايا يوتيوب بريميوم بدون إعلانات مع دعم التشغيل في الخلفية!*
+_________________
+
+*خيارات التحميل الإضافية والتطبيقات البديلة:*
 
 أجهزة الاندرويد والشاشات:
-*يتطلب تثبيت عدد 2 من التطبيقات*
-
-1. الأول قم بتثبيت تطبيق خدمات التشغيل "GmsCore.apk" لمرة واحدة فقط (ليعمل كبديل ذكي لخدمات قوقل في الخلفية)
-عبر الرابط التالي:
+1. تطبيق خدمات التشغيل "GmsCore.apk":
 https://github.com/ReVanced/GmsCore/releases/download/v0.3.13.2.250932/app.revanced.android.gms-250932004-signed.apk
-
-2. الثاني قم بتثبيت تطبيق يوتيوب بلس (YouTube_PLUS.apk) عبر الرابط التالي:
+2. تطبيق يوتيوب بلس (YouTube_PLUS.apk):
 https://drive.google.com/open?id=1OMlu6O5krdLJYAxYjuzK4DBjuiSrKaw2&usp=drive_fs
-
-3. افتح تطبيق يوتيوب بلس، وأدخل كود الاشتراك الخاص بك (${l.serial_key}). سيعمل يوتيوب بلس فوراً بمزايا يوتيوب بريميوم الرسمية بدون إعلانات مع دعم التشغيل في الخلفية.
 _________________
 
 تطبيق الكمبيوتر (ويندوز + ماك):
@@ -3461,15 +3595,6 @@ _________________
 
 إضافة المتصفحات (Chrome / Edge / Mac):
 https://plus.digitalsystemsa.com/YouTube_PLUS_Browser_Extension.zip
-_________________
-
-تطبيق الايفون والآيباد:
-
-1. افتح متصفح Safari في الآيفون وادخل على:
-   👉 https://plus.digitalsystemsa.com/
-2. اضغط على زر المشاركة (مربع بسهم للأعلى) في أسفل الشاشة، ثم اختر:
-   "إضافة إلى الشاشة الرئيسية" (Add to Home Screen).
-3. سيصبح لديك أيقونة لتطبيق YouTube PLUS+ تعمل فوراً كبرنامج مستقل بدون إعلانات وبجلسة دائمة!
 
 نتمنى لك مشاهدة ممتعة ومميزة دائماً! ❤️`;
       } else if (type === 'reminder') {
