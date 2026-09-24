@@ -315,7 +315,7 @@
         id="topInstallBtn" 
         onclick="triggerPwaInstall()" 
         class="bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-bold text-[11px] sm:text-xs px-2.5 sm:px-3 py-1.5 rounded-full shadow-lg transition flex items-center gap-1.5 cursor-pointer animate-pulse" 
-        title="تثبيت تطبيق YouTube PLUS+ كبرنامج مستقل"
+        title="تثبيت تطبيق YouTube+ كبرنامج مستقل"
       >
         <i class="fa-solid fa-download text-xs"></i>
         <span class="hidden sm:inline">تثبيت التطبيق</span>
@@ -404,7 +404,7 @@
       <img src="/app_icon.png" class="w-10 h-10 rounded-xl shadow-lg border border-white/10 shrink-0">
       <div class="min-w-0">
         <h4 class="text-xs font-bold text-white truncate flex items-center gap-1.5">
-          <span>YouTube PLUS+</span>
+          <span>YouTube+</span>
           <span class="bg-red-600 text-white text-[9px] font-black px-1.5 py-0.2 rounded tracking-wider uppercase">تطبيق رسمي</span>
         </h4>
         <p class="text-[10px] text-zinc-300 truncate">تثبيت التطبيق الموحد بدون إعلانات وبجلسة دائمة</p>
@@ -663,7 +663,7 @@
             <div id="unactivatedWatchBanner" class="hidden mt-3 bg-gradient-to-r from-amber-500/20 to-red-500/10 border border-amber-500/30 rounded-xl p-3 flex items-center justify-between gap-3 text-xs">
               <div class="flex items-center gap-2 text-amber-300">
                 <i class="fa-solid fa-triangle-exclamation text-base shrink-0"></i>
-                <span>أنت تشاهد بدون تفعيل ترخيص YouTube PLUS+. فعّل كود الاشتراك للمشاهدة بدون إعلانات وبث في الخلفية!</span>
+                <span>أنت تشاهد بدون تفعيل ترخيص YouTube+. فعّل كود الاشتراك للمشاهدة بدون إعلانات وبث في الخلفية!</span>
               </div>
               <button onclick="openLoginModal()" class="bg-amber-500 hover:bg-amber-400 text-black font-bold px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition shadow">
                 تفعيل الكود
@@ -828,7 +828,7 @@
           <span class="font-black text-xl sm:text-2xl tracking-tighter text-white font-sans">YouTube</span>
           <span class="text-xs font-extrabold text-white bg-[#ff0000] px-2 py-0.5 rounded tracking-wider uppercase font-sans shadow-sm">Premium</span>
         </div>
-        <h2 class="text-base sm:text-lg font-bold text-zinc-100">تفعيل عضوية YouTube PLUS+</h2>
+        <h2 class="text-base sm:text-lg font-bold text-zinc-100">تفعيل عضوية YouTube+</h2>
         <p class="text-xs text-zinc-400 mt-1 mb-4 leading-relaxed">
           مشاهدة جميع فيديوهات يوتيوب الرسمي 100% بدون إعلانات وبأعلى دقة 4K مع الاستماع بالخلفية
         </p>
@@ -977,7 +977,7 @@
       deferredInstallPrompt = null;
       document.getElementById('pwaInstallBanner')?.classList.add('hidden');
       document.getElementById('topInstallBtn')?.classList.add('hidden');
-      showToast('✓ تم تثبيت تطبيق YouTube PLUS+ بنجاح على جهازك 🎉');
+      showToast('✓ تم تثبيت تطبيق YouTube+ بنجاح على جهازك 🎉');
     });
 
     function isAppInstalled() {
@@ -1803,7 +1803,7 @@
         if (banner) banner.classList.add('hidden');
         if (statusBadge) {
           statusBadge.className = 'text-amber-400 font-bold flex items-center gap-1';
-          statusBadge.innerHTML = '<i class="fa-solid fa-crown text-xs"></i><span>YouTube PLUS+ بريميوم نشط</span>';
+          statusBadge.innerHTML = '<i class="fa-solid fa-crown text-xs"></i><span>YouTube+ بريميوم نشط</span>';
         }
       } else {
         if (banner) banner.classList.remove('hidden');
@@ -1946,7 +1946,7 @@
             ctx.font = 'bold 22px "Cairo", sans-serif';
             ctx.fillStyle = '#ffffff';
             ctx.textAlign = 'center';
-            ctx.fillText('YouTube PLUS+', 320, 225);
+            ctx.fillText('YouTube+', 320, 225);
             ctx.font = '14px "Cairo", sans-serif';
             ctx.fillStyle = '#aaaaaa';
             ctx.fillText('الاستماع بالخلفية نشط (قفل الشاشة متاح)', 320, 260);
@@ -1972,8 +1972,8 @@
       try {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: video.title,
-          artist: video.channel || 'YouTube PLUS+',
-          album: 'YouTube PLUS+ Premium',
+          artist: video.channel || 'YouTube+',
+          album: 'YouTube+ Premium',
           artwork: [
             { src: video.thumb || `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`, sizes: '480x360', type: 'image/jpeg' },
             { src: `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`, sizes: '1280x720', type: 'image/jpeg' }
@@ -3264,7 +3264,7 @@
       const recText = document.getElementById('voiceRecognizedText');
       modal.classList.remove('hidden');
       statusText.innerText = 'جاري الاستماع...';
-      recText.innerText = 'تحدث الآن للبحث في YouTube PLUS+';
+      recText.innerText = 'تحدث الآن للبحث في YouTube+';
 
       try {
         if (voiceRecognition) {
@@ -3329,7 +3329,7 @@
     // 9. التنبيهات والإشعارات الرسمية
     // =====================================================
     const SYSTEM_NOTIFICATIONS = [
-      { id: 1, title: 'عضوية بريميوم نشطة', desc: 'تم تفعيل حسابك للاستمتاع بجميع ميزات YouTube PLUS+ بدون أي إعلانات.', time: 'الآن', icon: 'fa-crown text-amber-400' },
+      { id: 1, title: 'عضوية بريميوم نشطة', desc: 'تم تفعيل حسابك للاستمتاع بجميع ميزات YouTube+ بدون أي إعلانات.', time: 'الآن', icon: 'fa-crown text-amber-400' },
       { id: 2, title: 'الاستماع بالخلفية ونمط PiP', desc: 'يمكنك الآن تشغيل المقاطع وقفل شاشة هاتفك أو استخدام النافذة العائمة بسهولة.', time: 'مفعّل', icon: 'fa-headphones text-[#3ea6ff]' },
       { id: 3, title: 'المزامنة السحابية للسجلات', desc: 'سجلاتك وقوائمك واشتراكاتك يتم حفظها تلقائياً على السيرفر لتبقى معك دائماً.', time: 'سحابي', icon: 'fa-cloud text-emerald-400' }
     ];
@@ -3635,7 +3635,7 @@
         <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-tr from-red-600 to-amber-600 flex items-center justify-center text-white text-2xl shadow-lg">
           <i class="fa-solid fa-download"></i>
         </div>
-        <h3 class="text-base font-bold text-white">تثبيت تطبيق YouTube PLUS+ الموحد</h3>
+        <h3 class="text-base font-bold text-white">تثبيت تطبيق YouTube+ الموحد</h3>
         <p class="text-xs text-zinc-400 mt-1">تطبيق مستقل واحد لكافة أجهزتك بدون إعلانات وبجلسة دائمة</p>
       </div>
 
@@ -3703,7 +3703,7 @@
         <i class="fa-solid fa-microphone text-3xl text-red-500"></i>
       </div>
       <h3 id="voiceStatusText" class="text-base font-bold text-white mb-2">جاري الاستماع...</h3>
-      <p id="voiceRecognizedText" class="text-xs text-zinc-400 min-h-[24px]">تحدث الآن للبحث في YouTube PLUS+</p>
+      <p id="voiceRecognizedText" class="text-xs text-zinc-400 min-h-[24px]">تحدث الآن للبحث في YouTube+</p>
     </div>
   </div>
 

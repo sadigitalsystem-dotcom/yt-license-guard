@@ -798,7 +798,7 @@
           <i class="fa-brands fa-whatsapp text-emerald-400 text-xl"></i>
           <div>
             <h3 class="text-base font-bold text-white">إرسال تفاصيل الاشتراك عبر واتساب</h3>
-            <p class="text-xs text-zinc-400">YouTube PLUS+ - النظام الرقمي</p>
+            <p class="text-xs text-zinc-400">YouTube+ - النظام الرقمي</p>
           </div>
         </div>
         <button onclick="closeWhatsappModal()" class="text-zinc-400 hover:text-white p-2"><i class="fa-solid fa-xmark"></i></button>
@@ -860,7 +860,7 @@
           </div>
           <div>
             <h3 class="text-sm sm:text-base font-bold text-white">وثيقة تفاصيل اشتراك العميل</h3>
-            <p class="text-[11px] text-zinc-400">YouTube PLUS+ • النظام الرقمي</p>
+            <p class="text-[11px] text-zinc-400">YouTube+ • النظام الرقمي</p>
           </div>
         </div>
         <button onclick="closeClientInvoiceModal()" class="text-zinc-400 hover:text-white p-2 text-base cursor-pointer">
@@ -997,7 +997,7 @@
           </div>
           <div>
             <h3 class="text-lg font-bold text-white">دليل الأجهزة وروابط التحميل المنظمة للعملاء</h3>
-            <p class="text-xs text-zinc-400">YouTube PLUS+ - النظام الرقمي (تطبيقات وروابط مباشرة بدون أخطاء)</p>
+            <p class="text-xs text-zinc-400">YouTube+ - النظام الرقمي (تطبيقات وروابط مباشرة بدون أخطاء)</p>
           </div>
         </div>
         <button onclick="closeGuideModal()" class="text-zinc-400 hover:text-white p-2 text-sm"><i class="fa-solid fa-xmark"></i></button>
@@ -1174,7 +1174,7 @@
           <div class="bg-zinc-900/60 p-3 rounded-xl border border-zinc-800 text-xs text-zinc-300 space-y-1.5 leading-relaxed">
             <p><strong>1.</strong> افتح متصفح Safari في الآيفون وادخل على: <code class="text-red-400 font-mono">https://plus.digitalsystemsa.com/</code></p>
             <p><strong>2.</strong> اضغط على زر المشاركة (مربع بسهم للأعلى) في أسفل الشاشة، ثم اختر: <strong>"إضافة إلى الشاشة الرئيسية" (Add to Home Screen)</strong>.</p>
-            <p><strong>3.</strong> سيصبح لديك أيقونة لتطبيق YouTube PLUS+ تعمل فوراً كبرنامج مستقل بدون إعلانات وبجلسة دائمة!</p>
+            <p><strong>3.</strong> سيصبح لديك أيقونة لتطبيق YouTube+ تعمل فوراً كبرنامج مستقل بدون إعلانات وبجلسة دائمة!</p>
           </div>
           <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap pt-1">
             <input type="text" id="guideIosLink" oninput="updateGuideButtons()" placeholder="ضع رابط مشغل الويب للآيفون هنا..." value="https://plus.digitalsystemsa.com/" class="flex-1 bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300 transition focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400">
@@ -1759,8 +1759,8 @@
         devicesUnit: 'أجهزة'
       },
       en: {
-        pageTitle: 'YouTube PLUS+ License Management - Digital System',
-        brandTitle: 'YouTube PLUS+',
+        pageTitle: 'YouTube+ License Management - Digital System',
+        brandTitle: 'YouTube+',
         brandSubtitle: 'Digital System: Licenses • Phones • Desktop • Smart TVs',
         langBtnText: 'العربية',
         guideBtn: 'Devices Guide',
@@ -3427,7 +3427,7 @@
       let text = '';
 
       if (device === 'android') {
-        text = `📱 *طريقة تشغيل YouTube PLUS+ (أجهزة الأندرويد والشاشات الذكية)*
+        text = `📱 *طريقة تشغيل YouTube+ (أجهزة الأندرويد والشاشات الذكية)*
 
 ⚠️ *ملاحظة هامة:* يتطلب تشغيل النظام تثبيت تطبيقين بالترتيب التالي:
 
@@ -3443,7 +3443,7 @@ ${ytPlusApkUrl}
 3️⃣ *التفعيل والاستمتاع:*
 افتح تطبيق يوتيوب بلس، وأدخل كود الاشتراك الخاص بك (PLUS-XXXX-XXXX-XXXX). سيعمل يوتيوب بلس فوراً بمزايا يوتيوب بريميوم الرسمية بدون إعلانات مع دعم التشغيل في الخلفية وأعلى دقة 4K! 🌟`;
       } else if (device === 'pc') {
-        text = `💻 *طريقة تشغيل YouTube PLUS+ (أجهزة الكمبيوتر والماك)*
+        text = `💻 *طريقة تشغيل YouTube+ (أجهزة الكمبيوتر والماك)*
 
 1️⃣ *تحميل برنامج يوتيوب بلس الرسمي للكمبيوتر والماك:*
 🔗 رابط التحميل المباشر من قوقل درايف:
@@ -3454,7 +3454,7 @@ ${windowsUrl}
 - افتح البرنامج، وأدخل كود الاشتراك الخاص بك (PLUS-XXXX-XXXX-XXXX).
 - سيعمل البرنامج فوراً بواجهة يوتيوب الأصلية الرسمية وبدون أي إعلانات مع دعم تسجيل الدخول بحساب Google الرسمي! 🌟`;
       } else if (device === 'browser') {
-        text = `🌐 *طريقة تشغيل YouTube PLUS+ عبر إضافة المتصفح (Chrome / Edge / Brave / Mac / Windows)*
+        text = `🌐 *طريقة تشغيل YouTube+ عبر إضافة المتصفح (Chrome / Edge / Brave / Mac / Windows)*
 
 1️⃣ *تحميل ملف الإضافة:*
 🔗 رابط التحميل المباشر لحزمة الإضافة (ZIP):
@@ -3471,7 +3471,7 @@ ${extUrl}
 3️⃣ *التفعيل:*
 افتح موقع www.youtube.com وأدخل كود التفعيل الخاص بك ليعمل معك يوتيوب بريميوم بدون إعلانات وبكافة الميزات الاحترافية! 🌟`;
       } else if (device === 'ios') {
-        text = `🍏 *طريقة تشغيل YouTube PLUS+ (أجهزة الآيفون والآيباد iOS)*
+        text = `🍏 *طريقة تشغيل YouTube+ (أجهزة الآيفون والآيباد iOS)*
 
 1️⃣ افتح متصفح Safari في الآيفون وادخل على الرابط:
 🔗 ${webUrl}
@@ -3480,9 +3480,9 @@ ${extUrl}
 
 3️⃣ اختر من القائمة: "إضافة إلى الشاشة الرئيسية" (Add to Home Screen).
 
-4️⃣ ستظهر أيقونة تطبيق YouTube PLUS+ على شاشة جهازك كبرنامج مستقل؛ افتحه وأدخل كود التفعيل الخاص بك (PLUS-XXXX-XXXX-XXXX) واستمتع بالمشاهدة بدون إعلانات وبجلسة دائمة! 🌟`;
+4️⃣ ستظهر أيقونة تطبيق YouTube+ على شاشة جهازك كبرنامج مستقل؛ افتحه وأدخل كود التفعيل الخاص بك (PLUS-XXXX-XXXX-XXXX) واستمتع بالمشاهدة بدون إعلانات وبجلسة دائمة! 🌟`;
       } else if (device === 'all') {
-        text = `🌟 *دليل تشغيل YouTube PLUS+ الشامل لكافة الأجهزة* 🌟
+        text = `🌟 *دليل تشغيل YouTube+ الشامل لكافة الأجهزة* 🌟
 
 📱 *1. أجهزة الأندرويد والشاشات الذكية (Android & Smart TV):*
 - تطبيق خدمات التشغيل (GmsCore):
@@ -3561,7 +3561,7 @@ ${extUrl}
         const devText = devCount === 1 ? 'جهاز واحد' : `${devCount} أجهزة`;
 
         msg = `مرحباً بك! 🎉
-يسعدنا انضمامك إلى خدمة YouTube PLUS+ - النظام الرقمي (بدون إعلانات وبأعلى دقة 4K).
+يسعدنا انضمامك إلى خدمة YouTube+ - النظام الرقمي (بدون إعلانات وبأعلى دقة 4K).
 
 🔑 كود التفعيل الخاص بك:
 ${l.serial_key}
@@ -3599,14 +3599,14 @@ https://plus.digitalsystemsa.com/YouTube_PLUS_Browser_Extension.zip
 نتمنى لك مشاهدة ممتعة ومميزة دائماً! ❤️`;
       } else if (type === 'reminder') {
         document.getElementById('waTabReminder').className = 'py-2 px-2 text-center rounded-xl bg-amber-600 text-white font-bold transition text-[11px]';
-        msg = `مرحباً بك، تذكير باشتراكك في YouTube PLUS+ - النظام الرقمي ⏳
+        msg = `مرحباً بك، تذكير باشتراكك في YouTube+ - النظام الرقمي ⏳
 
 نود إعلامك بقرب انتهاء صلاحية كود الاشتراك الخاص بك (${l.serial_key}) في تاريخ: ${expDate}.
 
 لضمان استمرار الخدمة دون انقطاع، يمكنك التجديد الآن بالتواصل معنا. يسعدنا خدمتكم دائماً!`;
       } else if (type === 'expired') {
         document.getElementById('waTabExpired').className = 'py-2 px-2 text-center rounded-xl bg-red-600 text-white font-bold transition text-[11px]';
-        msg = `مرحباً بك، نود إعلامك بأن اشتراكك في YouTube PLUS+ - النظام الرقمي قد انتهت صلاحيته 🔒
+        msg = `مرحباً بك، نود إعلامك بأن اشتراكك في YouTube+ - النظام الرقمي قد انتهت صلاحيته 🔒
 
 كود التفعيل السابق: ${l.serial_key}
 
@@ -4781,7 +4781,7 @@ https://plus.digitalsystemsa.com/YouTube_PLUS_Browser_Extension.zip
         const expiredCount = licensesToExport.filter(l => !l.is_active || (l.expiry_date && new Date(l.expiry_date) < now)).length;
 
         const sheet3Data = [
-          { 'البند': 'اسم المنظومة', 'القيمة / التفاصيل': 'YouTube PLUS+ Enterprise Data Engine' },
+          { 'البند': 'اسم المنظومة', 'القيمة / التفاصيل': 'YouTube+ Enterprise Data Engine' },
           { 'البند': 'النطاق المخصص', 'القيمة / التفاصيل': 'https://plus.digitalsystemsa.com' },
           { 'البند': 'تاريخ ووقت التصدير', 'القيمة / التفاصيل': `${dateStr} ${timeStr}` },
           { 'البند': 'حالة قاعدة البيانات السحابية', 'القيمة / التفاصيل': storageInfo.storage_type || 'قاعدة بيانات سحابية دائمة (MongoDB Atlas Cloud DB ✓)' },
@@ -4986,7 +4986,7 @@ https://plus.digitalsystemsa.com/YouTube_PLUS_Browser_Extension.zip
       const devText = devCount === 1 ? 'جهاز واحد' : `${devCount} أجهزة`;
 
       const msg = `${greeting}
-يسعدنا انضمامك إلى خدمة YouTube PLUS+ - النظام الرقمي (بدون إعلانات وبأعلى دقة 4K).
+يسعدنا انضمامك إلى خدمة YouTube+ - النظام الرقمي (بدون إعلانات وبأعلى دقة 4K).
 ${orderIdStr ? `\n📄 رقم الطلب: ${orderIdStr}` : ''}
 🔑 كود التفعيل الخاص بك:
 ${l.serial_key}
@@ -5028,7 +5028,7 @@ https://plus.digitalsystemsa.com
       const devText = devCount === 1 ? 'جهاز واحد' : `${devCount} أجهزة`;
 
       const msg = `${greeting}
-يسعدنا انضمامك إلى خدمة YouTube PLUS+ - النظام الرقمي (بدون إعلانات وبأعلى دقة 4K).
+يسعدنا انضمامك إلى خدمة YouTube+ - النظام الرقمي (بدون إعلانات وبأعلى دقة 4K).
 ${orderIdStr ? `\n📄 رقم الطلب: ${orderIdStr}` : ''}
 🔑 كود التفعيل الخاص بك:
 ${l.serial_key}
