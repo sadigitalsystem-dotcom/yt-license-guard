@@ -1,28 +1,46 @@
 {
-  "manifest_version": 3,
-  "name": "(يوتيوب بلس+) YouTube PLUS+",
-  "version": "2.0.1",
-  "description": "تجربة يوتيوب بريميوم رسمية 100% مع حجب الإعلانات والتشغيل بالخلفية ونظام الترخيص",
-  "icons": {
-    "128": "icon.png"
-  },
-  "permissions": [
-    "storage"
-  ],
-  "host_permissions": [
-    "*://*.youtube.com/*",
-    "https://plus.digitalsystemsa.com/*",
-    "https://yt-license-guard.onrender.com/*"
-  ],
-  "content_scripts": [
+  "name": "YouTube+ - النظام الرقمي",
+  "short_name": "YouTube+",
+  "description": "مشغل يوتيوب بريميوم بدون إعلانات مع تشغيل بالخلفية لكافة الأجهزة",
+  "id": "youtube-plus-digital-system",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "background_color": "#0f0f0f",
+  "theme_color": "#0f0f0f",
+  "orientation": "any",
+  "categories": ["entertainment", "music", "video"],
+  "icons": [
     {
-      "matches": ["*://*.youtube.com/*"],
-      "js": ["content.js"],
-      "run_at": "document_start"
+      "src": "/app_icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/1384/1384060.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/1384/1384060.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
-  "action": {
-    "default_popup": "popup.html",
-    "default_title": "(يوتيوب بلس+) YouTube PLUS+"
-  }
+  "shortcuts": [
+    {
+      "name": "الرئيسية",
+      "url": "/",
+      "icons": [{ "src": "/app_icon.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "بحث",
+      "url": "/?search=1",
+      "icons": [{ "src": "/app_icon.png", "sizes": "192x192" }]
+    }
+  ]
 }

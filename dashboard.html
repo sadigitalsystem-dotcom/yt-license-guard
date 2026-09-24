@@ -1032,7 +1032,7 @@
 
       <div class="space-y-4 text-xs sm:text-sm">
         
-        <!-- 1. أجهزة الأندرويد والشاشات (يتطلب تثبيت تطبيقين) -->
+        <!-- 1. أجهزة الأندرويد والشاشات (مثبت ذكي موحد بنقرة واحدة) -->
         <div class="bg-zinc-950/80 p-4 rounded-2xl border border-zinc-800 space-y-3">
           <div class="flex items-center justify-between flex-wrap gap-2">
             <div class="flex items-center gap-2">
@@ -1040,7 +1040,7 @@
               <h4 class="font-bold text-white">1. أجهزة الأندرويد والشاشات (Smart TV + Android)</h4>
             </div>
             <div class="flex items-center gap-2 flex-wrap">
-              <span class="text-[10px] bg-emerald-500/10 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-500/20 font-bold">*يتطلب تثبيت عدد 2 من التطبيقات*</span>
+              <span class="text-[10px] bg-emerald-500/10 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-500/20 font-bold">تطبيق ومثبت ذكي موحد (يدعم أندرويد 14 و 15)</span>
               <button onclick="copyGuideDeviceText('android', this)" class="bg-emerald-600/20 hover:bg-emerald-600/35 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm" title="نسخ هذا الشرح كرسالة منسقة ومنظمة للعميل">
                 <i class="fa-regular fa-copy"></i>
                 <span>نسخ الشرح للعميل</span>
@@ -1048,47 +1048,60 @@
             </div>
           </div>
 
-          <!-- التطبيق الأول: GmsCore -->
-          <div class="bg-zinc-900/90 p-3 rounded-xl border border-zinc-800 space-y-1.5">
+          <!-- المثبت الذكي الموحد الأساسي (All-in-One Setup) -->
+          <div class="bg-gradient-to-r from-emerald-950/40 via-zinc-900 to-zinc-900 p-3.5 rounded-xl border border-emerald-500/30 space-y-2">
             <div class="flex items-center justify-between text-xs">
-              <span class="font-bold text-zinc-200">1. الأول: تطبيق خدمات التشغيل "GmsCore.apk" لمرة واحدة (بديل ذكي لخدمات Google):</span>
-              <span class="text-[10px] text-amber-400/80 flex items-center gap-1"><i class="fa-solid fa-pen text-[9px]"></i> قابل للتعديل</span>
+              <span class="font-bold text-emerald-300 flex items-center gap-1.5">
+                <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i>
+                <span>المثبت الذكي الموحد (YouTube_PLUS_Setup.apk):</span>
+              </span>
+              <span class="text-[10px] text-emerald-400 font-bold bg-emerald-500/15 px-2 py-0.5 rounded-full">تثبيت بضغطة زر 🚀</span>
             </div>
-            <div class="flex items-center gap-2">
-              <input type="text" id="guideGmsCoreLink" oninput="updateGuideButtons()" placeholder="ضع رابط تحميل GmsCore المخصص هنا..." value="https://github.com/ReVanced/GmsCore/releases/download/v0.3.13.2.250932/app.revanced.android.gms-250932004-signed.apk" class="flex-1 bg-zinc-950 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition">
-              <button onclick="copyLinkById('guideGmsCoreLink')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0 cursor-pointer" title="نسخ الرابط">
+            <p class="text-[11px] text-zinc-400 leading-relaxed">
+              يحمل بداخله حزمة الخدمات ومحرك يوتيوب بريميوم 64-bit الداعم لأندرويد 15 وهواتف تكنو وسامسونج، ويتكفل بتثبيتها وتفعيلها تلقائياً.
+            </p>
+            <div class="flex items-center gap-2 pt-1">
+              <input type="text" id="guideSetupApkLink" oninput="updateGuideButtons()" placeholder="ضع رابط مثبت YouTube_PLUS_Setup.apk الموحد هنا..." value="https://drive.google.com/open?id=1OMlu6O5krdLJYAxYjuzK4DBjuiSrKaw2&usp=drive_fs" class="flex-1 bg-zinc-950 border border-emerald-500/40 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-200 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 transition">
+              <button onclick="copyLinkById('guideSetupApkLink')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0 cursor-pointer" title="نسخ رابط المثبت">
                 <i class="fa-solid fa-copy"></i>
                 <span>نسخ</span>
               </button>
-              <a id="guideGmsCoreDownloadBtn" href="https://github.com/ReVanced/GmsCore/releases/download/v0.3.13.2.250932/app.revanced.android.gms-250932004-signed.apk" target="_blank" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-1">
+              <a id="guideSetupApkDownloadBtn" href="https://drive.google.com/open?id=1OMlu6O5krdLJYAxYjuzK4DBjuiSrKaw2&usp=drive_fs" target="_blank" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-1 shadow-md shadow-emerald-600/20">
                 <i class="fa-solid fa-download"></i>
-                <span>تحميل</span>
+                <span>تحميل المثبت</span>
               </a>
             </div>
           </div>
 
-          <!-- التطبيق الثاني: YouTube PLUS -->
-          <div class="bg-zinc-900/90 p-3 rounded-xl border border-zinc-800 space-y-1.5">
-            <div class="flex items-center justify-between text-xs">
-              <span class="font-bold text-zinc-200">2. الثاني: تطبيق يوتيوب بلس (YouTube_PLUS.apk):</span>
-              <span class="text-[10px] text-amber-400/80 flex items-center gap-1"><i class="fa-solid fa-pen text-[9px]"></i> قابل للتعديل</span>
+          <!-- تفاصيل إضافية وروابط منفصلة (اختياري لشاشات السيارات والأجهزة القديمة) -->
+          <details class="bg-zinc-900/40 p-2.5 rounded-xl border border-zinc-800/60 text-xs group">
+            <summary class="cursor-pointer text-zinc-400 hover:text-zinc-200 font-medium flex items-center justify-between">
+              <span class="flex items-center gap-1.5"><i class="fa-solid fa-sliders text-zinc-500"></i> خيارات متقدمة: روابط الحزم المنفصلة (لشاشات السيارات والأجهزة اليدوية)</span>
+              <i class="fa-solid fa-chevron-down text-[10px] transition group-open:rotate-180"></i>
+            </summary>
+            <div class="mt-3 space-y-3 pt-2 border-t border-zinc-800/80">
+              <div class="space-y-1">
+                <span class="text-[11px] text-zinc-300 font-bold">1. حزمة خدمات التشغيل (GmsCore.apk):</span>
+                <div class="flex items-center gap-2">
+                  <input type="text" id="guideGmsCoreLink" oninput="updateGuideButtons()" value="https://github.com/ReVanced/GmsCore/releases/download/v0.3.13.2.250932/app.revanced.android.gms-250932004-signed.apk" class="flex-1 bg-zinc-950 border border-zinc-700/80 rounded-xl px-2.5 py-1.5 text-[10px] font-mono text-zinc-300">
+                  <button onclick="copyLinkById('guideGmsCoreLink')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-2.5 py-1.5 rounded-xl text-xs font-bold shrink-0">نسخ</button>
+                  <a id="guideGmsCoreDownloadBtn" href="https://github.com/ReVanced/GmsCore/releases/download/v0.3.13.2.250932/app.revanced.android.gms-250932004-signed.apk" target="_blank" class="bg-zinc-700 hover:bg-zinc-600 text-white px-2.5 py-1.5 rounded-xl text-xs font-bold shrink-0">تحميل</a>
+                </div>
+              </div>
+              <div class="space-y-1">
+                <span class="text-[11px] text-zinc-300 font-bold">2. تطبيق يوتيوب بلس المنفصل (YouTube_PLUS.apk):</span>
+                <div class="flex items-center gap-2">
+                  <input type="text" id="guideYtPlusApkLink" oninput="updateGuideButtons()" value="https://drive.google.com/open?id=1OMlu6O5krdLJYAxYjuzK4DBjuiSrKaw2&usp=drive_fs" class="flex-1 bg-zinc-950 border border-zinc-700/80 rounded-xl px-2.5 py-1.5 text-[10px] font-mono text-zinc-300">
+                  <button onclick="copyLinkById('guideYtPlusApkLink')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-2.5 py-1.5 rounded-xl text-xs font-bold shrink-0">نسخ</button>
+                  <a id="guideYtPlusApkDownloadBtn" href="https://drive.google.com/open?id=1OMlu6O5krdLJYAxYjuzK4DBjuiSrKaw2&usp=drive_fs" target="_blank" class="bg-zinc-700 hover:bg-zinc-600 text-white px-2.5 py-1.5 rounded-xl text-xs font-bold shrink-0">فتح</a>
+                </div>
+              </div>
             </div>
-            <div class="flex items-center gap-2">
-              <input type="text" id="guideYtPlusApkLink" oninput="updateGuideButtons()" placeholder="ضع رابط تحميل YouTube_PLUS.apk المخصص هنا..." value="https://drive.google.com/open?id=1OMlu6O5krdLJYAxYjuzK4DBjuiSrKaw2&usp=drive_fs" class="flex-1 bg-zinc-950 border border-zinc-700/80 rounded-xl px-3 py-2 text-[11px] font-mono text-zinc-300 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition">
-              <button onclick="copyLinkById('guideYtPlusApkLink')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0 cursor-pointer" title="نسخ الرابط">
-                <i class="fa-solid fa-copy"></i>
-                <span>نسخ</span>
-              </button>
-              <a id="guideYtPlusApkDownloadBtn" href="https://drive.google.com/open?id=1OMlu6O5krdLJYAxYjuzK4DBjuiSrKaw2&usp=drive_fs" target="_blank" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-1">
-                <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                <span>فتح الرابط</span>
-              </a>
-            </div>
-          </div>
+          </details>
 
           <!-- الخطوة 3: التفعيل -->
           <div class="text-zinc-300 text-xs bg-zinc-900/40 p-2.5 rounded-xl border border-zinc-800/60 leading-relaxed">
-            <strong>3.</strong> افتح تطبيق يوتيوب بلس، وأدخل كود الاشتراك الخاص بك (<code class="text-red-400 font-mono">PLUS-XXXX-XXXX-XXXX</code>). سيعمل يوتيوب بلس فوراً بمزايا يوتيوب بريميوم الرسمية بدون إعلانات مع دعم التشغيل في الخلفية.
+            <strong>خطوة التفعيل:</strong> افتح التطبيق وأدخل كود الاشتراك الخاص بك (<code class="text-red-400 font-mono">PLUS-XXXX-XXXX-XXXX</code>). سيعمل فوراً بمزايا يوتيوب بريميوم الرسمية بدون إعلانات مع دعم التشغيل في الخلفية وأعلى دقة 4K.
           </div>
         </div>
 
@@ -3293,6 +3306,7 @@
     // إدارة الروابط المخصصة لدليل الأجهزة (Custom Device Guide Links)
     // ========================================================
     const DEFAULT_GUIDE_LINKS = {
+      setup_apk: 'https://drive.google.com/open?id=1OMlu6O5krdLJYAxYjuzK4DBjuiSrKaw2&usp=drive_fs',
       gmscore: 'https://github.com/ReVanced/GmsCore/releases/download/v0.3.13.2.250932/app.revanced.android.gms-250932004-signed.apk',
       ytplus_apk: 'https://drive.google.com/open?id=1OMlu6O5krdLJYAxYjuzK4DBjuiSrKaw2&usp=drive_fs',
       windows: 'https://drive.google.com/file/d/1Wl4OmIzUXocBEnRgnADK_Ey-pxbvw6Cl/view?usp=drive_link',
@@ -3305,12 +3319,14 @@
         let saved = localStorage.getItem('yt_custom_guide_links');
         let links = saved ? JSON.parse(saved) : (currentSettings.guide_links || {});
 
+        const setupEl = document.getElementById('guideSetupApkLink');
         const gmsEl = document.getElementById('guideGmsCoreLink');
         const ytEl = document.getElementById('guideYtPlusApkLink');
         const winEl = document.getElementById('guideWindowsInput');
         const extEl = document.getElementById('guideBrowserExtLink');
         const iosEl = document.getElementById('guideIosLink');
 
+        if (setupEl) setupEl.value = links.setup_apk || currentSettings.setup_apk_link || DEFAULT_GUIDE_LINKS.setup_apk;
         if (gmsEl) gmsEl.value = links.gmscore || DEFAULT_GUIDE_LINKS.gmscore;
         if (ytEl) ytEl.value = links.ytplus_apk || currentSettings.apk_drive_link || DEFAULT_GUIDE_LINKS.ytplus_apk;
         if (winEl) winEl.value = links.windows || currentSettings.windows_drive_link || DEFAULT_GUIDE_LINKS.windows;
@@ -3324,18 +3340,21 @@
     }
 
     function updateGuideButtons() {
+      const setupVal = document.getElementById('guideSetupApkLink')?.value?.trim();
       const gmsVal = document.getElementById('guideGmsCoreLink')?.value?.trim();
       const ytVal = document.getElementById('guideYtPlusApkLink')?.value?.trim();
       const winVal = document.getElementById('guideWindowsInput')?.value?.trim();
       const extVal = document.getElementById('guideBrowserExtLink')?.value?.trim();
       const iosVal = document.getElementById('guideIosLink')?.value?.trim();
 
+      const setupBtn = document.getElementById('guideSetupApkDownloadBtn');
       const gmsBtn = document.getElementById('guideGmsCoreDownloadBtn');
       const ytBtn = document.getElementById('guideYtPlusApkDownloadBtn');
       const winBtn = document.getElementById('guideWindowsDownloadBtn');
       const extBtn = document.getElementById('guideBrowserExtDownloadBtn');
       const iosBtn = document.getElementById('guideIosDownloadBtn');
 
+      if (setupBtn && setupVal) setupBtn.href = setupVal;
       if (gmsBtn && gmsVal) gmsBtn.href = gmsVal;
       if (ytBtn && ytVal) ytBtn.href = ytVal;
       if (winBtn && winVal) winBtn.href = winVal;
@@ -3345,6 +3364,7 @@
 
     async function saveCustomGuideLinks() {
       const links = {
+        setup_apk: document.getElementById('guideSetupApkLink')?.value?.trim() || DEFAULT_GUIDE_LINKS.setup_apk,
         gmscore: document.getElementById('guideGmsCoreLink')?.value?.trim() || DEFAULT_GUIDE_LINKS.gmscore,
         ytplus_apk: document.getElementById('guideYtPlusApkLink')?.value?.trim() || DEFAULT_GUIDE_LINKS.ytplus_apk,
         windows: document.getElementById('guideWindowsInput')?.value?.trim() || DEFAULT_GUIDE_LINKS.windows,
@@ -3366,6 +3386,7 @@
               'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
+              setup_apk_link: links.setup_apk,
               apk_drive_link: links.ytplus_apk,
               windows_drive_link: links.windows,
               guide_links: links
@@ -3381,12 +3402,14 @@
       if (!confirm('هل أنت متأكد من استعادة كافة روابط الدليل الافتراضية؟')) return;
 
       localStorage.removeItem('yt_custom_guide_links');
+      const setupEl = document.getElementById('guideSetupApkLink');
       const gmsEl = document.getElementById('guideGmsCoreLink');
       const ytEl = document.getElementById('guideYtPlusApkLink');
       const winEl = document.getElementById('guideWindowsInput');
       const extEl = document.getElementById('guideBrowserExtLink');
       const iosEl = document.getElementById('guideIosLink');
 
+      if (setupEl) setupEl.value = DEFAULT_GUIDE_LINKS.setup_apk;
       if (gmsEl) gmsEl.value = DEFAULT_GUIDE_LINKS.gmscore;
       if (ytEl) ytEl.value = DEFAULT_GUIDE_LINKS.ytplus_apk;
       if (winEl) winEl.value = DEFAULT_GUIDE_LINKS.windows;
@@ -3420,30 +3443,28 @@
       const base = typeof getSystemBaseUrl === 'function' ? getSystemBaseUrl() : 'https://plus.digitalsystemsa.com';
       const webUrl = currentSettings.custom_domain ? (currentSettings.custom_domain.startsWith('http') ? currentSettings.custom_domain : 'https://' + currentSettings.custom_domain) : `${base}/`;
       const extUrl = `${base}/YouTube_PLUS_Browser_Extension.zip`;
-      const gmscoreUrl = document.getElementById('guideGmsCoreLink')?.value || 'https://github.com/ReVanced/GmsCore/releases/download/v0.3.13.2.250932/app.revanced.android.gms-250932004-signed.apk';
-      const ytPlusApkUrl = document.getElementById('guideYtPlusApkLink')?.value || 'https://drive.google.com/open?id=1OMlu6O5krdLJYAxYjuzK4DBjuiSrKaw2&usp=drive_fs';
-      const windowsUrl = document.getElementById('guideWindowsInput')?.value || 'https://drive.google.com/file/d/1Wl4OmIzUXocBEnRgnADK_Ey-pxbvw6Cl/view?usp=drive_link';
+      const setupApkUrl = document.getElementById('guideSetupApkLink')?.value || DEFAULT_GUIDE_LINKS.setup_apk;
+      const gmscoreUrl = document.getElementById('guideGmsCoreLink')?.value || DEFAULT_GUIDE_LINKS.gmscore;
+      const ytPlusApkUrl = document.getElementById('guideYtPlusApkLink')?.value || DEFAULT_GUIDE_LINKS.ytplus_apk;
+      const windowsUrl = document.getElementById('guideWindowsInput')?.value || DEFAULT_GUIDE_LINKS.windows;
 
       let text = '';
 
       if (device === 'android') {
-        text = `📱 *طريقة تشغيل YouTube+ (أجهزة الأندرويد والشاشات الذكية)*
+        text = `📱 *طريقة تشغيل +YouTube (أجهزة الأندرويد والشاشات الذكية)*
 
-⚠️ *ملاحظة هامة:* يتطلب تشغيل النظام تثبيت تطبيقين بالترتيب التالي:
-
-1️⃣ *أولاً:* تطبيق خدمات التشغيل "GmsCore":
-(بديل ذكي لخدمات Google لتسجيل الدخول والتشغيل في الخلفية)
+🌟 *تثبيت سهل وسريع بضغطة زر واحدة (المثبت الذكي الموحد):*
+1️⃣ *تحميل مثبت التطبيق الموحد:*
 🔗 رابط التحميل المباشر:
-${gmscoreUrl}
+${setupApkUrl}
 
-2️⃣ *ثانياً:* تطبيق يوتيوب بلس (YouTube PLUS):
-🔗 رابط التحميل من قوقل درايف:
-${ytPlusApkUrl}
-
-3️⃣ *التفعيل والاستمتاع:*
-افتح تطبيق يوتيوب بلس، وأدخل كود الاشتراك الخاص بك (PLUS-XXXX-XXXX-XXXX). سيعمل يوتيوب بلس فوراً بمزايا يوتيوب بريميوم الرسمية بدون إعلانات مع دعم التشغيل في الخلفية وأعلى دقة 4K! 🌟`;
+2️⃣ *التثبيت والتفعيل:*
+- افتح مثبت التطبيق بعد تحميله واضغط على "تثبيت وتفعيل +YouTube".
+- سيتم تثبيت التطبيق والخدمات تلقائياً بتوافق 100% مع كافة الأجهزة (بما فيها أندرويد 14 و 15 وهواتف تكنو وسامسونج وشاشات التلفزيون).
+- افتح التطبيق، وأدخل كود الاشتراك الخاص بك (PLUS-XXXX-XXXX-XXXX).
+- استمتع بيوتيوب بدون إعلانات نهائياً وبأعلى دقة 4K مع ميزة التشغيل في الخلفية! 🌟`;
       } else if (device === 'pc') {
-        text = `💻 *طريقة تشغيل YouTube+ (أجهزة الكمبيوتر والماك)*
+        text = `💻 *طريقة تشغيل +YouTube (أجهزة الكمبيوتر والماك)*
 
 1️⃣ *تحميل برنامج يوتيوب بلس الرسمي للكمبيوتر والماك:*
 🔗 رابط التحميل المباشر من قوقل درايف:
@@ -3454,7 +3475,7 @@ ${windowsUrl}
 - افتح البرنامج، وأدخل كود الاشتراك الخاص بك (PLUS-XXXX-XXXX-XXXX).
 - سيعمل البرنامج فوراً بواجهة يوتيوب الأصلية الرسمية وبدون أي إعلانات مع دعم تسجيل الدخول بحساب Google الرسمي! 🌟`;
       } else if (device === 'browser') {
-        text = `🌐 *طريقة تشغيل YouTube+ عبر إضافة المتصفح (Chrome / Edge / Brave / Mac / Windows)*
+        text = `🌐 *طريقة تشغيل +YouTube عبر إضافة المتصفح (Chrome / Edge / Brave / Mac / Windows)*
 
 1️⃣ *تحميل ملف الإضافة:*
 🔗 رابط التحميل المباشر لحزمة الإضافة (ZIP):
@@ -3471,7 +3492,7 @@ ${extUrl}
 3️⃣ *التفعيل:*
 افتح موقع www.youtube.com وأدخل كود التفعيل الخاص بك ليعمل معك يوتيوب بريميوم بدون إعلانات وبكافة الميزات الاحترافية! 🌟`;
       } else if (device === 'ios') {
-        text = `🍏 *طريقة تشغيل YouTube+ (أجهزة الآيفون والآيباد iOS)*
+        text = `🍏 *طريقة تشغيل +YouTube (أجهزة الآيفون والآيباد iOS)*
 
 1️⃣ افتح متصفح Safari في الآيفون وادخل على الرابط:
 🔗 ${webUrl}
@@ -3480,15 +3501,13 @@ ${extUrl}
 
 3️⃣ اختر من القائمة: "إضافة إلى الشاشة الرئيسية" (Add to Home Screen).
 
-4️⃣ ستظهر أيقونة تطبيق YouTube+ على شاشة جهازك كبرنامج مستقل؛ افتحه وأدخل كود التفعيل الخاص بك (PLUS-XXXX-XXXX-XXXX) واستمتع بالمشاهدة بدون إعلانات وبجلسة دائمة! 🌟`;
+4️⃣ ستظهر أيقونة تطبيق +YouTube على شاشة جهازك كبرنامج مستقل؛ افتحه وأدخل كود التفعيل الخاص بك (PLUS-XXXX-XXXX-XXXX) واستمتع بالمشاهدة بدون إعلانات وبجلسة دائمة! 🌟`;
       } else if (device === 'all') {
-        text = `🌟 *دليل تشغيل YouTube+ الشامل لكافة الأجهزة* 🌟
+        text = `🌟 *دليل تشغيل +YouTube الشامل لكافة الأجهزة* 🌟
 
 📱 *1. أجهزة الأندرويد والشاشات الذكية (Android & Smart TV):*
-- تطبيق خدمات التشغيل (GmsCore):
-${gmscoreUrl}
-- تطبيق يوتيوب بلس (YouTube PLUS):
-${ytPlusApkUrl}
+- رابط المثبت الموحد بضغطة زر (يدعم أندرويد 14 و 15):
+${setupApkUrl}
 
 💻 *2. تطبيق الكمبيوتر والماك (Windows & Mac):*
 - رابط التحميل المباشر:
@@ -3560,8 +3579,12 @@ ${extUrl}
         const devCount = l.max_devices || 1;
         const devText = devCount === 1 ? 'جهاز واحد' : `${devCount} أجهزة`;
 
+        const setupApkLink = document.getElementById('guideSetupApkLink')?.value?.trim() || DEFAULT_GUIDE_LINKS.setup_apk;
+        const winLink = document.getElementById('guideWindowsInput')?.value?.trim() || DEFAULT_GUIDE_LINKS.windows;
+        const extLink = document.getElementById('guideBrowserExtLink')?.value?.trim() || DEFAULT_GUIDE_LINKS.browser_ext;
+
         msg = `مرحباً بك! 🎉
-يسعدنا انضمامك إلى خدمة YouTube+ - النظام الرقمي (بدون إعلانات وبأعلى دقة 4K).
+يسعدنا انضمامك إلى خدمة +YouTube - النظام الرقمي (بدون إعلانات وبأعلى دقة 4K).
 
 🔑 كود التفعيل الخاص بك:
 ${l.serial_key}
@@ -3580,21 +3603,18 @@ ${l.serial_key}
 *ثم أدخل كود التفعيل أعلاه واستمتع فوراً بمزايا يوتيوب بريميوم بدون إعلانات مع دعم التشغيل في الخلفية!*
 _________________
 
-*خيارات التحميل الإضافية والتطبيقات البديلة:*
+*خيارات التحميل الإضافية وتطبيقات التثبيت المباشر:*
 
-أجهزة الاندرويد والشاشات:
-1. تطبيق خدمات التشغيل "GmsCore.apk":
-https://github.com/ReVanced/GmsCore/releases/download/v0.3.13.2.250932/app.revanced.android.gms-250932004-signed.apk
-2. تطبيق يوتيوب بلس (YouTube_PLUS.apk):
-https://drive.google.com/open?id=1OMlu6O5krdLJYAxYjuzK4DBjuiSrKaw2&usp=drive_fs
+🤖 أجهزة الأندرويد والشاشات (مثبت +YouTube الموحد بضغطة زر):
+👉 ${setupApkLink}
 _________________
 
-تطبيق الكمبيوتر (ويندوز + ماك):
-https://drive.google.com/file/d/1Wl4OmIzUXocBEnRgnADK_Ey-pxbvw6Cl/view?usp=drive_link
+💻 تطبيق الكمبيوتر (ويندوز + ماك):
+👉 ${winLink}
 _________________
 
-إضافة المتصفحات (Chrome / Edge / Mac):
-https://plus.digitalsystemsa.com/YouTube_PLUS_Browser_Extension.zip
+🌐 إضافة المتصفحات (Chrome / Edge / Mac):
+👉 ${extLink}
 
 نتمنى لك مشاهدة ممتعة ومميزة دائماً! ❤️`;
       } else if (type === 'reminder') {

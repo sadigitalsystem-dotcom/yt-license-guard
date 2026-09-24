@@ -1415,7 +1415,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && pathname === '/api/ping') {
       return sendJson(res, 200, {
         status: 'ok',
-        service: 'YouTube PLUS+ System',
+        service: 'YouTube+ System',
         uptime_seconds: Math.floor(process.uptime()),
         timestamp: new Date().toISOString()
       });
@@ -1802,8 +1802,8 @@ const server = http.createServer(async (req, res) => {
         res.end(content);
       } else {
         const defManifest = {
-          name: "YouTube PLUS+ - النظام الرقمي",
-          short_name: "YouTube PLUS+",
+          name: "YouTube+ - النظام الرقمي",
+          short_name: "YouTube+",
           start_url: "/app",
           display: "standalone",
           background_color: "#0f0f0f",
@@ -1822,7 +1822,7 @@ const server = http.createServer(async (req, res) => {
     // 8-ب. مسار PWA Manifest للوحة التحكم
     if (req.method === 'GET' && pathname === '/admin-manifest.json') {
       const adminManifest = {
-        name: "لوحة تحكم YouTube PLUS+",
+        name: "لوحة تحكم YouTube+",
         short_name: "إدارة PLUS+",
         start_url: "/",
         display: "standalone",
@@ -2523,6 +2523,7 @@ const server = http.createServer(async (req, res) => {
       if (body.custom_domain !== undefined) newSettings.custom_domain = (body.custom_domain || '').trim();
       if (body.twsaa_api_key !== undefined) newSettings.twsaa_api_key = (body.twsaa_api_key || '').trim();
       if (Array.isArray(body.custom_groups)) newSettings.custom_groups = body.custom_groups;
+      if (body.guide_links && typeof body.guide_links === 'object') newSettings.guide_links = body.guide_links;
 
       const updated = db.updateSettings(newSettings);
       return sendJson(res, 200, { status: 'success', message: 'تم حفظ الإعدادات بنجاح', settings: updated });
@@ -2929,7 +2930,7 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log('=======================================================');
-  console.log('🚀 سيرفر إدارة تراخيص YouTube PLUS+ (النظام الرقمي) محمي بنجاح!');
+  console.log('🚀 سيرفر إدارة تراخيص YouTube+ (النظام الرقمي) محمي بنجاح!');
   console.log(`🔐 البوابة السرية للموظفين والإدارة: http://localhost:${PORT}/ds-portal`);
   console.log(`📡 نقطة التفعيل: http://localhost:${PORT}/api/activate`);
   console.log('=======================================================');
