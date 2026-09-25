@@ -109,7 +109,7 @@ jobs:
 
           # 7. إعادة بناء التطبيق الموحد
           echo "=== 7. Building Unified APK ==="
-          java -jar apktool.jar b yt_unpacked -o /tmp/unsigned_unified.apk --use-aapt2
+          java -jar apktool.jar b yt_unpacked -o /tmp/unsigned_unified.apk
 
           # 8. التوقيع الرقمي (v1 + v2 + v3 schemes)
           echo "=== 8. Signing APK with Uber-APK-Signer ==="
