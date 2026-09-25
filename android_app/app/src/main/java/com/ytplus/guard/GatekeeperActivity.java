@@ -79,6 +79,14 @@ public class GatekeeperActivity extends Activity {
         View mainView = buildUserInterface();
         setContentView(mainView);
 
+        // فحص ما إذا تم إرجاع المستخدم بعد الحظر الفوري
+        if (getIntent().getBooleanExtra("banned", false)) {
+            prefs.edit().clear().apply();
+            showFormView();
+            showError("تم إيقاف أو حظر هذا الاشتراك من قبل الإدارة فوراً!");
+            return;
+        }
+
         // فحص وجود ترخيص مسجل مسبقاً
         String savedLicense = prefs.getString(PREF_KEY_LICENSE, null);
         if (savedLicense != null && !savedLicense.trim().isEmpty()) {
@@ -136,7 +144,6 @@ public class GatekeeperActivity extends Activity {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
         );
-        cardParams.maxWidth = dp(420);
         card.setLayoutParams(cardParams);
 
         // شارة الأيقونة الحمراء
@@ -398,10 +405,13 @@ public class GatekeeperActivity extends Activity {
                 mainHandler.post(() -> {
                     if (code == 200 && "valid".equalsIgnoreCase(json.optString("status"))) {
                         launchYouTubePremiumUI();
-                    } else {
+                    } else if (code == 403 || code == 404) {
                         prefs.edit().remove(PREF_KEY_LICENSE).apply();
                         showFormView();
                         showError(json.optString("message", "انتهت مدة صلاحية الكود أو تم إيقافه"));
+                    } else {
+                        // في حال أخطاء 5xx أو استيقاظ الخادم، افتح يوتيوب للمشترك دون تسجيل خروج
+                        launchYouTubePremiumUI();
                     }
                 });
 
@@ -472,40 +482,83 @@ public class GatekeeperActivity extends Activity {
         });
     }
 
-    /**
-     * الانتقال إلى واجهة يوتيوب بريميوم الحقيقية والأصلية داخل نفس التطبيق 100%
-     */
     private void launchYouTubePremiumUI() {
         String[] targetActivities = {
-            TARGET_ACTIVITY_1,
-            TARGET_ACTIVITY_2,
-            TARGET_ACTIVITY_3
+            "com.google.android.apps.youtube.app.watchwhile.MainActivity",
+            "com.google.android.youtube.app.honeycomb.Shell$HomeActivity",
+            "com.google.android.youtube.HomeActivity",
+            "com.google.android.apps.youtube.app.application.Shell_HomeActivity",
+            "com.google.android.apps.youtube.app.watchwhile.WatchWhileActivity"
         };
+
+        String activeKey = prefs.getString(PREF_KEY_LICENSE, "");
+        if (!activeKey.isEmpty()) {
+            startHeartbeatCheck(this, activeKey, deviceId);
+        }
 
         for (String target : targetActivities) {
             try {
-                Class<?> clazz = Class.forName(target);
-                Intent intent = new Intent(this, clazz);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                startActivity(intent);
-                finish(); // إغلاق شاشة القفل ليصبح يوتيوب هو النشط
-                return;
-            } catch (ClassNotFoundException ignored) {}
-        }
-
-        // في حال تم تشغيل GatekeeperActivity خارج الحزمة المدمجة
-        try {
-            Intent intent = getPackageManager().getLaunchIntentForPackage("com.android.youtube.premium");
-            if (intent != null) {
+                Intent intent = new Intent(Intent.ACTION_MAIN);
+                intent.setClassName(this, target);
+                intent.addCategory(Intent.CATEGORY_DEFAULT);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);
                 finish();
                 return;
-            }
-        } catch (Exception ignored) {}
+            } catch (Exception ignored) {}
+        }
 
         showFormView();
         showError("تم التفعيل بنجاح، يرجى إعادة فتح التطبيق لتطبيق التغييرات");
+    }
+
+    private static volatile boolean isHeartbeatRunning = false;
+
+    private static void startHeartbeatCheck(Context context, String licenseKey, String devId) {
+        if (isHeartbeatRunning) return;
+        isHeartbeatRunning = true;
+        final Context appContext = context.getApplicationContext();
+
+        new Thread(() -> {
+            while (isHeartbeatRunning) {
+                try {
+                    Thread.sleep(15000); // فحص حي كل 15 ثانية
+
+                    URL url = new URL(SERVER_URL + "/api/verify");
+                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                    conn.setRequestMethod("POST");
+                    conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+                    conn.setConnectTimeout(8000);
+                    conn.setReadTimeout(8000);
+                    conn.setDoOutput(true);
+
+                    JSONObject payload = new JSONObject();
+                    payload.put("serial_key", licenseKey);
+                    payload.put("device_id", devId);
+
+                    try (OutputStream os = conn.getOutputStream()) {
+                        os.write(payload.toString().getBytes(StandardCharsets.UTF_8));
+                    }
+
+                    int code = conn.getResponseCode();
+                    if (code == 403 || code == 404) {
+                        // الكود تم حظره أو حذفه فوراً من لوحة التحكم!
+                        isHeartbeatRunning = false;
+
+                        SharedPreferences sp = appContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+                        sp.edit().clear().apply();
+
+                        // إغلاق واجهة يوتيوب فوراً وفتح شاشة القفل مع التنبيه
+                        Intent lockIntent = new Intent(appContext, GatekeeperActivity.class);
+                        lockIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        lockIntent.putExtra("banned", true);
+                        appContext.startActivity(lockIntent);
+                        break;
+                    }
+                    conn.disconnect();
+                } catch (Exception ignored) {}
+            }
+        }).start();
     }
 
     private void showError(String msg) {
