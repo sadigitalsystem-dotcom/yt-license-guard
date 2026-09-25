@@ -85,19 +85,16 @@ jobs:
           # استبدال أيقونات Morphe المتعددة بالأيقونة الرسمية
           for dir in yt_unpacked/res/mipmap-*; do
             if [ -f "$dir/ic_launcher.png" ]; then
+              cp -f "$dir/ic_launcher.png" "$dir/ic_launcher_round.png" || true
               for f in "$dir"/morphe_launcher_*.png; do
                 [ -f "$f" ] && cp -f "$dir/ic_launcher.png" "$f" || true
               done
             fi
           done
 
-          # استبدال ملفات anydpi للأيقونات المتكيفة (Adaptive Icons)
-          [ -f android_app/icons/res_mipmap-anydpi_ic_launcher.xml ] && cp -f android_app/icons/res_mipmap-anydpi_ic_launcher.xml yt_unpacked/res/mipmap-anydpi/ic_launcher.xml
-          [ -f android_app/icons/res_mipmap-anydpi_ringo2_ic_launcher.xml ] && cp -f android_app/icons/res_mipmap-anydpi_ringo2_ic_launcher.xml yt_unpacked/res/mipmap-anydpi/ringo2_ic_launcher.xml
-          [ -f android_app/icons/res_mipmap-anydpi_ringo2_ic_launcher_round.xml ] && cp -f android_app/icons/res_mipmap-anydpi_ringo2_ic_launcher_round.xml yt_unpacked/res/mipmap-anydpi/ringo2_ic_launcher_round.xml
-          for f in yt_unpacked/res/mipmap-anydpi/morphe_launcher_*.xml; do
-            [ -f "$f" ] && cp -f android_app/icons/res_mipmap-anydpi_ic_launcher.xml "$f" || true
-          done
+          # حذف مجلد anydpi بالكامل لإلغاء أيقونة Morphe وضمان استخدام الأيقونة الرسمية عبر جميع الأجهزة
+          echo "=== Removing anydpi Morphe adaptive icons ==="
+          rm -rf yt_unpacked/res/mipmap-anydpi*
 
           # ب) استبدال شعار YouTube العادي بشعار YouTube Premium في الهيدر العلوي لجميع الدقات
           echo "=== Enforcing YouTube Premium Wordmark Header ==="
@@ -121,6 +118,8 @@ jobs:
 
           # تعديل اسم التطبيق الرسمي ليكون YouTube مطابقاً للأصلي
           content = re.sub(r'android:label="[^"]*"', 'android:label="YouTube"', content, count=1)
+          content = re.sub(r'android:icon="@[^"]*"', 'android:icon="@mipmap/ic_launcher"', content, count=1)
+          content = re.sub(r'android:roundIcon="@[^"]*"', 'android:roundIcon="@mipmap/ic_launcher"', content, count=1)
 
           # إلغاء أيقونة التشغيل السابقة لضمان عدم فتح يوتيوب مباشرة بدون تفعيل
           content = content.replace('<category android:name="android.intent.category.LAUNCHER"/>', '<!-- launcher switched -->')
