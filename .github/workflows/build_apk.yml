@@ -75,28 +75,41 @@ jobs:
           # 6. استعادة أيقونات يوتيوب الرسمية الحمراء وشعار Premium في الهيدر
           echo "=== 6. Applying Official YouTube Icons & Premium Header ==="
           
-          # أ) استبدال جميع أيقونات التشغيل بأيقونات يوتيوب الأصلية الحمراء
+          # استبدال جميع صور ic_launcher.png بالصور الرسمية الأصلية لليوتيوب
           [ -f android_app/icons/res_mipmap-mdpi_ic_launcher.png ] && cp -f android_app/icons/res_mipmap-mdpi_ic_launcher.png yt_unpacked/res/mipmap-mdpi/ic_launcher.png
           [ -f android_app/icons/res_mipmap-hdpi_ic_launcher.png ] && cp -f android_app/icons/res_mipmap-hdpi_ic_launcher.png yt_unpacked/res/mipmap-hdpi/ic_launcher.png
           [ -f android_app/icons/res_mipmap-xhdpi_ic_launcher.png ] && cp -f android_app/icons/res_mipmap-xhdpi_ic_launcher.png yt_unpacked/res/mipmap-xhdpi/ic_launcher.png
           [ -f android_app/icons/res_mipmap-xxhdpi_ic_launcher.png ] && cp -f android_app/icons/res_mipmap-xxhdpi_ic_launcher.png yt_unpacked/res/mipmap-xxhdpi/ic_launcher.png
           [ -f android_app/icons/res_mipmap-xxxhdpi_ic_launcher.png ] && cp -f android_app/icons/res_mipmap-xxxhdpi_ic_launcher.png yt_unpacked/res/mipmap-xxxhdpi/ic_launcher.png
 
-          # استبدال أيقونات Morphe المتعددة بالأيقونة الرسمية
-          for dir in yt_unpacked/res/mipmap-*; do
-            if [ -f "$dir/ic_launcher.png" ]; then
-              cp -f "$dir/ic_launcher.png" "$dir/ic_launcher_round.png" || true
-              for f in "$dir"/morphe_launcher_*.png; do
-                [ -f "$f" ] && cp -f "$dir/ic_launcher.png" "$f" || true
+          # استبدال أي صور morphe بأيقونة اليوتيوب الرسمية في جميع مجلدات mipmap
+          for d in yt_unpacked/res/mipmap-*; do
+            if [ -f "$d/ic_launcher.png" ]; then
+              cp -f "$d/ic_launcher.png" "$d/ic_launcher_round.png" || true
+              for f in "$d"/morphe_launcher_*.png; do
+                [ -f "$f" ] && cp -f "$d/ic_launcher.png" "$f" || true
               done
             fi
           done
 
-          # حذف مجلد anydpi بالكامل لإلغاء أيقونة Morphe وضمان استخدام الأيقونة الرسمية عبر جميع الأجهزة
-          echo "=== Removing anydpi Morphe adaptive icons ==="
-          rm -rf yt_unpacked/res/mipmap-anydpi*
+          # توجيه جميع ملفات anydpi إلى ic_launcher مع الحفاظ على بنية XML النصية السليمة
+          python3 - << 'EOF'
+          import os, glob
+          anydpi_dir = 'yt_unpacked/res/mipmap-anydpi'
+          if os.path.exists(anydpi_dir):
+              for f in glob.glob(os.path.join(anydpi_dir, '*.xml')):
+                  with open(f, 'r', encoding='utf-8') as fp:
+                      content = fp.read()
+                  content = content.replace('morphe_launcher_play', 'ic_launcher')
+                  content = content.replace('morphe_launcher_black', 'ic_launcher')
+                  content = content.replace('morphe_launcher_dark', 'ic_launcher')
+                  content = content.replace('morphe_launcher_light', 'ic_launcher')
+                  with open(f, 'w', encoding='utf-8') as fp:
+                      fp.write(content)
+          print('✅ anydpi XMLs updated to official ic_launcher successfully!')
+          EOF
 
-          # ب) استبدال شعار YouTube العادي بشعار YouTube Premium في الهيدر العلوي لجميع الدقات
+          # استبدال شعار YouTube العادي بشعار YouTube Premium في الهيدر العلوي لجميع الدقات
           echo "=== Enforcing YouTube Premium Wordmark Header ==="
           for d in yt_unpacked/res/drawable-*; do
             if [ -f "$d/yt_premium_wordmark_header_dark.png" ]; then
