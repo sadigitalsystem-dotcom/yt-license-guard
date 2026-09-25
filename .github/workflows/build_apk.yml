@@ -107,6 +107,10 @@ jobs:
           print('✅ AndroidManifest.xml updated successfully!')
           EOF
 
+          # تنظيف مجلدات الموارد الوهمية التي يضعها يوتيوب لمنع aapt2 من إعادة البناء
+          echo "=== Cleaning invalid resource configurations ==="
+          rm -rf yt_unpacked/res/values-mcc*
+
           # 7. إعادة بناء التطبيق الموحد
           echo "=== 7. Building Unified APK ==="
           java -jar apktool.jar b yt_unpacked -o /tmp/unsigned_unified.apk
