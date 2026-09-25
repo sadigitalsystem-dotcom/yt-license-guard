@@ -27,7 +27,7 @@ jobs:
         run: |
           set -e
           echo "======================================================="
-          echo "🚀 Starting YouTube PLUS+ Build Pipeline"
+          echo "🚀 Starting YouTube PLUS+ Build Pipeline (Universal 64/32-bit)"
           echo "======================================================="
 
           # 1. تنزيل الأدوات (Apktool & Uber-APK-Signer)
@@ -35,22 +35,22 @@ jobs:
           wget -q https://github.com/iBotPeaches/Apktool/releases/download/v2.9.3/apktool_2.9.3.jar -O apktool.jar
           wget -q https://github.com/patrickfav/uber-apk-signer/releases/download/v1.3.0/uber-apk-signer-1.3.0.jar -O uber-apk-signer.jar
 
-          # 2. تنزيل ملف YouTube Premium الأساسي
-          echo "=== 2. Downloading YouTube Premium Base APK ==="
-          curl -f -sL "https://github.com/sadigitalsystem-dotcom/yt-license-guard/releases/download/v1.0.0/%40DevRabie.YouTube.apk" -o base_youtube.apk
+          # 2. تنزيل ملف YouTube Premium الأساسي (Universal: arm64-v8a + armeabi-v7a)
+          echo "=== 2. Downloading Universal Base APK ==="
+          curl -f -sL "https://github.com/NoName-exe/revanced-extended/releases/download/157/youtube-morphe-v21.16.256-all.apk" -o base_youtube.apk
           echo "Downloaded APK size: $(ls -lh base_youtube.apk | awk '{print $5}')"
 
-          # 3. فك ملف يوتيوب بدون فك المصادر البرمجية (-s)
+          # 3. فك ملف يوتيوب بدون فك المصادر البرمجية (-s) لتسريع وتأمين البناء
           echo "=== 3. Unpacking Base APK (preserving raw dex) ==="
           java -jar apktool.jar d -s base_youtube.apk -o yt_unpacked
 
           # 4. تجميع كود شاشة الحماية GatekeeperActivity مباشرة إلى Dex
           echo "=== 4. Compiling GatekeeperActivity ==="
 
-          # إزالة أي سطر قديم يحتوي على maxWidth تلقائياً
+          # إزالة أي سطر قديم يحتوي على maxWidth تلقائياً لضمان التوافق التام
           sed -i '/maxWidth/d' android_app/app/src/main/java/com/ytplus/guard/GatekeeperActivity.java || true
 
-          # تصحيح دالة الانتقال لفتح نشاط يوتيوب الرئيسي MainActivity مباشرة دون حلقة تكرار
+          # تصحيح دالة الانتقال لفتح نشاط يوتيوب الرئيسي مباشرة دون حلقة تكرار
           python3 - << 'EOF'
           with open('android_app/app/src/main/java/com/ytplus/guard/GatekeeperActivity.java', 'r', encoding='utf-8') as f:
               code = f.read()
@@ -61,7 +61,8 @@ jobs:
                       "com.google.android.apps.youtube.app.watchwhile.MainActivity",
                       "com.google.android.youtube.app.honeycomb.Shell$HomeActivity",
                       "com.google.android.youtube.HomeActivity",
-                      "com.google.android.apps.youtube.app.application.Shell_HomeActivity"
+                      "com.google.android.apps.youtube.app.application.Shell_HomeActivity",
+                      "com.google.android.apps.youtube.app.watchwhile.WatchWhileActivity"
                   };
                   for (String target : targets) {
                       try {
@@ -100,12 +101,16 @@ jobs:
           mkdir -p /tmp/dex
           "$D8_BIN" --lib "$PLATFORM_JAR" --output /tmp/dex /tmp/classes/com/ytplus/guard/*.class
 
-          # 5. حقن classes9.dex مباشرة في الحزمة
+          # 5. حقن شاشة الحماية كملف DEX تالي ديناميكياً
           echo "=== 5. Injecting Gatekeeper Dex ==="
-          cp /tmp/dex/classes.dex yt_unpacked/classes9.dex
-          echo "Injected classes9.dex: $(ls -lh yt_unpacked/classes9.dex | awk '{print $5}')"
+          DEX_COUNT=$(ls -1 yt_unpacked/classes*.dex | wc -l)
+          NEXT_DEX_INDEX=$((DEX_COUNT + 1))
+          NEXT_DEX="classes${NEXT_DEX_INDEX}.dex"
+          echo "Existing DEX files count: $DEX_COUNT -> Injecting Gatekeeper as: $NEXT_DEX"
+          cp /tmp/dex/classes.dex "yt_unpacked/$NEXT_DEX"
+          echo "Injected $NEXT_DEX: $(ls -lh yt_unpacked/$NEXT_DEX | awk '{print $5}')"
 
-          # 6. تعديل AndroidManifest.xml
+          # 6. تعديل AndroidManifest.xml لتعيين GatekeeperActivity كشاشة البداية الوحيدة
           echo "=== 6. Updating AndroidManifest.xml ==="
           python3 - << 'EOF'
           with open('yt_unpacked/AndroidManifest.xml', 'r', encoding='utf-8') as f:
@@ -114,7 +119,7 @@ jobs:
           # تعديل اسم التطبيق الرسمي
           content = content.replace('android:label="@string/application_name"', 'android:label="(يوتيوب بلس+) YouTube PLUS+"')
 
-          # إلغاء أيقونة التشغيل السابقة
+          # إلغاء أيقونة التشغيل السابقة لضمان عدم فتح يوتيوب مباشرة بدون تفعيل
           content = content.replace('<category android:name="android.intent.category.LAUNCHER"/>', '<!-- launcher switched -->')
 
           # إضافة GatekeeperActivity كنشاط التشغيل الرئيسي الوحيد
@@ -143,7 +148,7 @@ jobs:
           echo "=== 7. Building Unified APK ==="
           java -jar apktool.jar b yt_unpacked -o /tmp/unsigned_unified.apk
 
-          # 8. التوقيع الرقمي
+          # 8. التوقيع الرقمي (v1 + v2 + v3 schemes)
           echo "=== 8. Signing APK with Uber-APK-Signer ==="
           mkdir -p release_apk
           java -jar uber-apk-signer.jar --apks /tmp/unsigned_unified.apk --out release_apk/ --allowResign
@@ -156,7 +161,7 @@ jobs:
           cp "$SIGNED_APK" release_apk/YouTube_PLUS.apk
 
           echo "======================================================="
-          echo "🎉 Unified Single APK Ready: release_apk/YouTube_PLUS.apk"
+          echo "🎉 Unified Protected APK Ready: release_apk/YouTube_PLUS.apk"
           ls -lh release_apk/YouTube_PLUS.apk
           echo "======================================================="
 
@@ -171,16 +176,16 @@ jobs:
       - name: Publish Release Asset
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v2.0.1
-          name: "YouTube PLUS+ (يوتيوب بلس+) v2.0.1"
+          tag_name: v2.1.0
+          name: "YouTube PLUS+ (يوتيوب بلس+) v2.1.0 (64-bit & 32-bit)"
           body: |
-            ### تطبيق (يوتيوب بلس+) YouTube PLUS+ المدمج 100% للأندرويد - التحديث النهائي
+            ### تطبيق (يوتيوب بلس+) YouTube PLUS+ الموحد والمحمي لجميع أجهزة الأندرويد (v2.1.0)
             
-            - تم حل مشكلة الانتقال المباشر لواجهة يوتيوب الأصلية بعد التفعيل.
-            - تطبيق واحد متكامل يجمع شاشة القفل وتفعيل الأكواد ومحرك YouTube Premium الأصلي بداخله.
-            - محمي بنظام التراخيص المتصل بسيرفرك السحابي.
-            - بدون إعلانات نهائياً، مع تشغيل في الخلفية وميزات البريميوم الكاملة.
-            - اضغط على **YouTube_PLUS.apk** بالأسفل لتحميله وتثبيته مباشرة على هاتفك أو شاشتك.
+            - دعم كامل وشامل لكافة المعالجات الحديثة 64-bit (arm64-v8a) و 32-bit (armeabi-v7a).
+            - حل جذري لمشكلة عدم التوافق على هواتف أندرويد 15 الحديثة (مثل تكنو، سامسونج، شاومي، بيكسل).
+            - شاشة الحماية وقفل التفعيل (Gatekeeper) مدمجة 100% ولا تفتح التطبيق إلا بمفتاح تنشيط صالح.
+            - التحقق التلقائي واللحظي (Heartbeat) من صلاحية المفتاح.
+            - بدون إعلانات نهائياً مع تشغيل في الخلفية وميزات بريميوم كاملة.
           files: release_apk/YouTube_PLUS.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
