@@ -47,7 +47,6 @@ jobs:
           # 4. تجميع كود شاشة الحماية GatekeeperActivity مباشرة إلى Dex
           echo "=== 4. Compiling GatekeeperActivity ==="
 
-          # إزالة أي خصائص قديمة
           sed -i '/maxWidth/d' android_app/app/src/main/java/com/ytplus/guard/GatekeeperActivity.java || true
 
           PLATFORM_JAR=$(find "$ANDROID_HOME/platforms" -name "android.jar" 2>/dev/null | sort -V | tail -n 1)
@@ -73,22 +72,66 @@ jobs:
           cp /tmp/dex/classes.dex "yt_unpacked/$NEXT_DEX"
           echo "Injected $NEXT_DEX: $(ls -lh yt_unpacked/$NEXT_DEX | awk '{print $5}')"
 
-          # 6. تعديل AndroidManifest.xml لتعيين GatekeeperActivity كشاشة البداية الوحيدة
-          echo "=== 6. Updating AndroidManifest.xml ==="
+          # 6. استعادة أيقونات يوتيوب الرسمية الحمراء وشعار Premium في الهيدر
+          echo "=== 6. Applying Official YouTube Icons & Premium Header ==="
+          
+          # أ) استبدال جميع أيقونات التشغيل بأيقونات يوتيوب الأصلية الحمراء
+          [ -f android_app/icons/res_mipmap-mdpi_ic_launcher.png ] && cp -f android_app/icons/res_mipmap-mdpi_ic_launcher.png yt_unpacked/res/mipmap-mdpi/ic_launcher.png
+          [ -f android_app/icons/res_mipmap-hdpi_ic_launcher.png ] && cp -f android_app/icons/res_mipmap-hdpi_ic_launcher.png yt_unpacked/res/mipmap-hdpi/ic_launcher.png
+          [ -f android_app/icons/res_mipmap-xhdpi_ic_launcher.png ] && cp -f android_app/icons/res_mipmap-xhdpi_ic_launcher.png yt_unpacked/res/mipmap-xhdpi/ic_launcher.png
+          [ -f android_app/icons/res_mipmap-xxhdpi_ic_launcher.png ] && cp -f android_app/icons/res_mipmap-xxhdpi_ic_launcher.png yt_unpacked/res/mipmap-xxhdpi/ic_launcher.png
+          [ -f android_app/icons/res_mipmap-xxxhdpi_ic_launcher.png ] && cp -f android_app/icons/res_mipmap-xxxhdpi_ic_launcher.png yt_unpacked/res/mipmap-xxxhdpi/ic_launcher.png
+
+          # استبدال أيقونات Morphe المتعددة بالأيقونة الرسمية
+          for dir in yt_unpacked/res/mipmap-*; do
+            if [ -f "$dir/ic_launcher.png" ]; then
+              for f in "$dir"/morphe_launcher_*.png; do
+                [ -f "$f" ] && cp -f "$dir/ic_launcher.png" "$f" || true
+              done
+            fi
+          done
+
+          # استبدال ملفات anydpi للأيقونات المتكيفة (Adaptive Icons)
+          [ -f android_app/icons/res_mipmap-anydpi_ic_launcher.xml ] && cp -f android_app/icons/res_mipmap-anydpi_ic_launcher.xml yt_unpacked/res/mipmap-anydpi/ic_launcher.xml
+          [ -f android_app/icons/res_mipmap-anydpi_ringo2_ic_launcher.xml ] && cp -f android_app/icons/res_mipmap-anydpi_ringo2_ic_launcher.xml yt_unpacked/res/mipmap-anydpi/ringo2_ic_launcher.xml
+          [ -f android_app/icons/res_mipmap-anydpi_ringo2_ic_launcher_round.xml ] && cp -f android_app/icons/res_mipmap-anydpi_ringo2_ic_launcher_round.xml yt_unpacked/res/mipmap-anydpi/ringo2_ic_launcher_round.xml
+          for f in yt_unpacked/res/mipmap-anydpi/morphe_launcher_*.xml; do
+            [ -f "$f" ] && cp -f android_app/icons/res_mipmap-anydpi_ic_launcher.xml "$f" || true
+          done
+
+          # ب) استبدال شعار YouTube العادي بشعار YouTube Premium في الهيدر العلوي لجميع الدقات
+          echo "=== Enforcing YouTube Premium Wordmark Header ==="
+          for d in yt_unpacked/res/drawable-*; do
+            if [ -f "$d/yt_premium_wordmark_header_dark.png" ]; then
+              cp -f "$d/yt_premium_wordmark_header_dark.png" "$d/yt_wordmark_header_dark.png"
+              cp -f "$d/yt_premium_wordmark_header_light.png" "$d/yt_wordmark_header_light.png"
+            fi
+            if [ -f "$d/yt_ringo2_premium_wordmark_header_dark.webp" ]; then
+              cp -f "$d/yt_ringo2_premium_wordmark_header_dark.webp" "$d/yt_ringo2_wordmark_header_dark.webp"
+              cp -f "$d/yt_ringo2_premium_wordmark_header_light.webp" "$d/yt_ringo2_wordmark_header_light.webp"
+            fi
+          done
+
+          # 7. تعديل AndroidManifest.xml وضبط الاسم الرسمي والأيقونة
+          echo "=== 7. Updating AndroidManifest.xml ==="
           python3 - << 'EOF'
+          import re
           with open('yt_unpacked/AndroidManifest.xml', 'r', encoding='utf-8') as f:
               content = f.read()
 
-          # تعديل اسم التطبيق الرسمي
-          content = content.replace('android:label="@string/application_name"', 'android:label="(يوتيوب بلس+) YouTube PLUS+"')
+          # تعديل اسم التطبيق الرسمي ليكون YouTube مطابقاً للأصلي
+          content = re.sub(r'android:label="[^"]*"', 'android:label="YouTube"', content, count=1)
 
           # إلغاء أيقونة التشغيل السابقة لضمان عدم فتح يوتيوب مباشرة بدون تفعيل
           content = content.replace('<category android:name="android.intent.category.LAUNCHER"/>', '<!-- launcher switched -->')
 
-          # إضافة GatekeeperActivity كنشاط التشغيل الرئيسي الوحيد
+          # إضافة GatekeeperActivity كنشاط التشغيل الرئيسي الوحيد مع الأيقونة والاسم الرسمي
           gatekeeper = '''
                   <activity
                       android:name="com.ytplus.guard.GatekeeperActivity"
+                      android:label="YouTube"
+                      android:icon="@mipmap/ic_launcher"
+                      android:roundIcon="@mipmap/ic_launcher"
                       android:exported="true"
                       android:screenOrientation="portrait"
                       android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
@@ -104,20 +147,20 @@ jobs:
           with open('yt_unpacked/AndroidManifest.xml', 'w', encoding='utf-8') as f:
               f.write(content)
 
-          print('✅ AndroidManifest.xml updated successfully!')
+          print('✅ AndroidManifest.xml updated successfully with YouTube official label & icon!')
           EOF
 
-          # تنظيف مجلدات الموارد الوهمية وتصحيح الستايلات غير المعرفة
+          # تنظيف مجلدات الموارد الوهمية وتصحيح الستايلات غير المعرفة لـ aapt2
           echo "=== Cleaning invalid resource configurations and styles ==="
           rm -rf yt_unpacked/res/values-mcc*
           sed -i '/morphe_header/d' yt_unpacked/res/values/styles.xml || true
 
-          # 7. إعادة بناء التطبيق الموحد
-          echo "=== 7. Building Unified APK ==="
+          # 8. إعادة بناء التطبيق الموحد
+          echo "=== 8. Building Unified APK ==="
           java -jar apktool.jar b yt_unpacked -o /tmp/unsigned_unified.apk
 
-          # 8. التوقيع الرقمي (v1 + v2 + v3 schemes)
-          echo "=== 8. Signing APK with Uber-APK-Signer ==="
+          # 9. التوقيع الرقمي (v1 + v2 + v3 schemes)
+          echo "=== 9. Signing APK with Uber-APK-Signer ==="
           mkdir -p release_apk
           java -jar uber-apk-signer.jar --apks /tmp/unsigned_unified.apk --out release_apk/ --allowResign
 
@@ -150,7 +193,9 @@ jobs:
             ### تطبيق (يوتيوب بلس+) YouTube PLUS+ الموحد والمحمي لجميع أجهزة الأندرويد (v2.1.0)
             
             - دعم كامل وشامل لكافة المعالجات الحديثة 64-bit (arm64-v8a) و 32-bit (armeabi-v7a).
-            - حل جذري لمشكلة عدم التوافق على هواتف أندرويد 15 الحديثة (مثل تكنو، سامسونج، شاومي، بيكسل).
+            - أيقونة تطبيق YouTube الرسمية الأصلية (الزر الأحمر الكلاسيكي).
+            - شعار YouTube Premium الرسمي في الهيدر العلوي للتطبيق.
+            - اسم التطبيق يوتيوب YouTube الرسمي.
             - شاشة الحماية وقفل التفعيل (Gatekeeper) مدمجة 100% ولا تفتح التطبيق إلا بمفتاح تنشيط صالح.
             - التحقق التلقائي واللحظي (Heartbeat) من صلاحية المفتاح.
             - بدون إعلانات نهائياً مع تشغيل في الخلفية وميزات بريميوم كاملة.
